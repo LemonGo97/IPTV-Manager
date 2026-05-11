@@ -14,6 +14,7 @@ lmax-disruptor = "4.0.0"
 sqlite-driver = "3.51.3.0"
 spring-boot = "4.0.5"
 spring-dependency-management = "1.1.7"
+node-gradle-plugin = "7.1.0"
 commons-net = "3.13.0"
 seancfoley-ipaddress = "5.6.2"
 commons-compress = "1.28.0"
@@ -166,3 +167,4 @@ spring-boot-web = [
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+node-gradle = {id = "com.github.node-gradle.node", version.ref = "node-gradle-plugin"}
