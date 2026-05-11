@@ -632,42 +632,183 @@ frontend/src/views/
 import { request } from '@/utils'
 
 export default {
+  // 获取列表（带分页和查询参数）
   getAll: (params) => request.get('/api/xxx', { params }),
+  // 获取单个详情
   getById: (id) => request.get(`/api/xxx/${id}`),
+  // 创建
   create: (data) => request.post('/api/xxx', data),
+  // 更新
   update: (id, data) => request.put(`/api/xxx/${id}`, data),
+  // 删除
   delete: (id) => request.delete(`/api/xxx/${id}`),
 }
 ```
 
 **2. 创建页面组件** `frontend/src/views/功能目录/index.vue`：
+
+页面组件必须正确导入所需的组件和工具：
+
 ```vue
 <template>
-  <me-crud :api="api" :columns="columns" />
+  <CommonPage>
+    <template #action>
+      <NButton type="primary" @click="handleAdd()">
+        <i class="i-material-symbols:add mr-4 text-18" />
+        添加
+      </NButton>
+    </template>
+
+    <MeCrud
+      ref="$table"
+      v-model:query-items="queryItems"
+      :columns="columns"
+      :get-data="api.getAll"
+    >
+      <!-- 查询条件 -->
+      <MeQueryItem label="名称" :label-width="50">
+        <n-input v-model:value="queryItems.name" placeholder="请输入" clearable />
+      </MeQueryItem>
+    </MeCrud>
+
+    <!-- 表单弹窗 -->
+    <MeModal ref="modalRef" width="600px">
+      <n-form ref="modalFormRef" :model="modalForm" label-width="100">
+        <!-- 表单内容 -->
+      </n-form>
+    </MeModal>
+  </CommonPage>
 </template>
 
 <script setup>
+// 导入 Naive UI 组件
+import { NButton, NTag } from 'naive-ui'
+// 导入业务组件
+import { MeCrud, MeModal, MeQueryItem } from '@/components'
+// 导入 composable
+import { useCrud } from '@/composables'
+// 导入 API
 import api from './api'
+
+const $table = ref(null)
+const queryItems = reactive({
+  name: '',
+})
+
+const columns = [
+  { title: 'ID', key: 'id', width: 80 },
+  { title: '名称', key: 'name', ellipsis: { tooltip: true } },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 150,
+    fixed: 'right',
+    render: row =>
+      h('div', { class: 'flex gap-8' }, [
+        h(NButton, { size: 'small', onClick: () => handleOpen(row) }, { default: () => '编辑' }),
+        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
+      ]),
+  },
+]
+
+// 使用 useCrud 管理表单和弹窗
+const {
+  modalRef,
+  modalFormRef,
+  modalForm,
+  modalAction,
+  handleAdd,
+  handleDelete,
+  handleOpen,
+  handleSave,
+} = useCrud({
+  name: '实体名称',
+  initForm: { /* 初始表单值 */ },
+  doCreate: api.create,
+  doDelete: api.delete,
+  doUpdate: api.update,
+  refresh: () => $table.value?.handleSearch(),
+})
+
+onMounted(() => {
+  $table.value?.handleSearch()
+})
+
+defineOptions({
+  name: 'ComponentName',
+})
+</script>
 ```
 
 **3. 添加菜单** `frontend/src/settings.js`：
+
+菜单配置必须包含 `component` 字段，格式为 `/src/views/...`：
+
 ```javascript
 export const basePermissions = [
-  // ... 现有菜单
+  // 一级菜单（可选，用于分组）
   {
-    code: '功能代码',          // 唯一标识
-    name: '功能名称',          // 显示名称
-    type: 'MENU',              // 固定值
-    path: '/功能路径',         // URL 路径
-    icon: 'i-me:list',         // 图标
-    order: 10,                 // 排序
-    enable: true,              // 是否启用
-    show: true                 // 是否显示
-  }
+    code: 'ParentMenu',        // 唯一标识
+    name: '父菜单',             // 显示名称
+    type: 'MENU',               // 固定值
+    icon: 'i-fe:list',          // 图标
+    order: 10,                  // 排序（数值越小越靠前）
+    enable: true,               // 是否启用
+    show: true,                 // 是否显示
+    children: [                 // 二级菜单数组
+      {
+        code: 'ChildMenu',              // 唯一标识
+        name: '子菜单',                 // 显示名称
+        type: 'MENU',                   // 固定值
+        path: '/child-menu',            // URL 路径
+        component: '/src/views/功能目录/index.vue',  // ⚠️ 必需：组件路径
+        icon: 'i-fe:settings',          // 图标
+        order: 1,                       // 排序
+        enable: true,
+        show: true,
+      },
+    ],
+  },
 ]
 ```
 
+#### 页面开发规范
+
+**组件导入顺序**：
+1. Naive UI 组件（按字母顺序）
+2. 业务组件（`MeCrud`, `MeModal`, `MeQueryItem`）
+3. Composables（`useCrud`）
+4. API 接口
+5. 其他工具函数
+
+**表格列定义**：
+- 使用 `render` 函数渲染复杂内容（标签、按钮等）
+- 固定操作列在右侧：`fixed: 'right'`
+- 长文本使用省略号：`ellipsis: { tooltip: true }`
+
+**表单验证**：
+```vue
+<n-form-item
+  label="字段名"
+  path="fieldName"
+  :rule="{
+    required: true,
+    message: '请输入字段名',
+    trigger: ['input', 'blur'],
+  }"
+>
+  <n-input v-model:value="modalForm.fieldName" />
+</n-form-item>
+```
+
 ## 最新更新
+
+### 2026-05-12
+
+- ✅ 创建源管理菜单和页面
+  - 订阅配置页面：支持在线订阅和本地文件上传
+  - 任务历史页面：查看刷新任务历史和详情
+  - 更新前端对接指南，添加页面开发规范
 
 ### 2025-01-12
 
