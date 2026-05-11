@@ -33,9 +33,42 @@ IPTV-Manager/
 │   │   │       ├── db/           # 数据库迁移
 │   │   │       └── mapper/       # MyBatis XML
 │   │   └── test/                # 测试代码
+│   ├── doc/                      # API 文档
 │   └── build.gradle
-├── frontend/                     # 前端模块（当前未启用）
-│   └── build.gradle
+├── frontend/                     # 前端模块
+│   ├── src/
+│   │   ├── api/                 # API 接口定义
+│   │   ├── assets/              # 静态资源
+│   │   ├── components/          # 组件
+│   │   │   ├── common/          # 通用组件
+│   │   │   └── me/             # 业务组件（CRUD、Modal等）
+│   │   ├── composables/         # 组合式函数
+│   │   ├── layouts/             # 布局组件
+│   │   │   ├── full/           # 完整布局（带侧边栏）
+│   │   │   ├── normal/         # 标准布局
+│   │   │   ├── simple/         # 简洁布局
+│   │   │   └── empty/          # 空白布局
+│   │   ├── router/             # 路由配置
+│   │   ├── store/              # Pinia 状态管理
+│   │   │   └── modules/        # Store 模块
+│   │   ├── styles/             # 全局样式
+│   │   ├── utils/              # 工具函数
+│   │   │   ├── http/           # HTTP 请求封装
+│   │   │   └── storage/        # 本地存储
+│   │   ├── views/              # 页面视图
+│   │   │   ├── login/          # 登录页
+│   │   │   ├── home/           # 首页
+│   │   │   ├── pms/            # 权限管理
+│   │   │   └── error-page/     # 错误页
+│   │   ├── App.vue             # 根组件
+│   │   ├── main.js             # 入口文件
+│   │   └── settings.js         # 应用配置
+│   ├── build/                  # 构建插件
+│   ├── public/                 # 公共资源
+│   ├── build.gradle            # Gradle 构建配置
+│   ├── package.json            # npm 依赖
+│   ├── vite.config.js          # Vite 配置
+│   └── uno.config.js           # UnoCSS 配置
 ├── gradle/
 │   ├── libs.versions.toml       # 版本目录（依赖版本管理）
 │   └── repositories.gradle
@@ -81,12 +114,44 @@ IPTV-Manager/
 
 | 方法 | 端点 | 描述 |
 |------|------|------|
-| GET | `/api/providers` | 获取所有 M3U8 源 |
-| GET | `/api/providers/{id}` | 获取指定 M3U8 源 |
-| POST | `/api/providers` | 创建 M3U8 源 |
-| PUT | `/api/providers/{id}` | 更新 M3U8 源 |
-| DELETE | `/api/providers/{id}` | 删除 M3U8 源（逻辑删除） |
-| POST | `/api/providers/{id}/refresh` | 手动刷新 M3U8 源 |
+| GET | `/api/m3u8/provider` | 获取所有 M3U8 源 |
+| GET | `/api/m3u8/provider/{id}` | 获取指定 M3U8 源 |
+| POST | `/api/m3u8/provider` | 创建 M3U8 源 |
+| PUT | `/api/m3u8/provider/{id}` | 更新 M3U8 源 |
+| DELETE | `/api/m3u8/provider/{id}` | 删除 M3U8 源（逻辑删除） |
+| POST | `/api/m3u8/provider/{id}/refresh` | 手动刷新 M3U8 源 |
+
+### 频道管理
+
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| GET | `/api/channel` | 获取所有频道 |
+| GET | `/api/channel/{id}` | 获取指定频道 |
+| GET | `/api/channel/group/{group}` | 根据分组获取频道 |
+| POST | `/api/channel` | 创建频道 |
+| PUT | `/api/channel/{id}` | 更新频道 |
+| DELETE | `/api/channel/{id}` | 删除频道（逻辑删除） |
+
+### 频道组管理
+
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| GET | `/api/channel/group` | 获取所有频道组 |
+| GET | `/api/channel/group/{id}` | 获取指定频道组 |
+| POST | `/api/channel/group` | 创建频道组 |
+| PUT | `/api/channel/group/{id}` | 更新频道组 |
+| DELETE | `/api/channel/group/{id}` | 删除频道组（逻辑删除） |
+
+### EPG 源管理
+
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| GET | `/api/epg/source` | 获取所有 EPG 源 |
+| GET | `/api/epg/source/{id}` | 获取指定 EPG 源 |
+| POST | `/api/epg/source` | 创建 EPG 源 |
+| PUT | `/api/epg/source/{id}` | 更新 EPG 源 |
+| DELETE | `/api/epg/source/{id}` | 删除 EPG 源（逻辑删除） |
+| POST | `/api/epg/source/{id}/refresh` | 手动刷新 EPG 源 |
 
 ### 请求示例
 
@@ -113,6 +178,26 @@ IPTV-Manager/
 
 ```bash
 ./gradlew :backend:bootRun
+```
+
+### 运行前端
+
+```bash
+# 通过 Gradle（推荐）
+./gradlew :frontend:dev
+
+# 直接使用 pnpm
+cd frontend && pnpm dev
+```
+
+### 构建前端
+
+```bash
+# 通过 Gradle（推荐）
+./gradlew :frontend:build
+
+# 直接使用 pnpm
+cd frontend && pnpm build
 ```
 
 ### 运行测试
@@ -273,12 +358,314 @@ Jackson 3.x 将包名从 `com.fasterxml.jackson` 改为 `tools.jackson`：
 
 ## 前端模块
 
-前端模块当前在 `settings.gradle` 中被注释，需要时可启用。
+### 技术栈
 
-配置：
-- Node.js: 24.15.0
-- pnpm: 10.33.2
-- 镜像源: 中科大镜像 (https://mirrors.ustc.edu.cn/node/)
+| 类别 | 技术 | 版本 |
+|------|------|------|
+| 框架 | Vue | 3.5.29 |
+| 构建工具 | Vite | 7.3.1 |
+| 状态管理 | Pinia | 3.0.4 |
+| UI 组件 | Naive UI | 2.43.2 |
+| 原子 CSS | UnoCSS | 66.6.2 |
+| 路由 | Vue Router | 5.0.3 |
+| HTTP 客户端 | Axios | 1.13.5 |
+| 工具库 | @vueuse/core | 14.2.1 |
+| 图表 | ECharts | 6.0.0 |
+| 日期处理 | Day.js | 1.11.19 |
+| 表格处理 | XLSX | 0.18.5 |
+| Node.js | - | 24.15.0 |
+| 包管理器 | pnpm | 10.33.2 |
+
+### 项目模板
+
+基于 [Vue Naive Admin](https://github.com/zclzone/vue-naive-admin) 模板：
+- 极简风格的后台管理模板
+- 扁平化路由设计，支持动态权限
+- 完整的权限管理系统（RBAC）
+- 封装常用业务组件（CRUD、Modal、Page）
+- 支持多主题和国际化
+
+### 开发环境配置
+
+| 配置项 | 开发环境 | 生产环境 |
+|--------|---------|---------|
+| 路由模式 | History | Hash |
+| 代理目标 | `http://localhost:8080` | - |
+| API Mock | Apifox 云端 Mock | Apifox 云端 Mock |
+| 开发服务器 | `0.0.0.0:3200` | - |
+
+### 目录结构
+
+```
+frontend/src/
+├── api/                  # API 接口定义
+│   └── index.js         # 通用 API（用户、权限、认证）
+├── assets/              # 静态资源
+│   ├── icons/           # 图标资源
+│   │   ├── isme/        # 自定义图标
+│   │   └── feather/     # Feather 图标集
+│   └── images/          # 图片资源
+├── components/          # 组件
+│   ├── common/          # 通用组件（Footer、Logo、Theme等）
+│   └── me/              # 业务组件
+│       ├── crud/        # CRUD 表格组件
+│       └── modal/       # 弹窗组件
+├── composables/         # 组合式函数
+│   ├── useAliveData.js  # KeepAlive 状态管理
+│   ├── useCrud.js       # CRUD 操作封装
+│   ├── useForm.js       # 表单处理
+│   └── useModal.js      # 弹窗管理
+├── layouts/             # 布局组件
+│   ├── full/           # 完整布局（侧边栏+头部+标签页）
+│   ├── normal/         # 标准布局（侧边栏+头部）
+│   ├── simple/         # 简洁布局（仅侧边栏）
+│   └── empty/          # 空白布局
+├── router/             # 路由配置
+│   ├── basic-routes.js # 基础路由
+│   ├── guards/         # 路由守卫
+│   └── index.js        # 路由实例
+├── store/              # Pinia 状态管理
+│   └── modules/        # Store 模块
+│       ├── app.js       # 应用状态
+│       ├── auth.js      # 认证状态
+│       ├── permission.js # 权限状态
+│       ├── router.js    # 路由状态
+│       ├── tab.js       # 标签页状态
+│       └── user.js      # 用户状态
+├── styles/             # 全局样式
+│   ├── reset.css       # 样式重置
+│   └── global.css      # 全局样式
+├── utils/              # 工具函数
+│   ├── http/           # HTTP 请求封装
+│   │   ├── index.js    # Axios 实例
+│   │   └── helpers.js  # 请求辅助函数
+│   ├── storage/        # 本地存储封装
+│   ├── naiveTools.js   # Naive UI 工具
+│   └── common.js       # 通用工具
+├── views/              # 页面视图（API 与页面同目录）
+│   ├── login/          # 登录页
+│   │   └── index.vue
+│   ├── home/           # 首页
+│   │   └── index.vue
+│   ├── pms/            # 权限管理系统
+│   │   ├── user/       # 用户管理
+│   │   │   ├── index.vue
+│   │   │   └── api.js
+│   │   ├── role/       # 角色管理
+│   │   │   ├── index.vue
+│   │   │   └── api.js
+│   │   └── resource/   # 资源/菜单管理
+│   │       ├── index.vue
+│   │       └── api.js
+│   ├── error-page/     # 错误页（403、404）
+│   └── profile/        # 个人中心
+├── App.vue             # 根组件
+├── main.js             # 应用入口
+└── settings.js         # 应用配置
+```
+
+### 开发命令
+
+```bash
+# 进入前端目录
+cd frontend
+
+# 安装依赖
+pnpm install
+
+# 启动开发服务器（通过 Gradle）
+./gradlew :frontend:dev
+
+# 启动开发服务器（直接使用 pnpm）
+pnpm dev
+
+# 构建生产版本
+pnpm build
+
+# 预览生产构建
+pnpm preview
+
+# 代码检查
+pnpm lint:fix
+```
+
+### 配置说明
+
+#### Vite 配置 (`vite.config.js`)
+
+- **端口**：3200
+- **代理**：`/api` → 后端 `http://localhost:8080`
+- **别名**：`@` → `src`，`~` → 项目根目录
+- **插件**：
+  - Vue DevTools
+  - UnoCSS
+  - 自动导入 Vue API
+  - 自动导入 Naive UI 组件
+  - 自定义页面路径和图标生成插件
+
+#### UnoCSS 配置 (`uno.config.js`)
+
+- **预设**：Wind3、Attributify、Icons、RemToPx
+- **图标**：支持 `i-` 前缀，内置 `isme` 和 `feather` 图标集
+- **快捷类**：预定义常用样式组合
+- **主题色**：`#316C72`（可通过 CSS 变量自定义）
+
+#### 环境变量
+
+| 变量 | 说明 |
+|------|------|
+| `VITE_USE_HASH` | 是否使用 Hash 路由模式 |
+| `VITE_PUBLIC_PATH` | 资源公共路径 |
+| `VITE_AXIOS_BASE_URL` | Axios 基础路径 |
+| `VITE_PROXY_TARGET` | 代理目标地址 |
+
+### 权限系统
+
+前端实现完整的 RBAC 权限系统：
+
+- **基于角色动态生成路由**：无需手动配置路由
+- **权限验证**：路由守卫自动检查权限
+- **403/404 区分**：无权限跳 403，路由不存在跳 404
+- **菜单资源管理**：后端控制菜单和按钮权限
+- **基础权限**：`basePermissions` 配置无需权限控制的菜单
+
+### 状态管理
+
+使用 Pinia 进行状态管理，支持状态持久化：
+
+- **app**：应用全局状态
+- **auth**：认证和 token 管理
+- **permission**：权限和菜单数据
+- **router**：动态路由管理
+- **tab**：多标签页管理
+- **user**：当前用户信息
+
+### 业务组件封装
+
+#### CRUD 组件 (`components/me/crud`)
+
+- **QueryItem**：查询条件项组件
+- **自动分页**：内置分页逻辑
+- **自动请求**：挂载时自动请求数据
+- **批量操作**：支持批量删除等操作
+
+#### Modal 组件 (`components/me/modal`)
+
+- **表单模态框**：内置表单验证
+- **确认模态框**：二次确认操作
+- **工具方法**：简化的弹窗调用
+
+### API 对接
+
+当前使用 Apifox 云端 Mock 进行开发：
+
+```javascript
+// 开发环境 API 地址
+VITE_AXIOS_BASE_URL = 'https://m1.apifoxmock.com/m1/3776410-3408296-default'
+```
+
+对接后端时，修改 `.env.development`：
+
+```bash
+# 使用代理连接本地后端
+VITE_AXIOS_BASE_URL = '/api'
+VITE_PROXY_TARGET = 'http://localhost:8080'
+```
+
+### 样式规范
+
+- **UnoCSS 原子化 CSS**：优先使用原子类
+- **主题定制**：通过 CSS 变量 `--primary-color` 自定义主题色
+- **响应式设计**：使用 `rem-to-px` 预设，自动转换 rem 单位
+- **深色模式**：内置 Naive UI 深色主题支持
+
+## 前后端集成
+
+> **注意**：暂时先不用管项目的用户登录与权限相关的功能，专注于核心业务功能开发。
+
+### 开发环境配置
+
+1. **启动后端**：`./gradlew :backend:bootRun` → `http://localhost:8080`
+2. **启动前端**：`./gradlew :frontend:dev` → `http://localhost:3200`
+3. **代理配置**：前端通过 Vite 代理将 `/api` 请求转发到后端
+
+### API 文档
+
+完整的 OpenAPI 3.0 格式 API 文档位于：
+- `backend/doc/openapi.yaml`
+
+### Mock 数据说明
+
+当前使用 Apifox 云端 Mock。对接真实后端时，修改 `frontend/.env.development`：
+
+```bash
+# 使用代理连接本地后端
+VITE_AXIOS_BASE_URL = '/api'
+VITE_PROXY_TARGET = 'http://localhost:8080'
+```
+
+### 前端对接指南
+
+> **重要**：暂时先不用管项目的用户登录与权限相关的功能，专注于核心业务功能开发。
+
+#### 文件组织规范
+
+**API 与页面同目录**：每个功能模块的 API 接口文件与页面组件放在同一目录下，便于维护：
+
+```
+frontend/src/views/
+├── m3u8-source/              # M3U8 源管理
+│   ├── index.vue             # 页面组件
+│   └── api.js                # API 接口
+├── channel/                  # 频道管理
+│   ├── index.vue
+│   └── api.js
+└── channel-group/            # 频道组管理
+    ├── index.vue
+    └── api.js
+```
+
+#### 新增功能模块步骤
+
+**1. 创建 API 文件** `frontend/src/views/功能目录/api.js`：
+```javascript
+import { request } from '@/utils'
+
+export default {
+  getAll: (params) => request.get('/api/xxx', { params }),
+  getById: (id) => request.get(`/api/xxx/${id}`),
+  create: (data) => request.post('/api/xxx', data),
+  update: (id, data) => request.put(`/api/xxx/${id}`, data),
+  delete: (id) => request.delete(`/api/xxx/${id}`),
+}
+```
+
+**2. 创建页面组件** `frontend/src/views/功能目录/index.vue`：
+```vue
+<template>
+  <me-crud :api="api" :columns="columns" />
+</template>
+
+<script setup>
+import api from './api'
+```
+
+**3. 添加菜单** `frontend/src/settings.js`：
+```javascript
+export const basePermissions = [
+  // ... 现有菜单
+  {
+    code: '功能代码',          // 唯一标识
+    name: '功能名称',          // 显示名称
+    type: 'MENU',              // 固定值
+    path: '/功能路径',         // URL 路径
+    icon: 'i-me:list',         // 图标
+    order: 10,                 // 排序
+    enable: true,              // 是否启用
+    show: true                 // 是否显示
+  }
+]
+```
 
 ## 最新更新
 
@@ -295,3 +682,9 @@ Jackson 3.x 将包名从 `com.fasterxml.jackson` 改为 `tools.jackson`：
   - 创建 `ScheduledTaskService` 任务管理服务
   - `M3U8ProviderService` 集成自动调度
   - 支持通过 `refreshRate` 配置刷新间隔
+- ✅ 生成 OpenAPI 3.0 格式 API 文档
+- ✅ 添加前端模块文档
+  - 基于 Vue Naive Admin 模板
+  - Vue 3 + Vite + Pinia + UnoCSS + Naive UI
+  - 完整的权限管理系统（RBAC）
+  - 封装的业务组件（CRUD、Modal）
