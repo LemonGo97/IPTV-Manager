@@ -24,6 +24,39 @@ export const naiveThemeOverrides = {
 
 export const basePermissions = [
   {
+    code: 'SourceManage',
+    name: '源管理',
+    type: 'MENU',
+    icon: 'i-fe:list',
+    order: -1,
+    enable: true,
+    show: true,
+    children: [
+      {
+        code: 'SubscribeConfig',
+        name: '订阅配置',
+        type: 'MENU',
+        path: '/source/subscribe',
+        component: '/src/views/source/subscribe/index.vue',
+        icon: 'i-fe:settings',
+        order: 1,
+        enable: true,
+        show: true,
+      },
+      {
+        code: 'TaskHistory',
+        name: '任务历史',
+        type: 'MENU',
+        path: '/source/history',
+        component: '/src/views/source/history/index.vue',
+        icon: 'i-fe:clock',
+        order: 2,
+        enable: true,
+        show: true,
+      },
+    ],
+  },
+  {
     code: 'ExternalLink',
     name: '外链(可内嵌打开)',
     type: 'MENU',
