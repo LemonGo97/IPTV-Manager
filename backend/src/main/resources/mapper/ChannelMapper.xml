@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper">
+
+    <resultMap id="ChannelResultMap" type="com.lemongo97.iptv.iptvmanager.entity.Channel">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="logo" column="logo"/>
+        <result property="url" column="url"/>
+        <result property="number" column="number"/>
+        <result property="channelId" column="channel_id"/>
+        <result property="enabled" column="enabled"/>
+        <result property="providerId" column="provider_id"/>
+        <result property="groupId" column="group_id"/>
+        <result property="epgSourceId" column="epg_source_id"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="description" column="description"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="ChannelResultMap">
+        SELECT id, name, logo, url, number, channel_id, enabled, provider_id, group_id, epg_source_id,
+               sort_order, description, created_at, updated_at, deleted
+        FROM channels
+        WHERE deleted = 0
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="findById" resultMap="ChannelResultMap">
+        SELECT id, name, logo, url, number, channel_id, enabled, provider_id, group_id, epg_source_id,
+               sort_order, description, created_at, updated_at, deleted
+        FROM channels
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="findByGroup" resultMap="ChannelResultMap" resultType="com.lemongo97.iptv.iptvmanager.entity.Channel">
+        SELECT c.id, c.name, c.logo, c.url, c.number, c.channel_id, c.enabled, c.provider_id, c.group_id,
+               c.epg_source_id, c.sort_order, c.description, c.created_at, c.updated_at, c.deleted
+        FROM channels c
+        INNER JOIN channel_groups g ON c.group_id = g.id
+        WHERE g.name = #{group} AND c.deleted = 0 AND g.deleted = 0
+        ORDER BY c.sort_order ASC, c.id ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO channels (name, logo, url, number, channel_id, enabled, provider_id, group_id,
+                             epg_source_id, sort_order, description, created_at, updated_at, deleted)
+        VALUES (#{name}, #{logo}, #{url}, #{number}, #{channelId}, #{enabled}, #{providerId}, #{groupId},
+                #{epgSourceId}, #{sortOrder}, #{description}, #{createdAt}, #{updatedAt}, 0)
+    </insert>
+
+    <update id="update">
+        UPDATE channels
+        SET name = #{name},
+            logo = #{logo},
+            url = #{url},
+            number = #{number},
+            channel_id = #{channelId},
+            enabled = #{enabled},
+            provider_id = #{providerId},
+            group_id = #{groupId},
+            epg_source_id = #{epgSourceId},
+            sort_order = #{sortOrder},
+            description = #{description},
+            updated_at = #{updatedAt}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE channels
+        SET deleted = 1
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -20,6 +20,9 @@ commons-compress = "1.28.0"
 zstd-jni = "1.5.7-7"
 snappy-java = "1.1.10.8"
 mybatis-spring-boot-starter = "4.0.1"
+liquibase = "4.29.2"
+liquibase-slf4j = "5.0.0"
+quartz = "2.5.0"
 
 [libraries]
 # Source: https://mvnrepository.com/artifact/io.netty/netty-bom
@@ -95,8 +98,8 @@ jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 jackson-dataformat-toml = { module = "tools.jackson.dataformat:jackson-dataformat-toml" }
 # Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
 jackson-dataformat-yaml = { module = "tools.jackson.dataformat:jackson-dataformat-yaml" }
-# Source: https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
-jackson-annotations = { module = 'com.fasterxml.jackson.core:jackson-annotations' }
+# Source: https://mvnrepository.com/artifact/tools.jackson.core/jackson-annotations
+jackson-annotations = { module = 'tools.jackson.core:jackson-annotations' }
 
 # Source: https://mvnrepository.com/artifact/ch.qos.logback/logback-core
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
@@ -124,6 +127,14 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
 spring-boot-starter-restclient = { module = "org.springframework.boot:spring-boot-starter-restclient" }
 mybatis-spring-boot-starter = { module="org.mybatis.spring.boot:mybatis-spring-boot-starter", version.ref="mybatis-spring-boot-starter"}
+
+# Source: https://mvnrepository.com/artifact/org.liquibase/liquibase-core
+liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
+# Source: https://mvnrepository.com/artifact/com.mattbertolini/liquibase-slf4j
+liquibase-slf4j = { module = "com.mattbertolini:liquibase-slf4j", version.ref = "liquibase-slf4j" }
+
+# Source: https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
+quartz = { module = "org.quartz-scheduler:quartz", version.ref = "quartz" }
 
 [bundles]
 netty-all = [

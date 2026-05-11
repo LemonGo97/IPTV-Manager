@@ -11,6 +11,7 @@ repositories {
             includeGroupByRegex("com\\.lemongo97.*")
         }
     }
+    maven { url = uri("https://repo.spring.io/milestone/") }
     mavenCentral()
 }
 configurations.configureEach {

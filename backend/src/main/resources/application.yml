@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: iptv-manager
+
+  profiles:
+    active: dev
+
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  mapper-locations: classpath:mapper/*.xml
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.lemongo97.iptv.iptvmanager: DEBUG
+    com.lemongo97.iptv.iptvmanager.mapper: TRACE
+
+---
+# 开发环境 - 内存数据库
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:sqlite::memory:
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog.yml
+
+---
+# 生产环境 - 文件数据库
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:sqlite:iptv.db
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog.yml

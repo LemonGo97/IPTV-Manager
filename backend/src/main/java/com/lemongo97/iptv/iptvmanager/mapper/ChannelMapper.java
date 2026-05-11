@@ -1,0 +1,45 @@
+package com.lemongo97.iptv.iptvmanager.mapper;
+
+import com.lemongo97.iptv.iptvmanager.entity.Channel;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * 频道 Mapper
+ */
+@Mapper
+public interface ChannelMapper {
+
+    /**
+     * 查询所有频道
+     */
+    List<Channel> findAll();
+
+    /**
+     * 根据 ID 查询频道
+     */
+    Optional<Channel> findById(@Param("id") Long id);
+
+    /**
+     * 根据分组查询频道
+     */
+    List<Channel> findByGroup(@Param("group") String group);
+
+    /**
+     * 插入频道
+     */
+    int insert(Channel channel);
+
+    /**
+     * 更新频道
+     */
+    int update(Channel channel);
+
+    /**
+     * 删除频道
+     */
+    int deleteById(@Param("id") Long id);
+}

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.M3U8RawDataMapper">
+
+    <resultMap id="M3U8RawDataResultMap" type="com.lemongo97.iptv.iptvmanager.entity.M3U8RawData">
+        <id property="id" column="id"/>
+        <result property="providerId" column="provider_id"/>
+        <result property="content" column="content"/>
+        <result property="fetchedAt" column="fetched_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO m3u8_raw_data (provider_id, content, fetched_at, deleted)
+        VALUES (#{providerId}, #{content}, #{fetchedAt}, 0)
+    </insert>
+
+    <select id="findByProviderIdOrderByFetchedAtDesc" resultMap="M3U8RawDataResultMap">
+        SELECT id, provider_id, content, fetched_at, deleted
+        FROM m3u8_raw_data
+        WHERE provider_id = #{providerId} AND deleted = 0
+        ORDER BY fetched_at DESC
+    </select>
+
+    <select id="countByProviderIdAfterFetchedAt" resultType="long">
+        SELECT COUNT(*)
+        FROM m3u8_raw_data
+        WHERE provider_id = #{providerId}
+          AND fetched_at > #{fetchedAt}
+          AND deleted = 0
+    </select>
+
+    <update id="deleteByFetchedAtBefore">
+        UPDATE m3u8_raw_data
+        SET deleted = 1
+        WHERE fetched_at &lt; #{fetchedAt}
+    </update>
+
+    <update id="deleteByProviderId">
+        UPDATE m3u8_raw_data
+        SET deleted = 1
+        WHERE provider_id = #{providerId}
+    </update>
+
+</mapper>

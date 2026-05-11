@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-m3u8-providers-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-m3u8-providers-table.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: create-channel-groups-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-channel-groups-table.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: create-epg-sources-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-epg-sources-table.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: update-channels-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/update-channels-table.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: create-m3u8-raw-data-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-m3u8-raw-data-table.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: add-logical-delete-fields
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/add-logical-delete-fields.sql
+            relativeToChangelogFile: false
+            stripComments: true
