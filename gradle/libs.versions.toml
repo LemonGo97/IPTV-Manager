@@ -127,6 +127,7 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 
 spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
 spring-boot-starter-restclient = { module = "org.springframework.boot:spring-boot-starter-restclient" }
+spring-boot-starter-quartz = { module = "org.springframework.boot:spring-boot-starter-quartz" }
 mybatis-spring-boot-starter = { module="org.mybatis.spring.boot:mybatis-spring-boot-starter", version.ref="mybatis-spring-boot-starter"}
 
 # Source: https://mvnrepository.com/artifact/org.liquibase/liquibase-core

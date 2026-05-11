@@ -7,6 +7,7 @@ import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
 import com.lemongo97.iptv.iptvmanager.mapper.M3U8ProviderMapper;
 import com.lemongo97.iptv.iptvmanager.parser.M3U8ParserService;
 import com.lemongo97.iptv.iptvmanager.service.M3U8RawDataService;
+import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class M3U8ProviderService {
     private final M3U8ProviderMapper providerMapper;
     private final M3U8ParserService parserService;
     private final M3U8RawDataService rawDataService;
+    private final ScheduledTaskService scheduledTaskService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -84,6 +86,7 @@ public class M3U8ProviderService {
         );
 
         providerMapper.insert(newProvider);
+        scheduledTaskService.scheduleOrUpdateJob(newProvider);
         log.info("M3U8 provider created: id={}", newProvider.id());
         return newProvider;
     }
@@ -115,6 +118,7 @@ public class M3U8ProviderService {
         );
 
         providerMapper.update(updated);
+        scheduledTaskService.scheduleOrUpdateJob(updated);
         log.info("M3U8 provider updated: id={}", id);
         return updated;
     }
@@ -126,6 +130,8 @@ public class M3U8ProviderService {
     public void deleteById(Long id) {
         findById(id);
         log.info("Deleting M3U8 provider: id={}", id);
+        // 先删除关联的定时任务
+        scheduledTaskService.deleteJob(id);
         // 先删除关联的原始数据
         rawDataService.deleteByProviderId(id);
         providerMapper.deleteById(id);

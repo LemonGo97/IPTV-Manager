@@ -14,6 +14,26 @@ mybatis:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
   mapper-locations: classpath:mapper/*.xml
 
+quartz:
+  job-store-type: jdbc
+  jdbc:
+    initialize-schema: always
+  properties:
+    org:
+      quartz:
+        scheduler:
+          instanceName: IPTVManagerScheduler
+          instanceId: AUTO
+          threadName: IPTVManagerQuartzThread
+        jobStore:
+          class: org.quartz.simpl.RAMJobStore
+          driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+        threadPool:
+          class: org.quartz.simpl.SimpleThreadPool
+          threadCount: 5
+          threadPriority: 5
+          threadsInheritContextClassLoaderOfInitializingThread: true
+
 server:
   port: 8080
 
