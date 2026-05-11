@@ -1,0 +1,21 @@
+repositories {
+    maven { url = uri("https://maven.aliyun.com/repository/public/") }
+    maven { url = uri("https://maven.aliyun.com/repository/jcenter/") }
+    maven { url = uri("https://maven.aliyun.com/repository/google/") }
+    maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin/") }
+    maven { url = uri("https://jitpack.io/") }
+    maven {
+        setAllowInsecureProtocol(true)
+        url = uri("https://nexus.lemongo97.com/repository/maven-public/")
+        content {
+            includeGroupByRegex("com\\.lemongo97.*")
+        }
+    }
+    mavenCentral()
+}
+configurations.configureEach {
+    resolutionStrategy {
+        cacheChangingModulesFor(0, "seconds")
+        cacheDynamicVersionsFor(0, "seconds")
+    }
+}

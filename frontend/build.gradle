@@ -1,0 +1,20 @@
+plugins {
+    alias(libs.plugins.node.gradle)
+}
+
+node {
+    version = '24.15.0' // Node.js 版本
+    pnpmVersion = '10.33.2' // pnpm 版本
+    distBaseUrl = "https://mirrors.ustc.edu.cn/node/"
+    download = true // 如果为 true，Gradle 将下载并使用指定版本的 Node.js
+}
+
+tasks.register('build', PnpmTask) {
+    dependsOn pnpmInstall
+    args = ['build']
+}
+
+tasks.register('dev', PnpmTask) {
+    dependsOn pnpmInstall
+    args = ['dev']
+}

@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    configureEach {
+        exclude group: "ch.qos.logback"
+        exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    runtimeOnly 'org.xerial:sqlite-jdbc'
+
+    implementation(libs.bundles.spring.boot.web)
+    // Source: https://mvnrepository.com/artifact/io.lindstrom/m3u8-parser
+    implementation("io.lindstrom:m3u8-parser:0.30")
+
+    developmentOnly(libs.spring.boot.devtools)
+
+    annotationProcessor(libs.spring.boot.configuration.processor)
+
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+tasks.test {
+    useJUnitPlatform()
+}

@@ -1,0 +1,6 @@
+allprojects {
+    apply from: "${rootDir}/gradle/repositories.gradle"
+
+    group = "com.lemongo97.media"
+    version = project.hasProperty('VERSION_CODE') ? VERSION_CODE : 'unknown'
+}
