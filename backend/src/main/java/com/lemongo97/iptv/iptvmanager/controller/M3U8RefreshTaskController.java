@@ -3,6 +3,7 @@ package com.lemongo97.iptv.iptvmanager.controller;
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
 import com.lemongo97.iptv.iptvmanager.dto.M3U8RefreshTaskDTO;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
+import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
 import com.lemongo97.iptv.iptvmanager.service.M3U8RefreshTaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -64,7 +65,7 @@ public class M3U8RefreshTaskController {
      * 获取任务解析的频道列表
      */
     @GetMapping("/{id}/channels")
-    public ApiResponse<List<Channel>> getChannelsByTask(@PathVariable Long id) {
+    public ApiResponse<List<OriginalChannelMetadata>> getChannelsByTask(@PathVariable Long id) {
         return ApiResponse.ok(taskService.getChannelsByTask(id));
     }
 }

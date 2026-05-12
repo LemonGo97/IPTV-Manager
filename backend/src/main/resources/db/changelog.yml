@@ -62,11 +62,21 @@ databaseChangeLog:
             relativeToChangelogFile: false
             stripComments: true
 
+
   - changeSet:
       id: drop-provider-name-from-refresh-task
       author: lemongo97
       changes:
         - sqlFile:
             path: db/sql/drop-provider-name-from-refresh-task.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: create-original-channel-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-original-channel-table.sql
             relativeToChangelogFile: false
             stripComments: true

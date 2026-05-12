@@ -3,8 +3,10 @@ package com.lemongo97.iptv.iptvmanager.service;
 import com.lemongo97.iptv.iptvmanager.dto.M3U8RefreshTaskDTO;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
+import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.M3U8RefreshTaskMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,7 +23,7 @@ import java.util.List;
 public class M3U8RefreshTaskService {
 
     private final M3U8RefreshTaskMapper taskMapper;
-    private final ChannelMapper channelMapper;
+    private final OriginalChannelMapper originalChannelMapper;
 
     /**
      * 分页查询任务历史 - 返回 DTO，包含订阅源名称
@@ -98,8 +100,8 @@ public class M3U8RefreshTaskService {
     /**
      * 获取任务解析的频道列表
      */
-    public List<Channel> getChannelsByTask(Long taskId) {
+    public List<OriginalChannelMetadata> getChannelsByTask(Long taskId) {
         var refreshTask = findById(taskId);
-        return channelMapper.findByProviderId(refreshTask.getProviderId());
+        return originalChannelMapper.findByTaskId(taskId);
     }
 }

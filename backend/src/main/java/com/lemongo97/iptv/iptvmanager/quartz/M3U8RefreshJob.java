@@ -53,7 +53,7 @@ public class M3U8RefreshJob implements Job {
 
         // 执行解析
         try {
-            int channelCount = parserService.parse(provider);
+            int channelCount = parserService.parse(provider, actualTaskId);
 
             long endTime = System.currentTimeMillis();
             log.info("M3U8 provider refreshed successfully: provider={}, channels={}, duration={}ms",

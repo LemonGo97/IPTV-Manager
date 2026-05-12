@@ -233,10 +233,15 @@ const columns = [
 
 const playlistColumns = [
   { title: '序号', key: 'index', width: 80 },
+  { title: 'Logo', key: 'tvGuideLogo', width: 80, ellipsis: { tooltip: true } },
   { title: '频道名称', key: 'name', width: 200, ellipsis: { tooltip: true } },
-  { title: '分组', key: 'group', width: 120 },
+  { title: '分组', key: 'groupTitle', width: 120 },
+  { title: '指南ID', key: 'tvGuideId', width: 120 },
+  { title: '指南名称', key: 'tvGuideName', width: 120 },
+  { title: '国家', key: 'tvGuideCountry', width: 120 },
+  { title: '语言', key: 'tvGuideLanguage', width: 120 },
   { title: 'URL', key: 'url', width: 400, ellipsis: { tooltip: true } },
-  { title: 'Logo', key: 'logo', width: 120, ellipsis: { tooltip: true } },
+  { title: '更新时间', key: 'updatedAt', width: 400, ellipsis: { tooltip: true } },
 ]
 
 const getStatusType = (status) => {
@@ -264,16 +269,22 @@ const handleViewDetail = (row) => {
 
 const handleViewPlaylist = async (row) => {
   try {
-    const channels = await api.getChannels(row.id)
-    currentPlaylist.value = channels.map((ch, index) => ({
+    const res = await api.getChannels(row.id)
+    currentPlaylist.value = res.data.map((ch, index) => ({
       index: index + 1,
+      tvGuideLogo: ch.tvGuideLogo || '-',
       name: ch.name || '-',
-      group: ch.groupName || '-',
+      groupTitle: ch.groupTitle || '-',
+      tvGuideId: ch.tvGuideId || '-',
+      tvGuideName: ch.tvGuideName,
+      tvGuideCountry: ch.tvGuideCountry,
+      tvGuideLanguage: ch.tvGuideLanguage,
       url: ch.url || '-',
-      logo: ch.logo || '-',
+      updatedAt: ch.updatedAt || '-',
     }))
     playlistModalRef.value.open()
   } catch (error) {
+    console.log(error)
     window.$message?.error('获取频道列表失败')
   }
 }

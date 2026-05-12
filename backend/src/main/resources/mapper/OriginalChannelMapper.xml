@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper">
+
+    <resultMap id="ChannelResultMap" type="com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata">
+        <id property="id" column="id"/>
+        <result property="providerId" column="provider_id"/>
+
+        <result property="name" column="name"/>
+        <result property="url" column="url"/>
+        <result property="tvGuideId" column="tvg_id"/>
+        <result property="tvGuideName" column="tvg_name"/>
+        <result property="tvGuideLogo" column="tvg_logo"/>
+        <result property="groupTitle" column="group_title"/>
+        <result property="tvGuideCountry" column="tvg_country"/>
+        <result property="tvGuideLanguage" column="tvg_language"/>
+
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <update id="deleteByProviderId">
+        UPDATE original_channels
+        SET deleted = 1 WHERE provider_id = #{providerId} AND deleted = 0
+    </update>
+
+    <select id="findAll" resultMap="ChannelResultMap">
+        SELECT id, provider_id, name, url, tvg_id, tvg_name, tvg_logo, group_title, tvg_country, tvg_language, created_at, updated_at, deleted
+        FROM original_channels
+        WHERE deleted = 0
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="findById" resultMap="ChannelResultMap">
+        SELECT id, provider_id, name, url, tvg_id, tvg_name, tvg_logo, group_title, tvg_country, tvg_language, created_at, updated_at
+        FROM original_channels
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="findByTaskId" resultMap="ChannelResultMap">
+        SELECT id, provider_id, name, url, tvg_id, tvg_name, tvg_logo, group_title, tvg_country, tvg_language, created_at, updated_at
+        FROM original_channels
+        WHERE task_id = #{taskId}
+        ORDER BY name ASC, id ASC
+    </select>
+
+    <insert id="insert">
+        INSERT INTO original_channels (provider_id, name, url, tvg_id, tvg_name, tvg_logo, group_title, tvg_country, tvg_language, created_at, updated_at, task_id, deleted)
+        VALUES
+        <foreach collection="channels" item="item" separator=",">
+            (#{item.providerId}, #{item.name}, #{item.url}, #{item.tvGuideId}, #{item.tvGuideName}, #{item.tvGuideLogo}, #{item.groupTitle}, #{item.tvGuideCountry},
+            #{item.tvGuideLanguage}, #{item.createdAt}, #{item.updatedAt}, #{taskId}, 0)
+        </foreach>
+    </insert>
+
+</mapper>
