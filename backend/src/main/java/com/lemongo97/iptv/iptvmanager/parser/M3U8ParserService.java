@@ -33,9 +33,10 @@ public class M3U8ParserService {
 
     /**
      * 从 URL 解析 M3U8
+     * @return 解析的频道数量
      */
     @Transactional
-    public void parseFromUrl(M3U8Provider provider) {
+    public int parseFromUrl(M3U8Provider provider) {
         log.info("Parsing M3U8 from URL: {}", provider.getUrl());
 
         try {
@@ -62,6 +63,7 @@ public class M3U8ParserService {
                 int count = playlist.variants().size();
                 parseAndSave(playlist, provider);
                 log.info("Parsed {} channels from URL", count);
+                return count;
             } else {
                 throw new RuntimeException("Failed to fetch M3U8: HTTP " + response.getStatusCode());
             }
@@ -73,9 +75,10 @@ public class M3U8ParserService {
 
     /**
      * 从本地文件解析 M3U8
+     * @return 解析的频道数量
      */
     @Transactional
-    public void parseFromFile(M3U8Provider provider) {
+    public int parseFromFile(M3U8Provider provider) {
         log.info("Parsing M3U8 from file: {}", provider.getFilePath());
 
         try {
@@ -92,6 +95,7 @@ public class M3U8ParserService {
             parseAndSave(playlist, provider);
             int count = playlist.variants().size();
             log.info("Parsed {} channels from file", count);
+            return count;
         } catch (Exception e) {
             log.error("Failed to parse M3U8 from file: {}", provider.getFilePath(), e);
             throw new RuntimeException("Failed to parse M3U8 from file: " + e.getMessage(), e);

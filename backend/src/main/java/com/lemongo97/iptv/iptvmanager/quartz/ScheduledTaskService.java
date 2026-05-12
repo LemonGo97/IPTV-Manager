@@ -22,6 +22,8 @@ public class ScheduledTaskService {
 
     private static final String JOB_GROUP = "M3U8_REFRESH_JOB";
     private static final String TRIGGER_GROUP = "M3U8_REFRESH_TRIGGER";
+    private static final String MANUAL_JOB_GROUP = "M3U8_REFRESH_JOB_MANUAL";
+    private static final String MANUAL_TRIGGER_GROUP = "M3U8_REFRESH_TRIGGER_MANUAL";
 
     /**
      * 创建或更新定时任务
@@ -38,6 +40,7 @@ public class ScheduledTaskService {
             JobDetail jobDetail = JobBuilder.newJob(M3U8RefreshJob.class)
                     .withIdentity(getJobKey(provider.getId()))
                     .usingJobData("providerId", provider.getId())
+                    .usingJobData("triggerType", "scheduled")
                     .storeDurably(false)
                     .build();
 
@@ -53,6 +56,41 @@ public class ScheduledTaskService {
         } catch (SchedulerException e) {
             log.error("Failed to schedule job for provider: {}", provider.getId(), e);
             throw new RuntimeException("Failed to schedule job", e);
+        }
+    }
+
+    /**
+     * 手动触发一次性刷新任务
+     *
+     * @param providerId M3U8 提供者 ID
+     * @param taskId 任务记录 ID
+     * @return Quartz Job Key
+     */
+    public JobKey triggerManualJob(Long providerId, Long taskId) {
+        try {
+            String jobName = "m3u8-manual-" + providerId + "-" + System.currentTimeMillis();
+            JobKey jobKey = JobKey.jobKey(jobName, MANUAL_JOB_GROUP);
+
+            JobDetail jobDetail = JobBuilder.newJob(M3U8RefreshJob.class)
+                    .withIdentity(jobKey)
+                    .usingJobData("providerId", providerId)
+                    .usingJobData("taskId", taskId)
+                    .usingJobData("triggerType", "manual")
+                    .storeDurably(false)
+                    .build();
+
+            // 立即触发的触发器
+            Trigger trigger = newTrigger()
+                    .withIdentity(TriggerKey.triggerKey(jobName, MANUAL_TRIGGER_GROUP))
+                    .startNow()
+                    .build();
+
+            scheduler.scheduleJob(jobDetail, trigger);
+            log.info("Triggered manual M3U8 refresh job: provider={}, task={}", providerId, taskId);
+            return jobKey;
+        } catch (SchedulerException e) {
+            log.error("Failed to trigger manual job for provider: {}, task={}", providerId, taskId, e);
+            throw new RuntimeException("Failed to trigger manual job", e);
         }
     }
 

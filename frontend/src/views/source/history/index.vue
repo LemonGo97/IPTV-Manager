@@ -81,20 +81,20 @@
           </n-tag>
         </n-descriptions-item>
         <n-descriptions-item label="开始时间">
-          {{ currentTask.startTime }}
+          {{ formatTime(currentTask.startTime) }}
         </n-descriptions-item>
         <n-descriptions-item label="结束时间">
-          {{ currentTask.endTime || '-' }}
+          {{ formatTime(currentTask.endTime) }}
         </n-descriptions-item>
         <n-descriptions-item label="耗时">
-          {{ currentTask.duration ? `${currentTask.duration}ms` : '-' }}
+          {{ formatDuration(currentTask.duration) }}
         </n-descriptions-item>
         <n-descriptions-item label="解析频道数">
           {{ currentTask.channelCount ?? '-' }}
         </n-descriptions-item>
-        <n-descriptions-item label="错误信息" :span="2" v-if="currentTask.error">
+        <n-descriptions-item label="错误信息" :span="2" v-if="currentTask.errorMessage">
           <n-alert type="error" :bordered="false">
-            {{ currentTask.error }}
+            {{ currentTask.errorMessage }}
           </n-alert>
         </n-descriptions-item>
         <n-descriptions-item label="原始内容" :span="2" v-if="currentTask.rawContent">
@@ -122,7 +122,10 @@
 import { NTag, NAlert, NCode, NScrollbar, NDataTable, NButton, NDescriptions, NDescriptionsItem, NDatePicker } from 'naive-ui'
 import { MeCrud, MeModal, MeQueryItem } from '@/components'
 import api from './api'
+import {onMounted} from "vue";
+import dayjs from 'dayjs'
 
+const $table = ref(null)
 const queryItems = reactive({
   taskId: '',
   providerName: '',
@@ -135,6 +138,30 @@ const detailModalRef = ref(null)
 const playlistModalRef = ref(null)
 const currentTask = ref(null)
 const currentPlaylist = ref([])
+
+// 格式化时间戳为可读格式（精确到毫秒）
+const formatTime = (timestamp) => {
+  if (!timestamp) return '-'
+  return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss.SSS')
+}
+
+// 格式化耗时为 x小时x分x秒x毫秒
+const formatDuration = (ms) => {
+  if (!ms || ms <= 0) return '-'
+
+  const hours = Math.floor(ms / 3600000)
+  const minutes = Math.floor((ms % 3600000) / 60000)
+  const seconds = Math.floor((ms % 60000) / 1000)
+  const milliseconds = ms % 1000
+
+  const parts = []
+  if (hours > 0) parts.push(`${hours}小时`)
+  if (minutes > 0) parts.push(`${minutes}分`)
+  if (seconds > 0) parts.push(`${seconds}秒`)
+  if (milliseconds > 0 || parts.length === 0) parts.push(`${milliseconds}毫秒`)
+
+  return parts.join('')
+}
 
 const columns = [
   { title: '任务ID', key: 'id', width: 120, render: row => row.id || '-' },
@@ -161,13 +188,13 @@ const columns = [
         { default: () => getStatusText(row.status) }
       ),
   },
-  { title: '开始时间', key: 'startTime', width: 180 },
-  { title: '结束时间', key: 'endTime', width: 180, render: row => row.endTime || '-' },
+  { title: '开始时间', key: 'startTime', width: 180, render: row => formatTime(row.startTime) },
+  { title: '结束时间', key: 'endTime', width: 180, render: row => formatTime(row.endTime) },
   {
     title: '耗时',
     key: 'duration',
-    width: 100,
-    render: row => (row.duration ? `${row.duration}ms` : '-'),
+    width: 150,
+    render: row => formatDuration(row.duration),
   },
   {
     title: '频道数',
@@ -232,7 +259,7 @@ const getStatusText = (status) => {
 
 const handleViewDetail = (row) => {
   currentTask.value = row
-  detailModalRef.value.show()
+  detailModalRef.value.open()
 }
 
 const handleViewPlaylist = async (row) => {
@@ -245,11 +272,15 @@ const handleViewPlaylist = async (row) => {
       url: ch.url || '-',
       logo: ch.logo || '-',
     }))
-    playlistModalRef.value.show()
+    playlistModalRef.value.open()
   } catch (error) {
     window.$message?.error('获取频道列表失败')
   }
 }
+
+onMounted(() => {
+  $table.value?.handleSearch()
+})
 
 defineOptions({
   name: 'TaskHistory',

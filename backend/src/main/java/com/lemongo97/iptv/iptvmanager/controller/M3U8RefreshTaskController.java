@@ -1,8 +1,8 @@
 package com.lemongo97.iptv.iptvmanager.controller;
 
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
+import com.lemongo97.iptv.iptvmanager.dto.M3U8RefreshTaskDTO;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
-import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
 import com.lemongo97.iptv.iptvmanager.service.M3U8RefreshTaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +24,7 @@ public class M3U8RefreshTaskController {
      * 分页查询任务历史
      */
     @GetMapping
-    public ApiResponse<List<M3U8RefreshTask>> findAll(
+    public ApiResponse<List<M3U8RefreshTaskDTO>> findAll(
             @RequestParam(required = false) String providerName,
             @RequestParam(required = false) String triggerType,
             @RequestParam(required = false) String status,
@@ -56,7 +56,7 @@ public class M3U8RefreshTaskController {
      * 根据 ID 获取任务详情
      */
     @GetMapping("/{id}")
-    public ApiResponse<M3U8RefreshTask> findById(@PathVariable Long id) {
+    public ApiResponse<M3U8RefreshTaskDTO> findById(@PathVariable Long id) {
         return ApiResponse.ok(taskService.findById(id));
     }
 

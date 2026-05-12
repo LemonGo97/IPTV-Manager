@@ -359,11 +359,12 @@ const handleFileListChange = (list) => {
 
 const handleRefresh = async (row) => {
   try {
-    await api.refresh(row.id)
-    window.$message?.success(`刷新成功: ${row.name}`)
-    $table.value?.handleSearch()
+    const result = await api.refresh(row.id)
+    // result.data.taskId 包含任务 ID
+    window.$message?.success(`刷新任务已提交，请在任务历史中查看进度`)
+    // 不立即刷新表格，因为任务在后台执行中
   } catch (error) {
-    window.$message?.error('刷新失败')
+    window.$message?.error('刷新任务提交失败')
   }
 }
 

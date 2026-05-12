@@ -2,7 +2,9 @@ package com.lemongo97.iptv.iptvmanager.service;
 
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
+import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
 import com.lemongo97.iptv.iptvmanager.mapper.M3U8ProviderMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.M3U8RefreshTaskMapper;
 import com.lemongo97.iptv.iptvmanager.parser.M3U8ParserService;
 import com.lemongo97.iptv.iptvmanager.service.M3U8RawDataService;
 import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
@@ -34,6 +36,7 @@ public class M3U8ProviderService {
     private final M3U8ParserService parserService;
     private final M3U8RawDataService rawDataService;
     private final ScheduledTaskService scheduledTaskService;
+    private final M3U8RefreshTaskMapper taskMapper;
 
     @Value("${app.upload.m3u8-dir:tmp/uploads/m3u8}")
     private String uploadDir;
@@ -154,31 +157,46 @@ public class M3U8ProviderService {
     }
 
     /**
-     * 刷新 M3U8 源
+     * 刷新 M3U8 源（异步）
+     * 创建任务记录并提交给 Quartz 执行，立即返回任务 ID
+     *
+     * @param id M3U8 提供者 ID
+     * @return 任务 ID
      */
     @Transactional
-    public void refresh(Long id) {
+    public Long refresh(Long id) {
         var provider = findById(id);
-        log.info("Refreshing M3U8 provider: id={}, type={}", id, provider.getType());
+        log.info("Submitting M3U8 provider refresh task: id={}, type={}", id, provider.getType());
 
         if (!provider.getEnabled()) {
             throw new BusinessException("Cannot refresh disabled provider: id=" + id);
         }
 
-        try {
-            if ("online".equals(provider.getType())) {
-                parserService.parseFromUrl(provider);
-            } else if ("local".equals(provider.getType())) {
-                parserService.parseFromFile(provider);
-            } else {
-                throw new BusinessException("Unknown provider type: " + provider.getType());
-            }
+        // 创建任务记录
+        long startTime = System.currentTimeMillis();
+        var task = new M3U8RefreshTask(
+            null,
+            provider.getId(),
+            null, // providerName 通过关联查询获取
+            "manual",
+            "running",
+            startTime,
+            null,
+            null,
+            null,
+            null,
+            null,
+            LocalDateTime.now(),
+            LocalDateTime.now()
+        );
+        taskMapper.insert(task);
+        log.info("Created refresh task: taskId={}, providerId={}", task.getId(), provider.getId());
 
-            log.info("M3U8 provider refreshed successfully: id={}", id);
-        } catch (Exception e) {
-            log.error("Failed to refresh M3U8 provider: id={}", id, e);
-            throw new BusinessException("Failed to refresh M3U8 provider: " + e.getMessage(), e);
-        }
+        // 提交给 Quartz 执行
+        scheduledTaskService.triggerManualJob(provider.getId(), task.getId());
+        log.info("Submitted M3U8 refresh to Quartz: taskId={}, providerId={}", task.getId(), provider.getId());
+
+        return task.getId();
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
+import com.lemongo97.iptv.iptvmanager.dto.M3U8RefreshTaskDTO;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
@@ -23,11 +24,11 @@ public class M3U8RefreshTaskService {
     private final ChannelMapper channelMapper;
 
     /**
-     * 分页查询任务历史
+     * 分页查询任务历史 - 返回 DTO，包含订阅源名称
      */
-    public List<M3U8RefreshTask> findAll(String providerName, String triggerType, String status,
-                                         LocalDateTime startTime, LocalDateTime endTime,
-                                         Integer offset, Integer limit) {
+    public List<M3U8RefreshTaskDTO> findAll(String providerName, String triggerType, String status,
+                                           LocalDateTime startTime, LocalDateTime endTime,
+                                           Integer offset, Integer limit) {
         return taskMapper.findAll(providerName, triggerType, status, startTime, endTime, offset, limit);
     }
 
@@ -40,9 +41,9 @@ public class M3U8RefreshTaskService {
     }
 
     /**
-     * 根据 ID 查询
+     * 根据 ID 查询 - 返回 DTO，包含订阅源名称
      */
-    public M3U8RefreshTask findById(Long id) {
+    public M3U8RefreshTaskDTO findById(Long id) {
         return taskMapper.findById(id);
     }
 
@@ -54,7 +55,7 @@ public class M3U8RefreshTaskService {
         var newTask = new M3U8RefreshTask(
             null,
             task.getProviderId(),
-            task.getProviderName(),
+            null, // providerName 通过关联查询获取，不再存储
             task.getTriggerType(),
             task.getStatus(),
             task.getStartTime(),
@@ -78,7 +79,7 @@ public class M3U8RefreshTaskService {
         var updated = new M3U8RefreshTask(
             id,
             task.getProviderId() != null ?   task.getProviderId() :   existing.getProviderId(),
-            task.getProviderName() != null ? task.getProviderName() : existing.getProviderName(),
+            null, // providerName 通过关联查询获取，不再更新
             task.getTriggerType() != null ?  task.getTriggerType() :  existing.getTriggerType(),
             task.getStatus() != null ?       task.getStatus() :       existing.getStatus(),
             task.getStartTime() != null ?    task.getStartTime() :    existing.getStartTime(),

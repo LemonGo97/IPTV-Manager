@@ -61,13 +61,22 @@ public class M3U8ProviderController {
     }
 
     /**
-     * 刷新 M3U8 源
+     * 刷新 M3U8 源（异步）
+     * 提交刷新任务到队列，立即返回任务 ID
      */
     @PostMapping("/{id}/refresh")
-    public ApiResponse<Void> refresh(@PathVariable Long id) {
-        providerService.refresh(id);
-        return ApiResponse.ok("M3U8 provider refreshed successfully");
+    public ApiResponse<TaskSubmissionResult> refresh(@PathVariable Long id) {
+        Long taskId = providerService.refresh(id);
+        return ApiResponse.ok(
+            new TaskSubmissionResult(taskId, "Refresh task submitted successfully"),
+            "M3U8 provider refresh task submitted"
+        );
     }
+
+    /**
+     * 任务提交结果
+     */
+    public record TaskSubmissionResult(Long taskId, String message) {}
 
     /**
      * 上传本地 M3U8 文件

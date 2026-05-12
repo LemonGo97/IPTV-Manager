@@ -1,5 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.mapper;
 
+import com.lemongo97.iptv.iptvmanager.dto.M3U8RefreshTaskDTO;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -14,9 +15,9 @@ import java.util.List;
 public interface M3U8RefreshTaskMapper {
 
     /**
-     * 查询所有任务历史（分页）
+     * 查询所有任务历史（分页）- 返回 DTO，包含订阅源名称
      */
-    List<M3U8RefreshTask> findAll(
+    List<M3U8RefreshTaskDTO> findAll(
         @Param("providerName") String providerName,
         @Param("triggerType") String triggerType,
         @Param("status") String status,
@@ -38,9 +39,9 @@ public interface M3U8RefreshTaskMapper {
     );
 
     /**
-     * 根据 ID 查询
+     * 根据 ID 查询 - 返回 DTO，包含订阅源名称
      */
-    M3U8RefreshTask findById(Long id);
+    M3U8RefreshTaskDTO findById(Long id);
 
     /**
      * 插入任务记录
