@@ -31,7 +31,8 @@ public class M3U8RawDataService {
         var now = LocalDateTime.now();
         var rawData = new M3U8RawData(null, providerId, content, now, false);
         rawDataMapper.insert(rawData);
-        log.debug("Saved raw data for provider: {}, size: {} bytes", providerId, content.length());
+        log.info("Saved raw data for provider: {}, size: {} bytes, starts with: {}",
+            providerId, content.length(), content.substring(0, Math.min(50, content.length())));
 
         // 清理旧数据，只保留最近3次
         cleanupOldData(providerId);

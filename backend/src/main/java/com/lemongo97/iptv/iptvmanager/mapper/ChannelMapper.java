@@ -38,6 +38,8 @@ public interface ChannelMapper {
      */
     int insert(Channel channel);
 
+    void insertBatch(List<Channel> channels);
+
     /**
      * 更新频道
      */

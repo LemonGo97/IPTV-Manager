@@ -9,15 +9,20 @@ import io.lindstrom.m3u8.model.Variant;
 import io.lindstrom.m3u8.parser.MultivariantPlaylistParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * M3U8 解析服务
@@ -31,13 +36,35 @@ public class M3U8ParserService {
     private final RestTemplate restTemplate;
     private final M3U8RawDataService rawDataService;
     private final MultivariantPlaylistParser multivariantPlaylistParser = new MultivariantPlaylistParser();
+    private final SimpleM3U8Parser simpleM3U8Parser;
+
+    public int parse(M3U8Provider provider) {
+        String content;
+        switch (provider.getType()) {
+            case "online" -> {
+                content = getContentFromUrl(provider);
+            }
+            case "local" -> {
+                content = getContentFromFile(provider);
+            }
+            default -> {
+                throw new IllegalArgumentException("Unknown provider type: " + provider.getType());
+            }
+        }
+        // 保存原始数据到历史记录
+        rawDataService.saveRawData(provider.getId(), content);
+
+        List<Channel> channels = this.parseFromContent(content, provider.getId());
+        channelMapper.insertBatch(channels);
+        return channels.size();
+    }
 
     /**
      * 从 URL 解析 M3U8
+     *
      * @return 解析的频道数量
      */
-    @Transactional
-    public int parseFromUrl(M3U8Provider provider) {
+    public String getContentFromUrl(M3U8Provider provider) {
         log.info("Parsing M3U8 from URL: {}", provider.getUrl());
 
         try {
@@ -46,28 +73,21 @@ public class M3U8ParserService {
             if (provider.getHeaders() != null) {
                 provider.getHeaders().forEach(headers::add);
             }
+            headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-            ResponseEntity<String> response = restTemplate.exchange(
+            ResponseEntity<byte[]> response = restTemplate.exchange(
                     provider.getUrl(),
                     HttpMethod.GET,
                     requestEntity,
-                    String.class
+                    byte[].class
             );
 
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                String content = new String(response.getBody().getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
-                // 保存原始数据到历史记录（在解析前保存，确保即使解析失败也能保留原始数据）
-                rawDataService.saveRawData(provider.getId(), content);
-
-                MultivariantPlaylist playlist = multivariantPlaylistParser.readPlaylist(content);
-                int count = playlist.variants().size();
-                parseAndSave(playlist, provider);
-                log.info("Parsed {} channels from URL", count);
-                return count;
-            } else {
+            if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
                 throw new RuntimeException("Failed to fetch M3U8: HTTP " + response.getStatusCode());
             }
+
+            return new String(response.getBody(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("Failed to parse M3U8 from URL: {}", provider.getUrl(), e);
             throw new RuntimeException("Failed to parse M3U8 from URL: " + e.getMessage(), e);
@@ -76,96 +96,46 @@ public class M3U8ParserService {
 
     /**
      * 从本地文件解析 M3U8
+     *
      * @return 解析的频道数量
      */
     @Transactional
-    public int parseFromFile(M3U8Provider provider) {
+    public String getContentFromFile(M3U8Provider provider) {
         log.info("Parsing M3U8 from file: {}", provider.getFilePath());
 
         try {
-            Path filePath = Path.of(provider.getFilePath());
-            if (!Files.exists(filePath)) {
+            File file = new File(provider.getFilePath());
+            if (!file.exists()) {
                 throw new RuntimeException("File not found: " + provider.getFilePath());
             }
-
-            String content = Files.readString(filePath);
-            // 保存原始数据到历史记录
-            rawDataService.saveRawData(provider.getId(), content);
-
-            MultivariantPlaylist playlist = multivariantPlaylistParser.readPlaylist(content);
-            parseAndSave(playlist, provider);
-            int count = playlist.variants().size();
-            log.info("Parsed {} channels from file", count);
-            return count;
+            return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("Failed to parse M3U8 from file: {}", provider.getFilePath(), e);
             throw new RuntimeException("Failed to parse M3U8 from file: " + e.getMessage(), e);
         }
     }
 
-    /**
-     * 解析并保存频道
-     */
-    private void parseAndSave(MultivariantPlaylist playlist, M3U8Provider provider) {
-        try {
-            int sortOrder = 0;
-
-            for (Variant variant : playlist.variants()) {
-                saveChannelFromVariant(variant, provider, sortOrder++);
-            }
-
-            log.info("Successfully saved {} channels from provider: {}", playlist.variants().size(), provider.getName());
-        } catch (Exception e) {
-            log.error("Failed to parse M3U8 content", e);
-            throw new RuntimeException("Failed to parse M3U8 content: " + e.getMessage(), e);
-        }
+    private List<Channel> parseFromContent(String content, Long providerId) {
+        // 使用简单解析器解析内容
+        var channels = simpleM3U8Parser.parseContent(content);
+        AtomicInteger sortOrder = new AtomicInteger();
+        return channels.stream().map(c -> new Channel(
+                null,                   // id
+                c.name(),          // name
+                c.logo(),          // logo
+                c.url(),           // url
+                null,                   // number (not available in M3U8)
+                c.tvgId(),         // channelId (tvg-id from M3U8)
+                true,                   // enabled
+                providerId,             // providerId
+                null,                   // groupId (will be set by group matching later if needed)
+                null,                   // epgSourceId (not available in M3U8)
+                sortOrder.getAndIncrement(),            // sortOrder
+                c.group(),         // description (store group-title in description)
+                LocalDateTime.now(),    // createdAt
+                LocalDateTime.now(),    // updatedAt
+                false                   // deleted
+        )).toList();
     }
 
-    /**
-     * 从变体保存频道
-     */
-    private void saveChannelFromVariant(Variant variant, M3U8Provider provider, int sortOrder) {
-        try {
-            String name = extractChannelNameFromVariant(variant);
-
-            var channel = new Channel(
-                    null,
-                    name,
-                    null,
-                    variant.uri(),
-                    null,
-                    null,
-                    true,
-                    provider.getId(),
-                    null,
-                    null,
-                    sortOrder,
-                    null,
-                    LocalDateTime.now(),
-                    LocalDateTime.now(),
-                    false
-            );
-
-            channelMapper.insert(channel);
-            log.debug("Saved channel: {}", name);
-        } catch (Exception e) {
-            log.error("Failed to save channel: {}", variant.uri(), e);
-        }
-    }
-
-    /**
-     * 从变体中提取频道名称
-     */
-    private String extractChannelNameFromVariant(Variant variant) {
-        String uri = variant.uri();
-        if (uri != null) {
-            int lastSlash = uri.lastIndexOf('/');
-            if (lastSlash > 0) {
-                return uri.substring(lastSlash + 1);
-            }
-            return uri;
-        }
-
-        return "Unknown Channel";
-    }
 }

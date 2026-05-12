@@ -60,6 +60,16 @@
                 #{epgSourceId}, #{sortOrder}, #{description}, #{createdAt}, #{updatedAt}, 0)
     </insert>
 
+    <insert id="insertBatch">
+        INSERT INTO channels (name, logo, url, number, channel_id, enabled, provider_id, group_id,
+                              epg_source_id, sort_order, description, created_at, updated_at, deleted)
+        VALUES
+        <foreach collection="channels" item="item" separator=",">
+            (#{item.name}, #{item.logo}, #{item.url}, #{item.number}, #{item.channelId}, #{item.enabled}, #{item.providerId}, #{item.groupId},
+            #{item.epgSourceId}, #{item.sortOrder}, #{item.description}, #{item.createdAt}, #{item.updatedAt}, 0)
+        </foreach>
+    </insert>
+
     <update id="update">
         UPDATE channels
         SET name = #{name},

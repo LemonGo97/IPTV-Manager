@@ -53,14 +53,7 @@ public class M3U8RefreshJob implements Job {
 
         // 执行解析
         try {
-            int channelCount;
-            if ("online".equals(provider.getType())) {
-                channelCount = parserService.parseFromUrl(provider);
-            } else if ("local".equals(provider.getType())) {
-                channelCount = parserService.parseFromFile(provider);
-            } else {
-                throw new IllegalArgumentException("Unknown provider type: " + provider.getType());
-            }
+            int channelCount = parserService.parse(provider);
 
             long endTime = System.currentTimeMillis();
             log.info("M3U8 provider refreshed successfully: provider={}, channels={}, duration={}ms",
@@ -72,7 +65,6 @@ public class M3U8RefreshJob implements Job {
             }
 
         } catch (Exception e) {
-            long endTime = System.currentTimeMillis();
             log.error("M3U8 refresh job failed for provider: {}", providerId, e);
 
             // 更新任务记录为失败
