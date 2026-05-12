@@ -15,6 +15,8 @@ public interface ChannelGroupMapper {
 
     List<ChannelGroup> findAll();
 
+    List<ChannelGroup> findByCondition(@Param("name") String name);
+
     Optional<ChannelGroup> findById(@Param("id") Long id);
 
     int insert(ChannelGroup group);

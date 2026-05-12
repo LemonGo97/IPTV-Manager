@@ -24,7 +24,11 @@ public class ChannelGroupController {
      * 获取所有频道组
      */
     @GetMapping
-    public ApiResponse<List<ChannelGroup>> findAll() {
+    public ApiResponse<List<ChannelGroup>> findAll(
+            @RequestParam(required = false) String name) {
+        if (name != null && !name.isEmpty()) {
+            return ApiResponse.ok(groupService.findByCondition(name));
+        }
         return ApiResponse.ok(groupService.findAll());
     }
 

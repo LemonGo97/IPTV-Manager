@@ -25,6 +25,10 @@ public class ChannelGroupService {
         return groupMapper.findAll();
     }
 
+    public List<ChannelGroup> findByCondition(String name) {
+        return groupMapper.findByCondition(name);
+    }
+
     public ChannelGroup findById(Long id) {
         return groupMapper.findById(id)
                 .orElseThrow(() -> new BusinessException("Channel group not found: id=" + id));

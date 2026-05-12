@@ -20,6 +20,16 @@
         ORDER BY sort_order ASC, id ASC
     </select>
 
+    <select id="findByCondition" resultMap="ChannelGroupResultMap">
+        SELECT id, name, sort_order, description, created_at, updated_at, deleted
+        FROM channel_groups
+        WHERE deleted = 0
+        <if test="name != null and name != ''">
+            AND name LIKE '%' || #{name} || '%'
+        </if>
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
     <select id="findById" resultMap="ChannelGroupResultMap">
         SELECT id, name, sort_order, description, created_at, updated_at, deleted
         FROM channel_groups
