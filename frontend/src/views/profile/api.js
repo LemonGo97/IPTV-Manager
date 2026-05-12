@@ -6,9 +6,9 @@
  * Copyright © 2023 Ronnie Zhang(大脸怪) | https://isme.top
  **********************************/
 
-import { request } from '@/utils'
+import { request, mockRequest } from '@/utils'
 
 export default {
-  changePassword: data => request.post('/auth/password', data),
-  updateProfile: data => request.patch(`/user/profile/${data.id}`, data),
+  changePassword: data => mockRequest.post('/auth/password', data),
+  updateProfile: data => mockRequest.patch(`/user/profile/${data.id}`, data),
 }

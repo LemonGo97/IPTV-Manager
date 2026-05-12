@@ -29,29 +29,29 @@ public class ScheduledTaskService {
      * @param provider M3U8 提供者
      */
     public void scheduleOrUpdateJob(M3U8Provider provider) {
-        if (!provider.enabled() || provider.refreshRate() == null || provider.refreshRate() <= 0) {
-            deleteJob(provider.id());
+        if (!provider.getEnabled() || provider.getRefreshRate() == null || provider.getRefreshRate() <= 0) {
+            deleteJob(provider.getId());
             return;
         }
 
         try {
             JobDetail jobDetail = JobBuilder.newJob(M3U8RefreshJob.class)
-                    .withIdentity(getJobKey(provider.id()))
-                    .usingJobData("providerId", provider.id())
+                    .withIdentity(getJobKey(provider.getId()))
+                    .usingJobData("providerId", provider.getId())
                     .storeDurably(false)
                     .build();
 
             Trigger trigger = newTrigger()
-                    .withIdentity(getTriggerKey(provider.id()))
+                    .withIdentity(getTriggerKey(provider.getId()))
                     .withSchedule(simpleSchedule()
-                            .withIntervalInSeconds(provider.refreshRate())
+                            .withIntervalInSeconds(provider.getRefreshRate())
                             .repeatForever())
                     .build();
 
             scheduler.scheduleJob(jobDetail, trigger);
-            log.info("Scheduled M3U8 refresh job: provider={}, interval={}s", provider.id(), provider.refreshRate());
+            log.info("Scheduled M3U8 refresh job: provider={}, interval={}s", provider.getId(), provider.getRefreshRate());
         } catch (SchedulerException e) {
-            log.error("Failed to schedule job for provider: {}", provider.id(), e);
+            log.error("Failed to schedule job for provider: {}", provider.getId(), e);
             throw new RuntimeException("Failed to schedule job", e);
         }
     }

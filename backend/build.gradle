@@ -34,6 +34,14 @@ dependencies {
     implementation(libs.liquibase.core)
     implementation(libs.liquibase.slf4j)
 
+    implementation(platform(libs.log4j.bom))
+    implementation(platform(libs.slf4j.bom))
+
+    implementation(libs.slf4j.api)
+    implementation(libs.log4j.slf4j2.impl)
+    testImplementation(libs.slf4j.api)
+    testImplementation(libs.log4j.slf4j2.impl)
+
     developmentOnly(libs.spring.boot.devtools)
 
     annotationProcessor(libs.spring.boot.configuration.processor)

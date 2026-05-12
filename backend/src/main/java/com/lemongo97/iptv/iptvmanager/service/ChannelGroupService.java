@@ -32,21 +32,21 @@ public class ChannelGroupService {
 
     @Transactional
     public ChannelGroup create(ChannelGroup group) {
-        log.info("Creating channel group: {}", group.name());
+        log.info("Creating channel group: {}", group.getName());
 
         var now = LocalDateTime.now();
         var newGroup = new ChannelGroup(
                 null,
-                group.name(),
-                group.sortOrder() != null ? group.sortOrder() : 0,
-                group.description(),
+                group.getName(),
+                group.getSortOrder() != null ? group.getSortOrder() : 0,
+                group.getDescription(),
                 now,
                 now,
                 false
         );
 
         groupMapper.insert(newGroup);
-        log.info("Channel group created: id={}", newGroup.id());
+        log.info("Channel group created: id={}", newGroup.getId());
         return newGroup;
     }
 
@@ -57,12 +57,12 @@ public class ChannelGroupService {
 
         var updated = new ChannelGroup(
                 id,
-                group.name() != null ? group.name() : existing.name(),
-                group.sortOrder() != null ? group.sortOrder() : existing.sortOrder(),
-                group.description(),
-                existing.createdAt(),
+                group.getName() != null ? group.getName() : existing.getName(),
+                group.getSortOrder() != null ? group.getSortOrder() : existing.getSortOrder(),
+                group.getDescription(),
+                existing.getCreatedAt(),
                 LocalDateTime.now(),
-                existing.deleted()
+                existing.getDeleted()
         );
 
         groupMapper.update(updated);

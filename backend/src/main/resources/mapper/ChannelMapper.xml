@@ -45,6 +45,14 @@
         ORDER BY c.sort_order ASC, c.id ASC
     </select>
 
+    <select id="findByProviderId" resultMap="ChannelResultMap">
+        SELECT id, name, logo, url, number, channel_id, enabled, provider_id, group_id, epg_source_id,
+               sort_order, description, created_at, updated_at, deleted
+        FROM channels
+        WHERE provider_id = #{providerId} AND deleted = 0
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO channels (name, logo, url, number, channel_id, enabled, provider_id, group_id,
                              epg_source_id, sort_order, description, created_at, updated_at, deleted)

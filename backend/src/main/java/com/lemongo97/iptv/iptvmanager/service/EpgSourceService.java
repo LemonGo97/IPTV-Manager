@@ -36,23 +36,23 @@ public class EpgSourceService {
 
     @Transactional
     public EpgSource create(EpgSource epgSource) {
-        log.info("Creating EPG source: {}", epgSource.name());
+        log.info("Creating EPG source: {}", epgSource.getName());
 
         var now = LocalDateTime.now();
         var newEpgSource = new EpgSource(
                 null,
-                epgSource.name(),
-                epgSource.url(),
-                epgSource.type() != null ? epgSource.type() : "xml",
-                epgSource.enabled() != null ? epgSource.enabled() : true,
-                epgSource.description(),
+                epgSource.getName(),
+                epgSource.getUrl(),
+                epgSource.getType() != null ? epgSource.getType() : "xml",
+                epgSource.getEnabled() != null ? epgSource.getEnabled() : true,
+                epgSource.getDescription(),
                 now,
                 now,
                 false
         );
 
         epgSourceMapper.insert(newEpgSource);
-        log.info("EPG source created: id={}", newEpgSource.id());
+        log.info("EPG source created: id={}", newEpgSource.getId());
         return newEpgSource;
     }
 
@@ -63,14 +63,14 @@ public class EpgSourceService {
 
         var updated = new EpgSource(
                 id,
-                epgSource.name() != null ? epgSource.name() : existing.name(),
-                epgSource.url() != null ? epgSource.url() : existing.url(),
-                epgSource.type() != null ? epgSource.type() : existing.type(),
-                epgSource.enabled() != null ? epgSource.enabled() : existing.enabled(),
-                epgSource.description(),
-                existing.createdAt(),
+                epgSource.getName() != null ? epgSource.getName() : existing.getName(),
+                epgSource.getUrl() != null ? epgSource.getUrl() : existing.getUrl(),
+                epgSource.getType() != null ? epgSource.getType() : existing.getType(),
+                epgSource.getEnabled() != null ? epgSource.getEnabled() : existing.getEnabled(),
+                epgSource.getDescription(),
+                existing.getCreatedAt(),
                 LocalDateTime.now(),
-                existing.deleted()
+                existing.getDeleted()
         );
 
         epgSourceMapper.update(updated);
@@ -88,9 +88,9 @@ public class EpgSourceService {
     @Transactional
     public void refresh(Long id) {
         var epgSource = findById(id);
-        log.info("Refreshing EPG source: id={}, url={}", id, epgSource.url());
+        log.info("Refreshing EPG source: id={}, url={}", id, epgSource.getUrl());
 
-        if (!epgSource.enabled()) {
+        if (!epgSource.getEnabled()) {
             throw new BusinessException("Cannot refresh disabled EPG source: id=" + id);
         }
 

@@ -46,21 +46,21 @@ public class ChannelService {
      * 创建频道
      */
     public Channel create(Channel channel) {
-        log.info("Creating channel: {}", channel.name());
+        log.info("Creating channel: {}", channel.getName());
         var now = LocalDateTime.now();
         var newChannel = new Channel(
                 null,
-                channel.name(),
-                channel.logo(),
-                channel.url(),
-                channel.number(),
-                channel.channelId(),
-                channel.enabled() != null ? channel.enabled() : true,
-                channel.providerId(),
-                channel.groupId(),
-                channel.epgSourceId(),
-                channel.sortOrder(),
-                channel.description(),
+                channel.getName(),
+                channel.getLogo(),
+                channel.getUrl(),
+                channel.getNumber(),
+                channel.getChannelId(),
+                channel.getEnabled() != null ? channel.getEnabled() : true,
+                channel.getProviderId(),
+                channel.getGroupId(),
+                channel.getEpgSourceId(),
+                channel.getSortOrder(),
+                channel.getDescription(),
                 now,
                 now,
                 false
@@ -77,20 +77,20 @@ public class ChannelService {
         log.info("Updating channel: id={}", id);
         var updated = new Channel(
                 id,
-                channel.name() != null ? channel.name() : existing.name(),
-                channel.logo(),
-                channel.url() != null ? channel.url() : existing.url(),
-                channel.number(),
-                channel.channelId(),
-                channel.enabled() != null ? channel.enabled() : existing.enabled(),
-                existing.providerId(),
-                channel.groupId() != null ? channel.groupId() : existing.groupId(),
-                channel.epgSourceId() != null ? channel.epgSourceId() : existing.epgSourceId(),
-                channel.sortOrder() != null ? channel.sortOrder() : existing.sortOrder(),
-                channel.description(),
-                existing.createdAt(),
+                channel.getName() != null ? channel.getName() : existing.getName(),
+                channel.getLogo(),
+                channel.getUrl() != null ? channel.getUrl() : existing.getUrl(),
+                channel.getNumber(),
+                channel.getChannelId(),
+                channel.getEnabled() != null ? channel.getEnabled() : existing.getEnabled(),
+                existing.getProviderId(),
+                channel.getGroupId() != null ?     channel.getGroupId() :     existing.getGroupId(),
+                channel.getEpgSourceId() != null ? channel.getEpgSourceId() : existing.getEpgSourceId(),
+                channel.getSortOrder() != null ?   channel.getSortOrder() :   existing.getSortOrder(),
+                channel.getDescription(),
+                existing.getCreatedAt(),
                 LocalDateTime.now(),
-                existing.deleted()
+                existing.getDeleted()
         );
         channelMapper.update(updated);
         return updated;

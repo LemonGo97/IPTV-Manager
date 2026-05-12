@@ -52,3 +52,12 @@ databaseChangeLog:
             path: db/sql/add-logical-delete-fields.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: create-m3u8-refresh-task-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-m3u8-refresh-task-table.sql
+            relativeToChangelogFile: false
+            stripComments: true

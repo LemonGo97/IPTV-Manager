@@ -15,9 +15,7 @@ mybatis:
   mapper-locations: classpath:mapper/*.xml
 
 quartz:
-  job-store-type: jdbc
-  jdbc:
-    initialize-schema: always
+  job-store-type: memory
   properties:
     org:
       quartz:
@@ -27,7 +25,6 @@ quartz:
           threadName: IPTVManagerQuartzThread
         jobStore:
           class: org.quartz.simpl.RAMJobStore
-          driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
         threadPool:
           class: org.quartz.simpl.SimpleThreadPool
           threadCount: 5
@@ -44,13 +41,13 @@ logging:
     com.lemongo97.iptv.iptvmanager.mapper: TRACE
 
 ---
-# 开发环境 - 内存数据库
+# 开发环境 - 内存数据库（稳定）
 spring:
   config:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:sqlite::memory:
+    url: "jdbc:sqlite:backend/tmp/iptv.db"
   liquibase:
     enabled: true
     change-log: classpath:db/changelog.yml
@@ -62,7 +59,7 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: jdbc:sqlite:iptv.db
+    url: "jdbc:sqlite:iptv.db"
   liquibase:
     enabled: true
     change-log: classpath:db/changelog.yml

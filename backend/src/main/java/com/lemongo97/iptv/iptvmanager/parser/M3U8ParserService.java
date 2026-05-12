@@ -36,18 +36,18 @@ public class M3U8ParserService {
      */
     @Transactional
     public void parseFromUrl(M3U8Provider provider) {
-        log.info("Parsing M3U8 from URL: {}", provider.url());
+        log.info("Parsing M3U8 from URL: {}", provider.getUrl());
 
         try {
             // 构建请求头
             HttpHeaders headers = new HttpHeaders();
-            if (provider.headers() != null) {
-                provider.headers().forEach(headers::add);
+            if (provider.getHeaders() != null) {
+                provider.getHeaders().forEach(headers::add);
             }
 
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
             ResponseEntity<String> response = restTemplate.exchange(
-                    provider.url(),
+                    provider.getUrl(),
                     HttpMethod.GET,
                     requestEntity,
                     String.class
@@ -56,7 +56,7 @@ public class M3U8ParserService {
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 String content = response.getBody();
                 // 保存原始数据到历史记录（在解析前保存，确保即使解析失败也能保留原始数据）
-                rawDataService.saveRawData(provider.id(), content);
+                rawDataService.saveRawData(provider.getId(), content);
 
                 MultivariantPlaylist playlist = multivariantPlaylistParser.readPlaylist(content);
                 int count = playlist.variants().size();
@@ -66,7 +66,7 @@ public class M3U8ParserService {
                 throw new RuntimeException("Failed to fetch M3U8: HTTP " + response.getStatusCode());
             }
         } catch (Exception e) {
-            log.error("Failed to parse M3U8 from URL: {}", provider.url(), e);
+            log.error("Failed to parse M3U8 from URL: {}", provider.getUrl(), e);
             throw new RuntimeException("Failed to parse M3U8 from URL: " + e.getMessage(), e);
         }
     }
@@ -76,24 +76,24 @@ public class M3U8ParserService {
      */
     @Transactional
     public void parseFromFile(M3U8Provider provider) {
-        log.info("Parsing M3U8 from file: {}", provider.filePath());
+        log.info("Parsing M3U8 from file: {}", provider.getFilePath());
 
         try {
-            Path filePath = Path.of(provider.filePath());
+            Path filePath = Path.of(provider.getFilePath());
             if (!Files.exists(filePath)) {
-                throw new RuntimeException("File not found: " + provider.filePath());
+                throw new RuntimeException("File not found: " + provider.getFilePath());
             }
 
             String content = Files.readString(filePath);
             // 保存原始数据到历史记录
-            rawDataService.saveRawData(provider.id(), content);
+            rawDataService.saveRawData(provider.getId(), content);
 
             MultivariantPlaylist playlist = multivariantPlaylistParser.readPlaylist(content);
             parseAndSave(playlist, provider);
             int count = playlist.variants().size();
             log.info("Parsed {} channels from file", count);
         } catch (Exception e) {
-            log.error("Failed to parse M3U8 from file: {}", provider.filePath(), e);
+            log.error("Failed to parse M3U8 from file: {}", provider.getFilePath(), e);
             throw new RuntimeException("Failed to parse M3U8 from file: " + e.getMessage(), e);
         }
     }
@@ -109,7 +109,7 @@ public class M3U8ParserService {
                 saveChannelFromVariant(variant, provider, sortOrder++);
             }
 
-            log.info("Successfully saved {} channels from provider: {}", playlist.variants().size(), provider.name());
+            log.info("Successfully saved {} channels from provider: {}", playlist.variants().size(), provider.getName());
         } catch (Exception e) {
             log.error("Failed to parse M3U8 content", e);
             throw new RuntimeException("Failed to parse M3U8 content: " + e.getMessage(), e);
@@ -131,7 +131,7 @@ public class M3U8ParserService {
                     null,
                     null,
                     true,
-                    provider.id(),
+                    provider.getId(),
                     null,
                     null,
                     sortOrder,

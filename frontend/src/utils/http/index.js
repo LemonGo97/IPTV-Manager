@@ -26,5 +26,5 @@ export function createAxios(options = {}) {
 export const request = createAxios()
 
 export const mockRequest = createAxios({
-  baseURL: '/mock-api',
+  baseURL: 'https://m1.apifoxmock.com/m1/3776410-3408296-default',
 })

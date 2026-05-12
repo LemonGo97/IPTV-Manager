@@ -62,7 +62,7 @@ public class M3U8RawDataService {
         // 如果超过3条，删除多余的
         if (history.size() > MAX_HISTORY_COUNT) {
             // 保留第3条记录的时间戳，删除此时间之前的所有数据
-            LocalDateTime cutoffTime = history.get(MAX_HISTORY_COUNT - 1).fetchedAt();
+            LocalDateTime cutoffTime = history.get(MAX_HISTORY_COUNT - 1).getFetchedAt();
             int deletedCount = rawDataMapper.deleteByFetchedAtBefore(cutoffTime);
             log.debug("Cleaned up {} old raw data records for provider: {}", deletedCount, providerId);
         }

@@ -34,6 +34,8 @@ tags:
     description: 频道组管理
   - name: EPG Source
     description: EPG 源管理
+  - name: M3U8 Task History
+    description: M3U8 刷新任务历史
 
 paths:
   /api/m3u8/provider:
@@ -177,6 +179,51 @@ paths:
       responses:
         '200':
           description: M3U8 源刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/m3u8/provider/upload:
+    post:
+      tags:
+        - M3U8 Provider
+      summary: 上传本地 M3U8 文件
+      description: 上传 M3U8 文件并创建本地类型的 Provider
+      operationId: uploadM3U8File
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: M3U8 文件（支持 .m3u 和 .m3u8 格式）
+                name:
+                  type: string
+                  description: Provider 名称（可选，默认使用文件名）
+                description:
+                  type: string
+                  description: 备注信息（可选）
+      responses:
+        '200':
+          description: 文件上传成功，返回创建的 Provider
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/M3U8Provider'
+        '400':
+          description: 文件格式错误或文件为空
           content:
             application/json:
               schema:
@@ -556,6 +603,163 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
+  /api/m3u8/task/history:
+    get:
+      tags:
+        - M3U8 Task History
+      summary: 获取任务历史列表
+      description: 分页查询 M3U8 刷新任务历史记录
+      operationId: findAllM3U8Tasks
+      parameters:
+        - name: providerName
+          in: query
+          description: 按订阅源名称过滤
+          schema:
+            type: string
+        - name: triggerType
+          in: query
+          description: 按触发方式过滤
+          schema:
+            type: string
+            enum: [manual, scheduled]
+        - name: status
+          in: query
+          description: 按状态过滤
+          schema:
+            type: string
+            enum: [success, failed, running]
+        - name: startTime
+          in: query
+          description: 开始时间（过滤此时间之后的记录）
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: query
+          description: 结束时间（过滤此时间之前的记录）
+          schema:
+            type: string
+            format: date-time
+        - name: offset
+          in: query
+          description: 分页偏移量
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: 每页记录数
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功返回任务历史列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/M3U8RefreshTask'
+
+  /api/m3u8/task/history/count:
+    get:
+      tags:
+        - M3U8 Task History
+      summary: 获取任务总数
+      description: 统计符合条件的任务总数（用于分页）
+      operationId: countM3U8Tasks
+      parameters:
+        - name: providerName
+          in: query
+          schema:
+            type: string
+        - name: triggerType
+          in: query
+          schema:
+            type: string
+            enum: [manual, scheduled]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [success, failed, running]
+        - name: startTime
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 成功返回任务总数
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int64
+
+  /api/m3u8/task/history/{id}:
+    get:
+      tags:
+        - M3U8 Task History
+      summary: 获取任务详情
+      operationId: findM3U8TaskById
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: 成功返回任务详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/M3U8RefreshTask'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/m3u8/task/history/{id}/channels:
+    get:
+      tags:
+        - M3U8 Task History
+      summary: 获取任务解析的频道列表
+      description: 获取指定任务解析出的频道列表
+      operationId: findChannelsByTask
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: 成功返回频道列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Channel'
+
 components:
   parameters:
     ProviderId:
@@ -589,6 +793,15 @@ components:
       schema:
         type: integer
         format: int64
+
+    TaskId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: 任务 ID
 
   schemas:
     ApiResponse:
@@ -938,6 +1151,67 @@ components:
           type: boolean
         description:
           type: string
+
+    M3U8RefreshTask:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        providerId:
+          type: integer
+          format: int64
+          example: 1
+          description: M3U8 提供者 ID
+        providerName:
+          type: string
+          example: 示例 IPTV 源
+          description: M3U8 提供者名称
+        triggerType:
+          type: string
+          enum: [manual, scheduled]
+          example: manual
+          description: 触发方式（手动/定时）
+        status:
+          type: string
+          enum: [success, failed, running]
+          example: success
+          description: 执行状态
+        startTime:
+          type: string
+          format: date-time
+          example: '2025-01-12T10:00:00Z'
+          description: 开始时间（时间戳）
+        endTime:
+          type: string
+          format: date-time
+          example: '2025-01-12T10:00:05Z'
+          description: 结束时间（时间戳）
+        duration:
+          type: integer
+          format: int64
+          example: 5000
+          description: 耗时（毫秒）
+        channelCount:
+          type: integer
+          example: 150
+          description: 解析的频道数量
+        errorMessage:
+          type: string
+          example: 'Connection timeout'
+          description: 错误信息（失败时）
+        rawContent:
+          type: string
+          description: 原始 M3U8 内容
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-01-12T10:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2025-01-12T10:00:05Z'
 
   responses:
     NotFound:

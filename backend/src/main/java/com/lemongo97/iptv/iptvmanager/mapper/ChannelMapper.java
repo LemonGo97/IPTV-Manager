@@ -29,6 +29,11 @@ public interface ChannelMapper {
     List<Channel> findByGroup(@Param("group") String group);
 
     /**
+     * 根据提供者 ID 查询频道
+     */
+    List<Channel> findByProviderId(@Param("providerId") Long providerId);
+
+    /**
      * 插入频道
      */
     int insert(Channel channel);

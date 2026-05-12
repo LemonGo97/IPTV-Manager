@@ -6,10 +6,10 @@
  * Copyright © 2023 Ronnie Zhang(大脸怪) | https://isme.top
  **********************************/
 
-import { request } from '@/utils'
+import { request, mockRequest } from '@/utils'
 
 export default {
-  toggleRole: data => request.post('/auth/role/toggle', data),
-  login: data => request.post('/auth/login', data, { needToken: false }),
-  getUser: () => request.get('/user/detail'),
+  toggleRole: data => mockRequest.post('/auth/role/toggle', data),
+  login: data => mockRequest.post('/auth/login', data, { needToken: false }),
+  getUser: () => mockRequest.get('/user/detail'),
 }

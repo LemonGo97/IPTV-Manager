@@ -7,13 +7,13 @@
  **********************************/
 
 import axios from 'axios'
-import { request } from '@/utils'
+import { request, mockRequest } from '@/utils'
 
 export default {
-  getMenuTree: () => request.get('/permission/menu/tree'),
-  getButtons: ({ parentId }) => request.get(`/permission/button/${parentId}`),
+  getMenuTree: () => mockRequest.get('/permission/menu/tree'),
+  getButtons: ({ parentId }) => mockRequest.get(`/permission/button/${parentId}`),
   getComponents: () => axios.get(`${import.meta.env.VITE_PUBLIC_PATH}components.json`),
-  addPermission: data => request.post('/permission', data),
-  savePermission: (id, data) => request.patch(`/permission/${id}`, data),
-  deletePermission: id => request.delete(`permission/${id}`),
+  addPermission: data => mockRequest.post('/permission', data),
+  savePermission: (id, data) => mockRequest.patch(`/permission/${id}`, data),
+  deletePermission: id => mockRequest.delete(`permission/${id}`),
 }
