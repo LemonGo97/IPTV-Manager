@@ -11,7 +11,7 @@ import java.util.List;
  * 频道组控制器
  */
 @RestController
-@RequestMapping("/api/channel/group")
+@RequestMapping("/channel/group")
 public class ChannelGroupController {
 
     private final ChannelGroupService groupService;

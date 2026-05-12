@@ -47,7 +47,7 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: "jdbc:sqlite:backend/tmp/iptv.db"
+    url: "jdbc:sqlite:tmp/iptv.db"
   liquibase:
     enabled: true
     change-log: classpath:db/changelog.yml

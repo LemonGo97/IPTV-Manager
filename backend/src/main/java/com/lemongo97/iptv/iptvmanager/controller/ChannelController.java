@@ -11,7 +11,7 @@ import java.util.List;
  * 频道控制器
  */
 @RestController
-@RequestMapping("/api/channel")
+@RequestMapping("/channel")
 public class ChannelController {
 
     private final ChannelService channelService;

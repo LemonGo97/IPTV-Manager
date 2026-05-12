@@ -11,7 +11,7 @@ import java.util.List;
  * EPG 源控制器
  */
 @RestController
-@RequestMapping("/api/epg/source")
+@RequestMapping("/epg/source")
 public class EpgSourceController {
 
     private final EpgSourceService epgSourceService;

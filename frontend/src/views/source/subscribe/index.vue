@@ -299,7 +299,7 @@ const columns = [
           {
             size: 'small',
             type: 'error',
-            onClick: () => handleDelete(row),
+            onClick: () => handleDelete(row.id),
           },
           { default: () => '删除' }
         ),
@@ -314,7 +314,7 @@ const {
   modalAction,
   handleAdd,
   handleDelete,
-  handleOpen,
+  handleOpen: _handleOpen,
   handleSave,
 } = useCrud({
   name: '订阅源',
@@ -326,22 +326,45 @@ const {
   },
   doCreate: api.create,
   doDelete: api.delete,
-  doUpdate: api.update,
+  doUpdate: (data) => api.update(data.id, data),
   refresh: () => $table.value?.handleSearch(),
 })
 
-const handleFileUpload = ({ file }) => {
-  // TODO: 文件上传处理
-  console.log('上传文件:', file)
+// Override handleOpen to set autoRefresh from refreshRate
+function handleOpen(row) {
+  const rowData = row ?? {}
+  _handleOpen({
+    action: 'edit',
+    row: {
+      ...rowData,
+      autoRefresh: !!rowData.refreshRate,
+    },
+  })
+}
+
+const handleFileUpload = async ({ file }) => {
+  try {
+    await api.upload(file.file, modalForm.value.name, modalForm.value.description)
+    window.$message?.success('文件上传成功')
+    modalRef.value.hide()
+    handleSave()
+  } catch (error) {
+    window.$message?.error('文件上传失败')
+  }
 }
 
 const handleFileListChange = (list) => {
   fileList.value = list
 }
 
-const handleRefresh = (row) => {
-  // TODO: 调用刷新 API
-  window.$message?.success(`正在刷新: ${row.name}`)
+const handleRefresh = async (row) => {
+  try {
+    await api.refresh(row.id)
+    window.$message?.success(`刷新成功: ${row.name}`)
+    $table.value?.handleSearch()
+  } catch (error) {
+    window.$message?.error('刷新失败')
+  }
 }
 
 onMounted(() => {

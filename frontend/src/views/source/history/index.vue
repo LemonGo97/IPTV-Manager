@@ -235,10 +235,20 @@ const handleViewDetail = (row) => {
   detailModalRef.value.show()
 }
 
-const handleViewPlaylist = (row) => {
-  // TODO: 获取频道列表数据
-  currentPlaylist.value = row.channels || []
-  playlistModalRef.value.show()
+const handleViewPlaylist = async (row) => {
+  try {
+    const channels = await api.getChannels(row.id)
+    currentPlaylist.value = channels.map((ch, index) => ({
+      index: index + 1,
+      name: ch.name || '-',
+      group: ch.groupName || '-',
+      url: ch.url || '-',
+      logo: ch.logo || '-',
+    }))
+    playlistModalRef.value.show()
+  } catch (error) {
+    window.$message?.error('获取频道列表失败')
+  }
 }
 
 defineOptions({

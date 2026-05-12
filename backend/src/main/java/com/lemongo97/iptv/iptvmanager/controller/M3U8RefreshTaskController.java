@@ -14,7 +14,7 @@ import java.util.List;
  * M3U8 刷新任务控制器
  */
 @RestController
-@RequestMapping("/api/m3u8/task/history")
+@RequestMapping("/m3u8/task/history")
 @RequiredArgsConstructor
 public class M3U8RefreshTaskController {
 

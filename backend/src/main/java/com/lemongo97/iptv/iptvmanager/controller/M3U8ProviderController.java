@@ -13,7 +13,7 @@ import java.util.List;
  * M3U8 源控制器
  */
 @RestController
-@RequestMapping("/api/m3u8/provider")
+@RequestMapping("/m3u8/provider")
 @RequiredArgsConstructor
 public class M3U8ProviderController {
 

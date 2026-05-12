@@ -583,6 +583,82 @@ VITE_PROXY_TARGET = 'http://localhost:8080'
 
 > **注意**：暂时先不用管项目的用户登录与权限相关的功能，专注于核心业务功能开发。
 
+### 调试指南
+
+> **重要**：使用 Chrome DevTools MCP 调试时，如遇登录页面，请点击页面上的"一键登录"按钮进入系统，**不要修改** [`frontend/src/router/guards/permission-guard.js`](frontend/src/router/guards/permission-guard.js) 文件中的 `WHITE_LIST` 配置。
+
+**原因**：
+- 修改 `WHITE_LIST` 会破坏权限系统的完整性
+- 使用"一键登录"是正确的调试方式
+- 保持权限守卫的原始配置便于后续集成真实认证系统
+
+#### Hash 路由模式
+
+本项目使用 Hash 路由模式（`VITE_USE_HASH = 'true'`），调试时需使用正确的 URL 格式：
+
+| 错误格式 | 正确格式 |
+|---------|---------|
+| `http://localhost:3200/source/subscribe` | `http://localhost:3200/#/source/subscribe` |
+| `http://localhost:3200/source/subscribe#/source/subscribe` | `http://localhost:3200/#/source/subscribe` |
+
+**规则**：所有路由路径前必须加上 `/#` 前缀。
+
+#### 常见问题修复
+
+**1. 编辑按钮数据不回显**
+
+**现象**：点击编辑按钮后弹窗打开，但表单字段为空。
+
+**原因**：后端返回的字段名与表单字段名不匹配，或 `useCrud` 的 `handleOpen` 函数接收参数格式不正确。
+
+**修复示例**：
+```javascript
+// 后端返回 refreshRate（number），但表单使用 autoRefresh（boolean）
+const { handleOpen: _handleOpen } = useCrud({ ... })
+
+// 包装 handleOpen 以转换数据格式
+function handleOpen(row) {
+  const rowData = row ?? {}
+  _handleOpen({
+    action: 'edit',
+    row: {
+      ...rowData,
+      autoRefresh: !!rowData.refreshRate,  // 转换字段
+    },
+  })
+}
+```
+
+**2. 删除按钮报错**
+
+**现象**：点击删除按钮后报错或确认对话框不显示。
+
+**原因**：删除按钮传递了整个 `row` 对象，但 `handleDelete` 函数期望的是 `id`。
+
+**修复示例**：
+```javascript
+// 错误写法
+onClick: () => handleDelete(row)
+
+// 正确写法
+onClick: () => handleDelete(row.id)
+```
+
+**3. 编辑保存报错 - URL 包含 [object Object]**
+
+**现象**：编辑后点击保存，请求 URL 显示 `/api/xxx/[object%20Object]`，返回 400 错误。
+
+**原因**：API 的 `update` 函数需要两个参数 `(id, data)`，但 `useCrud` 的 `doUpdate` 只传递一个参数 `modalForm.value`。
+
+**修复示例**：
+```javascript
+// 错误写法
+doUpdate: api.update,
+
+// 正确写法 - 包装函数提取 id
+doUpdate: (data) => api.update(data.id, data),
+```
+
 ### 开发环境配置
 
 1. **启动后端**：`./gradlew :backend:bootRun` → `http://localhost:8080`
