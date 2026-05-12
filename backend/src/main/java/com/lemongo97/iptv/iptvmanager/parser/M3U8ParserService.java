@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -55,7 +56,7 @@ public class M3U8ParserService {
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                String content = response.getBody();
+                String content = new String(response.getBody().getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
                 // 保存原始数据到历史记录（在解析前保存，确保即使解析失败也能保留原始数据）
                 rawDataService.saveRawData(provider.getId(), content);
 

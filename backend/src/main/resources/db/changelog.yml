@@ -61,3 +61,12 @@ databaseChangeLog:
             path: db/sql/create-m3u8-refresh-task-table.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: drop-provider-name-from-refresh-task
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/drop-provider-name-from-refresh-task.sql
+            relativeToChangelogFile: false
+            stripComments: true
