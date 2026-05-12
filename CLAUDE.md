@@ -879,6 +879,65 @@ export const basePermissions = [
 
 ## 最新更新
 
+### 2026-05-13
+
+#### M3U8 解析架构重构
+
+**注解驱动的 M3U8 解析器** (`IPTVM3U8Parser`)
+- 使用反射和注解实现灵活的 M3U8 解析
+- 支持注解：`@ChannelName`、`@ChannelUrl`、`@MetadataAttribute("xxx")`
+- 可解析到任何带有这些注解的目标类
+- 兼容 IPTV 播放列表格式（#EXTINF 元数据）
+
+**原始频道元数据存储** (`original_channels` 表)
+- 存储解析后的原始 M3U8 频道元数据
+- 字段：name, url, tvgId, tvgName, tvgLogo, groupTitle, tvgCountry, tvgLanguage
+- 关联 `provider_id` 和 `task_id`，支持任务追踪
+- 支持按任务查询解析结果
+
+**实体关系**：
+```
+m3u8_raw_data → original_channels → channels
+     ↓                ↓              ↓
+  原始内容        原始元数据      处理后频道
+```
+
+#### 频道管理模块
+
+**新增菜单**（`settings.js`）
+- 源管理（订阅配置、任务历史）
+- 频道管理
+  - 频道列表（开发中）
+  - 频道组管理 ✅
+  - 频道处理规则 ✅
+
+**频道组管理** (`/channel-management/groups`)
+- 完整 CRUD 功能
+- 支持按名称搜索
+- 字段：id, name, sortOrder, description
+- API: `GET /channel/group?name=xxx`
+
+**频道处理规则** (`/channel-management/rules`)
+- 四种规则类型（折叠面板排他性展示）
+  - 频道过滤规则
+  - 频道名称规范化规则
+  - 延迟检测规则
+  - 频道分组规则
+- 每个规则：名称、匹配条件、匹配类型（包含/等于/正则）、操作值
+- 启用/停用状态控制
+
+#### 前端开发规范
+
+**useCrud 注意事项**：
+- `handleEdit(row)` - 编辑时使用 `handleEdit`，不是 `handleOpen`
+- `handleDelete(row.id)` - 删除时传递 `id`，不是整个 `row` 对象
+- `doUpdate: (data) => api.update(data.id, data)` - 更新时包装函数提取 id
+
+**后端搜索支持**：
+- Mapper 接口：`findByCondition(@Param("name") String name)`
+- Service 方法：`findByCondition(String name)`
+- Controller：`findAll(@RequestParam(required = false) String name)`
+
 ### 2026-05-12
 
 - ✅ 创建源管理菜单和页面
