@@ -130,6 +130,17 @@
 <script setup>
 import {NButton, NTag, NStatistic, NGrid, NGi, NDivider, NDataTable, NSteps, NStep, NModal, NTimeline, NTimelineItem, NImage, NDropdown, NP, NSpace} from 'naive-ui'
 import {h} from 'vue'
+import { useClipboard } from '@vueuse/core'
+
+// 使用剪贴板
+const { copy, copied } = useClipboard()
+
+// 监听复制状态
+watch(copied, (val) => {
+  if (val) {
+    window.$message.success('已复制到剪贴板')
+  }
+})
 
 // 统计数据（模拟数据）
 const statistics = ref({
@@ -497,9 +508,7 @@ const columns = [
 
 // 复制到剪贴板
 function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    window.$message.success('已复制到剪贴板')
-  })
+  copy(text)
 }
 
 // 刷新
@@ -532,9 +541,7 @@ function handlePreview(player, row) {
 // 复制链接
 function handleCopyUrl() {
   if (previewChannel.value) {
-    navigator.clipboard.writeText(previewChannel.value.url).then(() => {
-      window.$message.success('链接已复制到剪贴板')
-    })
+    copy(previewChannel.value.url)
   }
 }
 
