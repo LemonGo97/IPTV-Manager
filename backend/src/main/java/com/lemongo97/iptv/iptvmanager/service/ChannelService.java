@@ -7,8 +7,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 频道服务
@@ -43,65 +47,325 @@ public class ChannelService {
     }
 
     /**
-     * 创建频道
+     * 获取统计数据
+     *
+     * @return
      */
-    public Channel create(Channel channel) {
-        log.info("Creating channel: {}", channel.getName());
-        var now = LocalDateTime.now();
-        var newChannel = new Channel(
-                null,
-                channel.getName(),
-                channel.getLogo(),
-                channel.getUrl(),
-                channel.getNumber(),
-                channel.getChannelId(),
-                channel.getEnabled() != null ? channel.getEnabled() : true,
-                channel.getProviderId(),
-                channel.getGroupId(),
-                channel.getEpgSourceId(),
-                channel.getSortOrder(),
-                channel.getDescription(),
-                now,
-                now,
-                false
-        );
-        channelMapper.insert(newChannel);
-        return newChannel;
+    public Map<String, Object> statistic() {
+        // TODO 获取分组统计数据
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalChannels", 1234);
+        result.put("validChannels", 1156);
+        result.put("invalidChannels", 78);
+        result.put("groupCount", 12);
+        result.put("status", "进行中");
+        return result;
     }
 
     /**
-     * 更新频道
+     * 获取节目EPG时间轴
+     * @param id
+     * @return
      */
-    public Channel update(Long id, Channel channel) {
-        var existing = findById(id);
-        log.info("Updating channel: id={}", id);
-        var updated = new Channel(
-                id,
-                channel.getName() != null ? channel.getName() : existing.getName(),
-                channel.getLogo(),
-                channel.getUrl() != null ? channel.getUrl() : existing.getUrl(),
-                channel.getNumber(),
-                channel.getChannelId(),
-                channel.getEnabled() != null ? channel.getEnabled() : existing.getEnabled(),
-                existing.getProviderId(),
-                channel.getGroupId() != null ?     channel.getGroupId() :     existing.getGroupId(),
-                channel.getEpgSourceId() != null ? channel.getEpgSourceId() : existing.getEpgSourceId(),
-                channel.getSortOrder() != null ?   channel.getSortOrder() :   existing.getSortOrder(),
-                channel.getDescription(),
-                existing.getCreatedAt(),
-                LocalDateTime.now(),
-                existing.getDeleted()
-        );
-        channelMapper.update(updated);
-        return updated;
-    }
+    public Channel.ChannelEPGTimeline getEPGTimeline(Long id) {
 
-    /**
-     * 删除频道
-     */
-    public void deleteById(Long id) {
-        findById(id);
-        log.info("Deleting channel: id={}", id);
-        channelMapper.deleteById(id);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss Z");
+
+        // TODO 获取真实数据
+
+        Channel.ChannelEPGTimeline result = new Channel.ChannelEPGTimeline()
+                .addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.date)
+                        .title("5月14日 星期四")
+                        .lang("zh"))
+                .addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514005200 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514012200 +0800", formatter))
+                        .title("晚间新闻")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514012200 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514020400 +0800", formatter))
+                        .title("生活早参考-特别节目（生活圈）2026-128")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514020400 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514023400 +0800", formatter))
+                        .title("农耕探文明-2025-20")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514023400 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514023800 +0800", formatter))
+                        .title("三餐四季（第二季）-宣传片")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514023800 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514024400 +0800", formatter))
+                        .title("非遗里的中国-MV")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514024400 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514042000 +0800", formatter))
+                        .title("宗师列传·大宋词人传-黄庭坚")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514042000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514042200 +0800", formatter))
+                        .title("泱泱中华-历史文化街区1")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514042200 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514045300 +0800", formatter))
+                        .title("今日说法-2026-82")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514045300 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514052700 +0800", formatter))
+                        .title("新闻联播")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514052700 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514060000 +0800", formatter))
+                        .title("寻古中国-寻秦记4")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514060000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514083000 +0800", formatter))
+                        .title("朝闻天下")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514083000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514090000 +0800", formatter))
+                        .title("朝闻天下")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514090000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514093000 +0800", formatter))
+                        .title("新闻直播间")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514093000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514104500 +0800", formatter))
+                        .title("新闻直播间")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514104500 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514110000 +0800", formatter))
+                        .title("中华古树-黄山迎客松（4K）")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514110000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514115000 +0800", formatter))
+                        .title("爱情没有神话第11集")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514115000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514115100 +0800", formatter))
+                        .title("中华古树-绿色国宝（4K）")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514115100 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514115400 +0800", formatter))
+                        .title("非遗里的中国-MV")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514115400 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514120000 +0800", formatter))
+                        .title("秘境之眼-2026-113")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514120000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514123400 +0800", formatter))
+                        .title("新闻30分")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514123400 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514130700 +0800", formatter))
+                        .title("今日说法-2026-83")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514130700 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514135400 +0800", formatter))
+                        .title("生命树第18集")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514135400 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514144200 +0800", formatter))
+                        .title("生命树第19集")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514144200 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514153000 +0800", formatter))
+                        .title("生命树第20集")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514153000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514162000 +0800", formatter))
+                        .title("生命树第21集")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514162000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514171200 +0800", formatter))
+                        .title("生命树第22集")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514171200 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514173700 +0800", formatter))
+                        .title("第一动画乐园-2026-128")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514173700 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514182100 +0800", formatter))
+                        .title("生活早参考-特别节目（生活圈）2026-129")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514182100 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514185100 +0800", formatter))
+                        .title("农耕探文明-2025-6")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514185100 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514190000 +0800", formatter))
+                        .title("秘境之眼-2026-127")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514190000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514193800 +0800", formatter))
+                        .title("新闻联播")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514193800 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514195800 +0800", formatter))
+                        .title("焦点访谈")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514195800 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514200200 +0800", formatter))
+                        .title("前情提要-主角-9/48")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514200200 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514205300 +0800", formatter))
+                        .title("主角9/48")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514205300 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514205600 +0800", formatter))
+                        .title("前情提要-主角-10/48")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514205600 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514214600 +0800", formatter))
+                        .title("主角10/48")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514214600 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514215200 +0800", formatter))
+                        .title("非遗里的中国-MV")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514215200 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514220000 +0800", formatter))
+                        .title("三餐四季（第二季）-宣传片")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514220000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514223500 +0800", formatter))
+                        .title("晚间新闻")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514223500 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514231000 +0800", formatter))
+                        .title("自然中国-探秘哀牢山-奇幻生灵")
+                        .lang("zh")
+                ).addItem(new Channel.ChannelEPGTimelineItem()
+                        .channel("CCTV 1")
+                        .type(Channel.ChannelEPGTimelineItem.Type.program)
+                        .startTime(OffsetDateTime.parse("20260514231000 +0800", formatter))
+                        .stopTime(OffsetDateTime.parse("20260514235900 +0800", formatter))
+                        .title("宗师列传·大宋词人传-秦观")
+                        .lang("zh"));
+        return result;
     }
 }

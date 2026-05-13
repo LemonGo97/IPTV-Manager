@@ -80,3 +80,12 @@ databaseChangeLog:
             path: db/sql/create-original-channel-table.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: rebuild-channel-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/rebuild-channel-table.sql
+            relativeToChangelogFile: false
+            stripComments: true

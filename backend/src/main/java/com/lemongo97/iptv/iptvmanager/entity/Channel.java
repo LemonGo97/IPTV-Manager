@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 
 /**
  * 频道实体
@@ -16,37 +18,89 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Channel {
-
-    public Channel(OriginalChannel originalChannel, Long providerId, Integer sortOrder) {
-        this.setName(originalChannel.getChannelName())
-                .setLogo(originalChannel.getTvgLogo())
-                .setUrl(originalChannel.getUrl())
-                .setNumber(null)
-                .setChannelId(originalChannel.getTvgId())
-                .setEnabled(true)
-                .setProviderId(providerId)
-                .setGroupId(null)
-                .setEpgSourceId(null)
-                .setSortOrder(sortOrder)
-                .setDescription(originalChannel.getGroupTitle())
-                .setCreatedAt(LocalDateTime.now())
-                .setUpdatedAt(LocalDateTime.now())
-                .setDeleted(false);
-    }
-
+    /**
+     * 自增ID
+     */
     private Long id;
+    /**
+     * 频道名称
+     */
     private String name;
+    /**
+     * 频道LOGO URL
+     */
     private String logo;
+    /**
+     * 频道URL
+     */
     private String url;
-    private String number;
-    private String channelId;
-    private Boolean enabled;
-    private Long providerId;
+    /**
+     * 频道组ID
+     */
     private Long groupId;
-    private Long epgSourceId;
-    private Integer sortOrder;
-    private String description;
+    /**
+     * 用于匹配EPG的ID字符串
+     */
+    private String epgSourceId;
+    /**
+     * 状态（有效/无效）
+     */
+    private String status;
+    /**
+     * 国家/地区
+     */
+    private String country;
+    /**
+     * 语言
+     */
+    private String language;
+    /**
+     * 评分。满分100，分数越高质量越好
+     */
+    private Integer score;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Boolean deleted;
+
+    public static class ChannelEPGTimeline extends ArrayList<ChannelEPGTimelineItem> {
+
+        public ChannelEPGTimeline addItem(ChannelEPGTimelineItem item){
+            this.add(item);
+            return this;
+        }
+
+    }
+
+    @Data
+    @Accessors(chain = true, fluent = true)
+    public static class ChannelEPGTimelineItem {
+        /**
+         * 频道名称
+         */
+        private String channel;
+        /**
+         * 时间轴对象类型
+         */
+        private Type type;
+        /**
+         * 节目开始时间
+         */
+        private OffsetDateTime startTime;
+        /**
+         * 节目结束时间
+         */
+        private OffsetDateTime stopTime;
+        /**
+         * 节目名称
+         */
+        private String title;
+        /**
+         * 语言
+         */
+        private String lang;
+
+        public enum Type {
+            program,
+            date,
+        }
+    }
 }

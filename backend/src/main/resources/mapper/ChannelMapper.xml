@@ -8,30 +8,27 @@
         <result property="name" column="name"/>
         <result property="logo" column="logo"/>
         <result property="url" column="url"/>
-        <result property="number" column="number"/>
-        <result property="channelId" column="channel_id"/>
-        <result property="enabled" column="enabled"/>
-        <result property="providerId" column="provider_id"/>
         <result property="groupId" column="group_id"/>
         <result property="epgSourceId" column="epg_source_id"/>
-        <result property="sortOrder" column="sort_order"/>
-        <result property="description" column="description"/>
+        <result property="status" column="status"/>
+        <result property="country" column="country"/>
+        <result property="language" column="language"/>
+        <result property="score" column="score"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
-        <result property="deleted" column="deleted"/>
     </resultMap>
 
     <select id="findAll" resultMap="ChannelResultMap">
-        SELECT id, name, logo, url, number, channel_id, enabled, provider_id, group_id, epg_source_id,
-               sort_order, description, created_at, updated_at, deleted
+        SELECT id, name, logo, url, group_id, epg_source_id,
+               status, country, language, score, created_at, updated_at
         FROM channels
         WHERE deleted = 0
         ORDER BY sort_order ASC, id ASC
     </select>
 
     <select id="findById" resultMap="ChannelResultMap">
-        SELECT id, name, logo, url, number, channel_id, enabled, provider_id, group_id, epg_source_id,
-               sort_order, description, created_at, updated_at, deleted
+        SELECT id, name, logo, url, group_id, epg_source_id,
+               status, country, language, score, created_at, updated_at
         FROM channels
         WHERE id = #{id} AND deleted = 0
     </select>
@@ -45,52 +42,15 @@
         ORDER BY c.sort_order ASC, c.id ASC
     </select>
 
-    <select id="findByProviderId" resultMap="ChannelResultMap">
-        SELECT id, name, logo, url, number, channel_id, enabled, provider_id, group_id, epg_source_id,
-               sort_order, description, created_at, updated_at, deleted
-        FROM channels
-        WHERE provider_id = #{providerId} AND deleted = 0
-        ORDER BY sort_order ASC, id ASC
-    </select>
-
-    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO channels (name, logo, url, number, channel_id, enabled, provider_id, group_id,
-                             epg_source_id, sort_order, description, created_at, updated_at, deleted)
-        VALUES (#{name}, #{logo}, #{url}, #{number}, #{channelId}, #{enabled}, #{providerId}, #{groupId},
-                #{epgSourceId}, #{sortOrder}, #{description}, #{createdAt}, #{updatedAt}, 0)
-    </insert>
-
-    <insert id="insertBatch">
-        INSERT INTO channels (name, logo, url, number, channel_id, enabled, provider_id, group_id,
-                              epg_source_id, sort_order, description, created_at, updated_at, deleted)
+    <insert id="insert">
+        UPDATE channels SET deleted = 1；
+        INSERT INTO channels (name, logo, url, group_id, epg_source_id,
+        status, country, language, score, created_at, updated_at, deleted)
         VALUES
         <foreach collection="channels" item="item" separator=",">
-            (#{item.name}, #{item.logo}, #{item.url}, #{item.number}, #{item.channelId}, #{item.enabled}, #{item.providerId}, #{item.groupId},
-            #{item.epgSourceId}, #{item.sortOrder}, #{item.description}, #{item.createdAt}, #{item.updatedAt}, 0)
+            (#{item.name}, #{item.logo}, #{item.url}, #{item.groupId}, #{item.epgSourceId}, #{item.status}, #{item.country}, #{item.language},
+            #{item.score}, #{item.createdAt}, #{item.updatedAt}, 0)
         </foreach>
     </insert>
-
-    <update id="update">
-        UPDATE channels
-        SET name = #{name},
-            logo = #{logo},
-            url = #{url},
-            number = #{number},
-            channel_id = #{channelId},
-            enabled = #{enabled},
-            provider_id = #{providerId},
-            group_id = #{groupId},
-            epg_source_id = #{epgSourceId},
-            sort_order = #{sortOrder},
-            description = #{description},
-            updated_at = #{updatedAt}
-        WHERE id = #{id} AND deleted = 0
-    </update>
-
-    <update id="deleteById">
-        UPDATE channels
-        SET deleted = 1
-        WHERE id = #{id}
-    </update>
 
 </mapper>

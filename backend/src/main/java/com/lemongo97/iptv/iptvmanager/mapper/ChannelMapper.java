@@ -29,24 +29,8 @@ public interface ChannelMapper {
     List<Channel> findByGroup(@Param("group") String group);
 
     /**
-     * 根据提供者 ID 查询频道
-     */
-    List<Channel> findByProviderId(@Param("providerId") Long providerId);
-
-    /**
      * 插入频道
      */
-    int insert(Channel channel);
+    void insert(@Param("channels") List<Channel> channels);
 
-    void insertBatch(List<Channel> channels);
-
-    /**
-     * 更新频道
-     */
-    int update(Channel channel);
-
-    /**
-     * 删除频道
-     */
-    int deleteById(@Param("id") Long id);
 }

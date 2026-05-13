@@ -6,6 +6,7 @@ import com.lemongo97.iptv.iptvmanager.service.ChannelService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 频道控制器
@@ -18,6 +19,24 @@ public class ChannelController {
 
     public ChannelController(ChannelService channelService) {
         this.channelService = channelService;
+    }
+
+    /**
+     * 获取统计信息
+     * @return
+     */
+    @GetMapping("/statistic")
+    public ApiResponse<Map<String, Object>> statistic() {
+        return ApiResponse.ok(channelService.statistic());
+    }
+
+    /**
+     * 获取对应的EPG电子节目单时间轴
+     * @return
+     */
+    @GetMapping("/{id}/timeline")
+    public ApiResponse<Channel.ChannelEPGTimeline> getEPGTimeline(@PathVariable Long id) {
+        return ApiResponse.ok(channelService.getEPGTimeline(id));
     }
 
     /**
@@ -42,30 +61,5 @@ public class ChannelController {
     @GetMapping("/group/{group}")
     public ApiResponse<List<Channel>> findByGroup(@PathVariable String group) {
         return ApiResponse.ok(channelService.findByGroup(group));
-    }
-
-    /**
-     * 创建频道
-     */
-    @PostMapping
-    public ApiResponse<Channel> create(@RequestBody Channel channel) {
-        return ApiResponse.ok(channelService.create(channel), "Channel created successfully");
-    }
-
-    /**
-     * 更新频道
-     */
-    @PutMapping("/{id}")
-    public ApiResponse<Channel> update(@PathVariable Long id, @RequestBody Channel channel) {
-        return ApiResponse.ok(channelService.update(id, channel), "Channel updated successfully");
-    }
-
-    /**
-     * 删除频道
-     */
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteById(@PathVariable Long id) {
-        channelService.deleteById(id);
-        return ApiResponse.ok("Channel deleted successfully");
     }
 }
