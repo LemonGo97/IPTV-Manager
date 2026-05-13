@@ -88,11 +88,11 @@
         <n-timeline>
           <n-timeline-item
             v-for="item in epgTimelineData"
-            :key="item.id"
-            :type="item.type"
-            :title="item.title"
+            :key="item.index"
+            :type="item.type === 'date' ? 'success' : item.isCurrent ? 'success' : item.played ? 'info' : 'default'"
+            :title="item.type === 'date' ? item.title : null"
             :time="item.time"
-            :content="item.name"
+            :content="item.type === 'program' ? item.title : null"
             :class="{ 'current-program-item': item.isCurrent }"
           />
         </n-timeline>
@@ -129,8 +129,9 @@
 
 <script setup>
 import {NButton, NTag, NStatistic, NGrid, NGi, NDivider, NDataTable, NSteps, NStep, NModal, NTimeline, NTimelineItem, NImage, NDropdown, NP, NSpace} from 'naive-ui'
-import {h} from 'vue'
+import {h, nextTick, onMounted, ref, watch} from 'vue'
 import { useClipboard } from '@vueuse/core'
+import api from './api'
 
 // 使用剪贴板
 const { copy, copied } = useClipboard()
@@ -138,17 +139,39 @@ const { copy, copied } = useClipboard()
 // 监听复制状态
 watch(copied, (val) => {
   if (val) {
-    window.$message.success('已复制到剪贴板')
+    $message.success('已复制到剪贴板')
   }
 })
 
-// 统计数据（模拟数据）
+// 统计数据
 const statistics = ref({
-  totalChannels: 1234,
-  validChannels: 1156,
-  invalidChannels: 78,
-  groupCount: 12,
-  status: '进行中',
+  totalChannels: 0,
+  validChannels: 0,
+  invalidChannels: 0,
+  groupCount: 0,
+  status: '加载中',
+})
+
+// 获取统计数据
+async function fetchStatistics() {
+  try {
+    const res = await api.getStatistic()
+    statistics.value = {
+      totalChannels: res.data.totalChannels || 0,
+      validChannels: res.data.validChannels || 0,
+      invalidChannels: res.data.invalidChannels || 0,
+      groupCount: res.data.groupCount || 0,
+      status: res.data.status || '就绪',
+    }
+  } catch (error) {
+    $message.error('获取统计数据失败')
+    console.error(error)
+  }
+}
+
+// 页面加载时获取统计数据
+onMounted(() => {
+  fetchStatistics()
 })
 
 // 状态图标
@@ -175,117 +198,6 @@ const previewPlayerKey = ref('')
 
 // EPG时间轴数据（扁平结构）
 const epgTimelineData = ref([])
-
-// 真实EPG节目数据（从 backend/tmp/epg_cctv1_example.xml 提取）
-// 时间格式：YYYY-MM-DD HH:mm:ss
-const REAL_EPG_PROGRAMS = [
-  // 2026-05-14 (星期四)
-  { start: '2026-05-14 00:52:00', end: '2026-05-14 01:22:00', name: '晚间新闻' },
-  { start: '2026-05-14 01:22:00', end: '2026-05-14 02:04:00', name: '生活早参考-特别节目（生活圈）2026-128' },
-  { start: '2026-05-14 02:04:00', end: '2026-05-14 02:34:00', name: '农耕探文明-2025-20' },
-  { start: '2026-05-14 02:34:00', end: '2026-05-14 02:38:00', name: '三餐四季（第二季）-宣传片' },
-  { start: '2026-05-14 02:38:00', end: '2026-05-14 02:44:00', name: '非遗里的中国-MV' },
-  { start: '2026-05-14 02:44:00', end: '2026-05-14 04:20:00', name: '宗师列传·大宋词人传-黄庭坚' },
-  { start: '2026-05-14 04:20:00', end: '2026-05-14 04:22:00', name: '泱泱中华-历史文化街区1' },
-  { start: '2026-05-14 04:22:00', end: '2026-05-14 04:53:00', name: '今日说法-2026-82' },
-  { start: '2026-05-14 04:53:00', end: '2026-05-14 05:27:00', name: '新闻联播' },
-  { start: '2026-05-14 05:27:00', end: '2026-05-14 06:00:00', name: '寻古中国-寻秦记4' },
-  { start: '2026-05-14 06:00:00', end: '2026-05-14 08:30:00', name: '朝闻天下' },
-  { start: '2026-05-14 08:30:00', end: '2026-05-14 09:00:00', name: '朝闻天下' },
-  { start: '2026-05-14 09:00:00', end: '2026-05-14 09:30:00', name: '新闻直播间' },
-  { start: '2026-05-14 09:30:00', end: '2026-05-14 10:45:00', name: '新闻直播间' },
-  { start: '2026-05-14 10:45:00', end: '2026-05-14 11:00:00', name: '中华古树-黄山迎客松（4K）' },
-  { start: '2026-05-14 11:00:00', end: '2026-05-14 11:50:00', name: '爱情没有神话第11集' },
-  { start: '2026-05-14 11:50:00', end: '2026-05-14 11:51:00', name: '中华古树-绿色国宝（4K）' },
-  { start: '2026-05-14 11:51:00', end: '2026-05-14 11:54:00', name: '非遗里的中国-MV' },
-  { start: '2026-05-14 11:54:00', end: '2026-05-14 12:00:00', name: '秘境之眼-2026-113' },
-  { start: '2026-05-14 12:00:00', end: '2026-05-14 12:34:00', name: '新闻30分' },
-  { start: '2026-05-14 12:34:00', end: '2026-05-14 13:07:00', name: '今日说法-2026-83' },
-  { start: '2026-05-14 13:07:00', end: '2026-05-14 13:54:00', name: '生命树第18集' },
-  { start: '2026-05-14 13:54:00', end: '2026-05-14 14:42:00', name: '生命树第19集' },
-  { start: '2026-05-14 14:42:00', end: '2026-05-14 15:30:00', name: '生命树第20集' },
-  { start: '2026-05-14 15:30:00', end: '2026-05-14 16:20:00', name: '生命树第21集' },
-  { start: '2026-05-14 16:20:00', end: '2026-05-14 17:12:00', name: '生命树第22集' },
-  { start: '2026-05-14 17:12:00', end: '2026-05-14 17:37:00', name: '第一动画乐园-2026-128' },
-  { start: '2026-05-14 17:37:00', end: '2026-05-14 18:21:00', name: '生活早参考-特别节目（生活圈）2026-129' },
-  { start: '2026-05-14 18:21:00', end: '2026-05-14 18:51:00', name: '农耕探文明-2025-6' },
-  { start: '2026-05-14 18:51:00', end: '2026-05-14 19:00:00', name: '秘境之眼-2026-127' },
-  { start: '2026-05-14 19:00:00', end: '2026-05-14 19:38:00', name: '新闻联播' },
-  { start: '2026-05-14 19:38:00', end: '2026-05-14 19:58:00', name: '焦点访谈' },
-  { start: '2026-05-14 19:58:00', end: '2026-05-14 20:02:00', name: '前情提要-主角-9/48' },
-  { start: '2026-05-14 20:02:00', end: '2026-05-14 20:53:00', name: '主角9/48' },
-  { start: '2026-05-14 20:53:00', end: '2026-05-14 20:56:00', name: '前情提要-主角-10/48' },
-  { start: '2026-05-14 20:56:00', end: '2026-05-14 21:46:00', name: '主角10/48' },
-  { start: '2026-05-14 21:46:00', end: '2026-05-14 21:52:00', name: '非遗里的中国-MV' },
-  { start: '2026-05-14 21:52:00', end: '2026-05-14 22:00:00', name: '三餐四季（第二季）-宣传片' },
-  { start: '2026-05-14 22:00:00', end: '2026-05-14 22:35:00', name: '晚间新闻' },
-  { start: '2026-05-14 22:35:00', end: '2026-05-14 23:10:00', name: '自然中国-探秘哀牢山-奇幻生灵' },
-  { start: '2026-05-14 23:10:00', end: '2026-05-14 23:59:00', name: '宗师列传·大宋词人传-秦观' },
-]
-
-// 从真实EPG数据生成时间轴数据
-function generateEpgData() {
-  const now = new Date()
-  const timelineItems = []
-  let currentIndex = -1
-  let lastDate = null
-
-  REAL_EPG_PROGRAMS.forEach((prog) => {
-    const startTime = new Date(prog.start)
-    const endTime = new Date(prog.end)
-
-    // 检查是否需要添加日期节点
-    if (!lastDate || !isSameDay(lastDate, startTime)) {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const progDate = new Date(startTime)
-      progDate.setHours(0, 0, 0, 0)
-
-      let dayType = 'default'
-      if (progDate.getTime() === today.getTime()) {
-        dayType = 'success'
-      } else if (progDate < today) {
-        dayType = 'info'
-      }
-
-      timelineItems.push({
-        id: timelineItems.length,
-        contentType: 'date',
-        title: formatDate(startTime),
-        type: dayType,
-      })
-      lastDate = startTime
-    }
-
-    // 判断是否当前播放
-    const isCurrent = now >= startTime && now < endTime
-    if (isCurrent) {
-      currentIndex = timelineItems.length
-    }
-
-    // 判断节目状态
-    let programType = 'default'
-    if (isCurrent) {
-      programType = 'success'
-    } else if (endTime < now) {
-      programType = 'info'
-    }
-
-    // 添加节目节点
-    timelineItems.push({
-      id: timelineItems.length,
-      contentType: 'program',
-      title: undefined,
-      time: `${formatTime(startTime)} - ${formatTime(endTime)}`,
-      name: prog.name,
-      type: programType,
-      isCurrent,
-    })
-  })
-
-  epgTimelineData.value = timelineItems
-  return currentIndex
-}
 
 // 判断是否同一天
 function isSameDay(date1, date2) {
@@ -513,12 +425,12 @@ function copyToClipboard(text) {
 
 // 刷新
 function handleRefresh() {
-  window.$message.info('刷新功能开发中...')
+  $message.info('刷新功能开发中...')
 }
 
 // 开始处理
 function handleStartProcessing() {
-  window.$message.info('开始处理功能开发中...')
+  $message.info('开始处理功能开发中...')
 }
 
 // 播放器名称映射
@@ -564,40 +476,57 @@ function handleOpenPlayer() {
 
   const playerUrl = schemeBuilder(row.url)
   window.open(playerUrl, '_blank')
-  window.$message.success(`正在使用 ${playerNames[player]} 打开：${row.name}`)
+  $message.success(`正在使用 ${playerNames[player]} 打开：${row.name}`)
   previewModalVisible.value = false
 }
 
-// 下载 .strm 文件（被 PotPlayer、VLC 等播放器识别）
-function downloadStrmFile(row) {
-  const content = row.url
-  const blob = new Blob([content], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${row.name}.strm`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-}
-
 // 查看EPG
-function handleViewEpg(row) {
+async function handleViewEpg(row) {
   epgChannelName.value = row.name
-  const currentIndex = generateEpgData()
-  epgModalVisible.value = true
 
-  // 弹窗打开后滚动到当前节目
-  nextTick(() => {
-    if (currentIndex >= 0 && epgContainerRef.value) {
-      const items = epgContainerRef.value.querySelectorAll('.n-timeline-item')
-      const currentItem = items[currentIndex]
-      if (currentItem) {
-        currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  try {
+    const res = await api.getTimeline(row.id)
+    const timelineData = res.data
+
+    const now = new Date()
+    // const timelineItems = []
+    let currentIndex = -1
+    // let lastDate = null
+
+    for (let i = 0; i < timelineData.length; i++) {
+      let item = timelineData[i]
+      item.index = i
+
+      const startTime = new Date(item.startTime)
+      const endTime = new Date(item.stopTime)
+
+      if (item.type === 'program') {
+        item.time = `${formatTime(startTime)} - ${formatTime(endTime)}`
+        item.isCurrent = now >= startTime && now < endTime
+        item.played = now > endTime
+        if (item.isCurrent) {
+          currentIndex = i
+        }
       }
     }
-  })
+
+    epgTimelineData.value = timelineData
+    epgModalVisible.value = true
+
+    // 弹窗打开后滚动到当前节目
+    await nextTick(() => {
+      if (currentIndex >= 0 && epgContainerRef.value) {
+        const items = epgContainerRef.value.querySelectorAll('.n-timeline-item')
+        const currentItem = items[currentIndex]
+        if (currentItem) {
+          currentItem.scrollIntoView({behavior: 'smooth', block: 'center'})
+        }
+      }
+    })
+  } catch (error) {
+    $message.error('获取EPG数据失败')
+    console.error(error)
+  }
 }
 
 defineOptions({

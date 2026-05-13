@@ -71,7 +71,7 @@ public class Channel {
     }
 
     @Data
-    @Accessors(chain = true, fluent = true)
+    @Accessors(chain = true)
     public static class ChannelEPGTimelineItem {
         /**
          * 频道名称
