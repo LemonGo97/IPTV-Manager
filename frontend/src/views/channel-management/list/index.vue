@@ -98,11 +98,37 @@
         </n-timeline>
       </div>
     </n-modal>
+
+    <!-- 预览弹窗 -->
+    <n-modal
+      v-model:show="previewModalVisible"
+      preset="card"
+      :title="`确认使用 ${previewPlayerName} 预览`"
+      :style="{ width: '500px' }"
+    >
+      <div v-if="previewChannel" class="preview-modal-content">
+        <n-p class="text-16 mb-4">确定使用 {{ previewPlayerName }} 预览「{{ previewChannel.name }}」吗？</n-p>
+        <n-p class="text-14 opacity-70 url-text">{{ previewChannel.url }}</n-p>
+      </div>
+      <template #action>
+        <n-space class="mt-4 flex justify-end" :size="16">
+          <n-button @click="previewModalVisible = false">
+            关闭
+          </n-button>
+          <n-button @click="handleCopyUrl">
+            复制链接
+          </n-button>
+          <n-button type="primary" @click="handleOpenPlayer">
+            打开 {{ previewPlayerName }}
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </CommonPage>
 </template>
 
 <script setup>
-import {NButton, NTag, NStatistic, NGrid, NGi, NDivider, NDataTable, NSteps, NStep, NModal, NTimeline, NTimelineItem} from 'naive-ui'
+import {NButton, NTag, NStatistic, NGrid, NGi, NDivider, NDataTable, NSteps, NStep, NModal, NTimeline, NTimelineItem, NImage, NDropdown, NP, NSpace} from 'naive-ui'
 import {h} from 'vue'
 
 // 统计数据（模拟数据）
@@ -130,6 +156,11 @@ const stepStatus = ref('process') // process, finish, error, wait
 const epgModalVisible = ref(false)
 const epgChannelName = ref('')
 const epgContainerRef = ref(null)
+
+// 预览弹窗相关
+const previewModalVisible = ref(false)
+const previewChannel = ref(null)
+const previewPlayerKey = ref('')
 
 // EPG时间轴数据（扁平结构）
 const epgTimelineData = ref([])
@@ -297,7 +328,7 @@ const tableData = ref([
     logo: 'https://tb.zbds.top/logo/CCTV1.png',
     name: 'CCTV-1',
     groupName: '央视',
-    url: 'https://example.com/live/cctv1.m3u8',
+    url: 'https://piccpndali.v.myalicdn.com/audio/cctv1_2.m3u8',
     country: '中国',
     language: '中文',
     status: 'valid',
@@ -307,7 +338,7 @@ const tableData = ref([
     logo: 'https://tb.zbds.top/logo/湖南卫视.png',
     name: '湖南卫视',
     groupName: '卫视',
-    url: 'https://example.com/live/hunan.m3u8',
+    url: 'http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/dWlwPTEyNy4wLjAuMSZ1aWQ9cWluZy1jbXMmbm5fdGltZXpvbmU9OCZjZG5leF9pZD1hbF9obHNfbGR2dCZ1dWlkPTliODY4NmU5ZTM2YzYwMmMmZT02OTE0NjA0JnY9MSZpZD1ITldTWkdTVCZzPTcwN2RiYTc2YzJjNmJmMTQ4MmUyZGYzOWU2NWM3YWFi/HNWSZGST.m3u8',
     country: '中国',
     language: '中文',
     status: 'valid',
@@ -317,7 +348,7 @@ const tableData = ref([
     logo: 'https://tb.zbds.top/logo/CCTV17.png',
     name: 'BBC One',
     groupName: '国际',
-    url: 'https://example.com/live/bbc.m3u8',
+    url: 'https://piccpndali.v.myalicdn.com/audio/cctv17_2.m3u8',
     country: '英国',
     language: '英语',
     status: 'valid',
@@ -327,7 +358,7 @@ const tableData = ref([
     logo: 'https://tb.zbds.top/logo/CCTV13.png',
     name: 'NHK World',
     groupName: '国际',
-    url: 'https://example.com/live/nhk.m3u8',
+    url: 'https://piccpndali.v.myalicdn.com/audio/cctv13_2.m3u8',
     country: '日本',
     language: '日语',
     status: 'invalid',
@@ -337,7 +368,7 @@ const tableData = ref([
     logo: 'https://tb.zbds.top/logo/CGTN.png',
     name: 'KBS 1TV',
     groupName: '国际',
-    url: 'https://example.com/live/kbs.m3u8',
+    url: 'https://0472.org/hls/cgtn.m3u8',
     country: '韩国',
     language: '韩语',
     status: 'valid',
@@ -360,13 +391,21 @@ const columns = [
   {
     title: '频道LOGO',
     key: 'logo',
-    width: 100,
+    width: 120,
     render: row =>
-      h('img', {
+      h(NImage, {
         src: row.logo || '/placeholder-logo.png',
         alt: row.name,
-        class: 'channel-logo',
-        style: {width: '50px', height: '50px', objectFit: 'cover'},
+        width: 80,
+        height: 50,
+        previewDisabled: true,
+        objectFit: 'contain',
+        style: {
+          borderRadius: '4px',
+          backgroundColor: 'rgba(0, 0, 0, 0.06)',
+          padding: '4px',
+          boxSizing: 'content-box',
+        },
       }),
   },
   {
@@ -428,14 +467,31 @@ const columns = [
   {
     title: '操作',
     key: 'actions',
-    width: 150,
+    width: 180,
     fixed: 'right',
     render: row =>
-      h(
-        NButton,
-        {size: 'small', type: 'info', onClick: () => handleViewEpg(row)},
-        {default: () => '查看EPG'}
-      ),
+      h('div', {class: 'flex gap-8'}, [
+        h(NDropdown, {
+          options: [
+            {label: 'IINA', key: 'iina'},
+            {label: 'PotPlayer', key: 'potplayer'},
+            {label: 'VLC', key: 'vlc'},
+          ],
+          onSelect: (key) => handlePreview(key, row),
+        }, {
+          default: () =>
+            h(
+              NButton,
+              {size: 'small'},
+              {default: () => '预览'}
+            ),
+        }),
+        h(
+          NButton,
+          {size: 'small', type: 'info', onClick: () => handleViewEpg(row)},
+          {default: () => '查看EPG'}
+        ),
+      ]),
   },
 ]
 
@@ -454,6 +510,69 @@ function handleRefresh() {
 // 开始处理
 function handleStartProcessing() {
   window.$message.info('开始处理功能开发中...')
+}
+
+// 播放器名称映射
+const playerNames = {
+  iina: 'IINA',
+  potplayer: 'PotPlayer',
+  vlc: 'VLC',
+}
+
+// 当前选中的播放器名称
+const previewPlayerName = computed(() => playerNames[previewPlayerKey.value] || '')
+
+// 预览
+function handlePreview(player, row) {
+  previewPlayerKey.value = player
+  previewChannel.value = row
+  previewModalVisible.value = true
+}
+
+// 复制链接
+function handleCopyUrl() {
+  if (previewChannel.value) {
+    navigator.clipboard.writeText(previewChannel.value.url).then(() => {
+      window.$message.success('链接已复制到剪贴板')
+    })
+  }
+}
+
+// 打开播放器
+function handleOpenPlayer() {
+  if (!previewChannel.value) return
+
+  const player = previewPlayerKey.value
+  const row = previewChannel.value
+
+  // 播放器 URL scheme 映射
+  const playerSchemes = {
+    iina: (url) => `iina://weblink?url=${encodeURIComponent(url)}`,
+    potplayer: (url) => `potplayer:${url}`,
+    vlc: (url) => `vlc://${encodeURIComponent(url)}`,
+  }
+
+  const schemeBuilder = playerSchemes[player]
+  if (!schemeBuilder) return
+
+  const playerUrl = schemeBuilder(row.url)
+  window.open(playerUrl, '_blank')
+  window.$message.success(`正在使用 ${playerNames[player]} 打开：${row.name}`)
+  previewModalVisible.value = false
+}
+
+// 下载 .strm 文件（被 PotPlayer、VLC 等播放器识别）
+function downloadStrmFile(row) {
+  const content = row.url
+  const blob = new Blob([content], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${row.name}.strm`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 // 查看EPG
@@ -502,6 +621,9 @@ defineOptions({
 
 .channel-logo {
   border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.06);
+  padding: 4px;
+  box-sizing: content-box;
 }
 
 .statistic-value {
