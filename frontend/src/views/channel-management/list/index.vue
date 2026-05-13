@@ -134,97 +134,137 @@ const epgContainerRef = ref(null)
 // EPG时间轴数据（扁平结构）
 const epgTimelineData = ref([])
 
-// 生成模拟EPG数据（扁平结构：日期节点和节目节点交替）
+// 真实EPG节目数据（从 backend/tmp/epg_cctv1_example.xml 提取）
+// 时间格式：YYYY-MM-DD HH:mm:ss
+const REAL_EPG_PROGRAMS = [
+  // 2026-05-14 (星期四)
+  { start: '2026-05-14 00:52:00', end: '2026-05-14 01:22:00', name: '晚间新闻' },
+  { start: '2026-05-14 01:22:00', end: '2026-05-14 02:04:00', name: '生活早参考-特别节目（生活圈）2026-128' },
+  { start: '2026-05-14 02:04:00', end: '2026-05-14 02:34:00', name: '农耕探文明-2025-20' },
+  { start: '2026-05-14 02:34:00', end: '2026-05-14 02:38:00', name: '三餐四季（第二季）-宣传片' },
+  { start: '2026-05-14 02:38:00', end: '2026-05-14 02:44:00', name: '非遗里的中国-MV' },
+  { start: '2026-05-14 02:44:00', end: '2026-05-14 04:20:00', name: '宗师列传·大宋词人传-黄庭坚' },
+  { start: '2026-05-14 04:20:00', end: '2026-05-14 04:22:00', name: '泱泱中华-历史文化街区1' },
+  { start: '2026-05-14 04:22:00', end: '2026-05-14 04:53:00', name: '今日说法-2026-82' },
+  { start: '2026-05-14 04:53:00', end: '2026-05-14 05:27:00', name: '新闻联播' },
+  { start: '2026-05-14 05:27:00', end: '2026-05-14 06:00:00', name: '寻古中国-寻秦记4' },
+  { start: '2026-05-14 06:00:00', end: '2026-05-14 08:30:00', name: '朝闻天下' },
+  { start: '2026-05-14 08:30:00', end: '2026-05-14 09:00:00', name: '朝闻天下' },
+  { start: '2026-05-14 09:00:00', end: '2026-05-14 09:30:00', name: '新闻直播间' },
+  { start: '2026-05-14 09:30:00', end: '2026-05-14 10:45:00', name: '新闻直播间' },
+  { start: '2026-05-14 10:45:00', end: '2026-05-14 11:00:00', name: '中华古树-黄山迎客松（4K）' },
+  { start: '2026-05-14 11:00:00', end: '2026-05-14 11:50:00', name: '爱情没有神话第11集' },
+  { start: '2026-05-14 11:50:00', end: '2026-05-14 11:51:00', name: '中华古树-绿色国宝（4K）' },
+  { start: '2026-05-14 11:51:00', end: '2026-05-14 11:54:00', name: '非遗里的中国-MV' },
+  { start: '2026-05-14 11:54:00', end: '2026-05-14 12:00:00', name: '秘境之眼-2026-113' },
+  { start: '2026-05-14 12:00:00', end: '2026-05-14 12:34:00', name: '新闻30分' },
+  { start: '2026-05-14 12:34:00', end: '2026-05-14 13:07:00', name: '今日说法-2026-83' },
+  { start: '2026-05-14 13:07:00', end: '2026-05-14 13:54:00', name: '生命树第18集' },
+  { start: '2026-05-14 13:54:00', end: '2026-05-14 14:42:00', name: '生命树第19集' },
+  { start: '2026-05-14 14:42:00', end: '2026-05-14 15:30:00', name: '生命树第20集' },
+  { start: '2026-05-14 15:30:00', end: '2026-05-14 16:20:00', name: '生命树第21集' },
+  { start: '2026-05-14 16:20:00', end: '2026-05-14 17:12:00', name: '生命树第22集' },
+  { start: '2026-05-14 17:12:00', end: '2026-05-14 17:37:00', name: '第一动画乐园-2026-128' },
+  { start: '2026-05-14 17:37:00', end: '2026-05-14 18:21:00', name: '生活早参考-特别节目（生活圈）2026-129' },
+  { start: '2026-05-14 18:21:00', end: '2026-05-14 18:51:00', name: '农耕探文明-2025-6' },
+  { start: '2026-05-14 18:51:00', end: '2026-05-14 19:00:00', name: '秘境之眼-2026-127' },
+  { start: '2026-05-14 19:00:00', end: '2026-05-14 19:38:00', name: '新闻联播' },
+  { start: '2026-05-14 19:38:00', end: '2026-05-14 19:58:00', name: '焦点访谈' },
+  { start: '2026-05-14 19:58:00', end: '2026-05-14 20:02:00', name: '前情提要-主角-9/48' },
+  { start: '2026-05-14 20:02:00', end: '2026-05-14 20:53:00', name: '主角9/48' },
+  { start: '2026-05-14 20:53:00', end: '2026-05-14 20:56:00', name: '前情提要-主角-10/48' },
+  { start: '2026-05-14 20:56:00', end: '2026-05-14 21:46:00', name: '主角10/48' },
+  { start: '2026-05-14 21:46:00', end: '2026-05-14 21:52:00', name: '非遗里的中国-MV' },
+  { start: '2026-05-14 21:52:00', end: '2026-05-14 22:00:00', name: '三餐四季（第二季）-宣传片' },
+  { start: '2026-05-14 22:00:00', end: '2026-05-14 22:35:00', name: '晚间新闻' },
+  { start: '2026-05-14 22:35:00', end: '2026-05-14 23:10:00', name: '自然中国-探秘哀牢山-奇幻生灵' },
+  { start: '2026-05-14 23:10:00', end: '2026-05-14 23:59:00', name: '宗师列传·大宋词人传-秦观' },
+]
+
+// 从真实EPG数据生成时间轴数据
 function generateEpgData() {
   const now = new Date()
   const timelineItems = []
   let currentIndex = -1
+  let lastDate = null
 
-  // 节目模板（循环使用）
-  const programTemplates = [
-    { name: '新闻早班车', duration: 60 },
-    { name: '健康生活', duration: 30 },
-    { name: '电视剧场（一）', duration: 120 },
-    { name: '午间新闻', duration: 30 },
-    { name: '农业天地', duration: 45 },
-    { name: '科技之光', duration: 45 },
-    { name: '动画乐园', duration: 120 },
-    { name: '晚间新闻', duration: 30 },
-    { name: '黄金剧场', duration: 120 },
-    { name: '体育世界', duration: 60 },
-    { name: '星光大道', duration: 90 },
-    { name: '夜间影院', duration: 120 },
-  ]
+  REAL_EPG_PROGRAMS.forEach((prog) => {
+    const startTime = new Date(prog.start)
+    const endTime = new Date(prog.end)
 
-  // 从今天开始生成7天的节目单
-  for (let day = 0; day < 7; day++) {
-    const dayDate = new Date(now)
-    dayDate.setDate(dayDate.getDate() + day)
-    dayDate.setHours(6, 0, 0, 0)
+    // 检查是否需要添加日期节点
+    if (!lastDate || !isSameDay(lastDate, startTime)) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const progDate = new Date(startTime)
+      progDate.setHours(0, 0, 0, 0)
 
-    // 格式化日期
-    const month = dayDate.getMonth() + 1
-    const date = dayDate.getDate()
-    const weekDay = ['日', '一', '二', '三', '四', '五', '六'][dayDate.getDay()]
-    const dateStr = `${month}月${date}日 星期${weekDay}`
-
-    // 添加日期节点
-    let dayType = 'default'
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const compareDate = new Date(dayDate)
-    compareDate.setHours(0, 0, 0, 0)
-
-    if (day === 0) dayType = 'success'
-    else if (compareDate < today) dayType = 'info'
-
-    timelineItems.push({
-      id: timelineItems.length,
-      contentType: 'date',
-      title: dateStr,
-      type: dayType,
-    })
-
-    // 生成当天的节目节点
-    let currentOffset = 0
-    let templateIndex = 0
-
-    while (currentOffset < 22 * 60) {
-      const template = programTemplates[templateIndex % programTemplates.length]
-      const startTime = new Date(dayDate)
-      startTime.setMinutes(startTime.getMinutes() + currentOffset)
-
-      const endTime = new Date(startTime)
-      endTime.setMinutes(startTime.getMinutes() + template.duration)
-
-      const isCurrent = now >= startTime && now < endTime
-      if (isCurrent) {
-        currentIndex = timelineItems.length
+      let dayType = 'default'
+      if (progDate.getTime() === today.getTime()) {
+        dayType = 'success'
+      } else if (progDate < today) {
+        dayType = 'info'
       }
-
-      let programType = 'default'
-      if (isCurrent) programType = 'success'
-      else if (endTime < now) programType = 'info'
-
-      const formatTime = d =>
-        `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
 
       timelineItems.push({
         id: timelineItems.length,
-        contentType: 'program',
-        title: undefined,
-        time: `${formatTime(startTime)} - ${formatTime(endTime)}`,
-        name: template.name,
-        type: programType,
-        isCurrent,
+        contentType: 'date',
+        title: formatDate(startTime),
+        type: dayType,
       })
-
-      currentOffset += template.duration
-      templateIndex++
+      lastDate = startTime
     }
-  }
+
+    // 判断是否当前播放
+    const isCurrent = now >= startTime && now < endTime
+    if (isCurrent) {
+      currentIndex = timelineItems.length
+    }
+
+    // 判断节目状态
+    let programType = 'default'
+    if (isCurrent) {
+      programType = 'success'
+    } else if (endTime < now) {
+      programType = 'info'
+    }
+
+    // 添加节目节点
+    timelineItems.push({
+      id: timelineItems.length,
+      contentType: 'program',
+      title: undefined,
+      time: `${formatTime(startTime)} - ${formatTime(endTime)}`,
+      name: prog.name,
+      type: programType,
+      isCurrent,
+    })
+  })
+
   epgTimelineData.value = timelineItems
   return currentIndex
+}
+
+// 判断是否同一天
+function isSameDay(date1, date2) {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  )
+}
+
+// 格式化时间显示
+function formatTime(date) {
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+}
+
+// 格式化日期显示
+function formatDate(date) {
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const weekDay = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()]
+  return `${month}月${day}日 星期${weekDay}`
 }
 
 // 频道组选项（用于表头过滤）
@@ -254,7 +294,7 @@ const countryFilterOptions = ref([
 const tableData = ref([
   {
     id: 1,
-    logo: 'https://example.com/logo1.png',
+    logo: 'https://tb.zbds.top/logo/CCTV1.png',
     name: 'CCTV-1',
     groupName: '央视',
     url: 'https://example.com/live/cctv1.m3u8',
@@ -264,7 +304,7 @@ const tableData = ref([
   },
   {
     id: 2,
-    logo: 'https://example.com/logo2.png',
+    logo: 'https://tb.zbds.top/logo/湖南卫视.png',
     name: '湖南卫视',
     groupName: '卫视',
     url: 'https://example.com/live/hunan.m3u8',
@@ -274,7 +314,7 @@ const tableData = ref([
   },
   {
     id: 3,
-    logo: 'https://example.com/logo3.png',
+    logo: 'https://tb.zbds.top/logo/CCTV17.png',
     name: 'BBC One',
     groupName: '国际',
     url: 'https://example.com/live/bbc.m3u8',
@@ -284,7 +324,7 @@ const tableData = ref([
   },
   {
     id: 4,
-    logo: 'https://example.com/logo4.png',
+    logo: 'https://tb.zbds.top/logo/CCTV13.png',
     name: 'NHK World',
     groupName: '国际',
     url: 'https://example.com/live/nhk.m3u8',
@@ -294,7 +334,7 @@ const tableData = ref([
   },
   {
     id: 5,
-    logo: 'https://example.com/logo5.png',
+    logo: 'https://tb.zbds.top/logo/CGTN.png',
     name: 'KBS 1TV',
     groupName: '国际',
     url: 'https://example.com/live/kbs.m3u8',
