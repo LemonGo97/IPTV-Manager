@@ -877,6 +877,70 @@ export const basePermissions = [
 </n-form-item>
 ```
 
+#### 数据处理规范
+
+**API 响应处理**：
+- 后端返回的响应格式为 `{ success: boolean, data: any, error: string }`
+- 访问实际数据必须通过 `res.data.xxx` 获取
+- 示例：
+```javascript
+// ✅ 正确
+const res = await api.getStatistic()
+statistics.value = {
+  totalChannels: res.data.totalChannels || 0,
+  validChannels: res.data.validChannels || 0,
+}
+
+// ❌ 错误
+const data = await api.getStatistic()
+statistics.value = data.totalChannels  // undefined
+```
+
+**列表/时间轴数据处理优化**：
+- 直接修改原始数组，避免创建新对象
+- 使用 `for` 循环而非 `forEach`，添加 `index` 属性用于 key
+- 在原对象上直接添加计算属性（`time`, `isCurrent`, `played` 等）
+- 示例：
+```javascript
+// ✅ 推荐：直接修改原数组
+const res = await api.getTimeline(row.id)
+const timelineData = res.data
+let currentIndex = -1
+
+for (let i = 0; i < timelineData.length; i++) {
+  const item = timelineData[i]
+  item.index = i  // 用于 v-for key
+  
+  const startTime = new Date(item.startTime)
+  const endTime = new Date(item.stopTime)
+  
+  if (item.type === 'program') {
+    item.time = `${formatTime(startTime)} - ${formatTime(endTime)}`
+    item.isCurrent = now >= startTime && now < endTime
+    item.played = now > endTime
+    if (item.isCurrent) currentIndex = i
+  }
+}
+
+epgTimelineData.value = timelineData
+```
+
+**模板条件渲染规范**：
+- 根据后端返回的 `type` 字段区分渲染逻辑
+- 日期节点：`type === 'date'` 显示 `title`
+- 节目节点：`type === 'program'` 显示 `content`
+- 示例：
+```vue
+<n-timeline-item
+  v-for="item in epgTimelineData"
+  :key="item.index"
+  :type="item.type === 'date' ? 'success' : item.isCurrent ? 'success' : item.played ? 'info' : 'default'"
+  :title="item.type === 'date' ? item.title : null"
+  :time="item.time"
+  :content="item.type === 'program' ? item.title : null"
+/>
+```
+
 ## 最新更新
 
 ### 2026-05-13
