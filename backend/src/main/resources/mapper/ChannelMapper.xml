@@ -16,33 +16,98 @@
         <result property="score" column="score"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
+        <association property="channelGroup" javaType="com.lemongo97.iptv.iptvmanager.entity.ChannelGroup"
+                     columnPrefix="group_">
+        </association>
     </resultMap>
     <update id="truncate">
-        UPDATE channels SET deleted = 1
+        UPDATE channels
+        SET deleted = 1
     </update>
 
     <select id="findAll" resultMap="ChannelResultMap">
-        SELECT id, name, logo, url, group_id, epg_source_id,
-               status, country, language, score, created_at, updated_at
+        SELECT id,
+               name,
+               logo,
+               url,
+               group_id,
+               epg_source_id,
+               status,
+               country,
+               language,
+               score,
+               created_at,
+               updated_at
         FROM channels
         WHERE deleted = 0
         ORDER BY sort_order ASC, id ASC
     </select>
 
     <select id="findById" resultMap="ChannelResultMap">
-        SELECT id, name, logo, url, group_id, epg_source_id,
-               status, country, language, score, created_at, updated_at
+        SELECT id,
+               name,
+               logo,
+               url,
+               group_id,
+               epg_source_id,
+               status,
+               country,
+               language,
+               score,
+               created_at,
+               updated_at
         FROM channels
-        WHERE id = #{id} AND deleted = 0
+        WHERE id = #{id}
+          AND deleted = 0
     </select>
 
     <select id="findByGroup" resultMap="ChannelResultMap" resultType="com.lemongo97.iptv.iptvmanager.entity.Channel">
-        SELECT c.id, c.name, c.logo, c.url, c.number, c.channel_id, c.enabled, c.provider_id, c.group_id,
-               c.epg_source_id, c.sort_order, c.description, c.created_at, c.updated_at, c.deleted
+        SELECT c.id,
+               c.name,
+               c.logo,
+               c.url,
+               c.number,
+               c.channel_id,
+               c.enabled,
+               c.provider_id,
+               c.group_id,
+               c.epg_source_id,
+               c.sort_order,
+               c.description,
+               c.created_at,
+               c.updated_at,
+               c.deleted
         FROM channels c
-        INNER JOIN channel_groups g ON c.group_id = g.id
-        WHERE g.name = #{group} AND c.deleted = 0 AND g.deleted = 0
+                 INNER JOIN channel_groups g ON c.group_id = g.id
+        WHERE g.name = #{group}
+          AND c.deleted = 0
+          AND g.deleted = 0
         ORDER BY c.sort_order ASC, c.id ASC
+    </select>
+
+    <select id="findByCondition" resultMap="ChannelResultMap">
+        SELECT
+            c.id, c.name, c.logo, c.url, c.group_id, c.epg_source_id, c.status, c.country, c.language, c.score, c.created_at, c.updated_at,
+            cg.name as group_name, cg.description as group_description
+        FROM channels c LEFT JOIN channel_groups cg on c.group_id = cg.id WHERE c.deleted = 0 AND cg.deleted = 0
+        <choose>
+            <when test="query.name != null">
+                AND c.name like concat('%', #{name}, '%')
+            </when>
+        </choose>
+        <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(query.orderBy) and query.asc != null">
+            <choose>
+                <when test="query.orderBy == 'name'">
+                    ORDER BY c.name
+                    <choose>
+                        <when test="query.asc">
+                            ASC
+                        </when>
+                        <otherwise>DESC</otherwise>
+                    </choose>
+                </when>
+            </choose>
+        </if>
     </select>
 
     <insert id="insert">
@@ -50,7 +115,8 @@
         status, country, language, score, created_at, updated_at, deleted)
         VALUES
         <foreach collection="channels" item="item" separator=",">
-            (#{item.name}, #{item.logo}, #{item.url}, #{item.groupId}, #{item.epgSourceId}, #{item.status}, #{item.country}, #{item.language},
+            (#{item.name}, #{item.logo}, #{item.url}, #{item.groupId}, #{item.epgSourceId}, #{item.status},
+            #{item.country}, #{item.language},
             #{item.score}, #{item.createdAt}, #{item.updatedAt}, 0)
         </foreach>
     </insert>

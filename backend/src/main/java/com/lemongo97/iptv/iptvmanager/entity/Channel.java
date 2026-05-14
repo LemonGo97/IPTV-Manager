@@ -61,6 +61,8 @@ public class Channel {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private ChannelGroup channelGroup;
+
     public enum Status {
         valid,
         invalid

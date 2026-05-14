@@ -1,6 +1,8 @@
 package com.lemongo97.iptv.iptvmanager.controller;
 
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
+import com.lemongo97.iptv.iptvmanager.common.PageResult;
+import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.service.ChannelService;
 import org.springframework.web.bind.annotation.*;
@@ -43,8 +45,8 @@ public class ChannelController {
      * 获取所有频道
      */
     @GetMapping
-    public ApiResponse<List<Channel>> findAll() {
-        return ApiResponse.ok(channelService.findAll());
+    public ApiResponse<PageResult<Channel>> find(ChannelQuery query) {
+        return ApiResponse.ok(channelService.findByQuery(query));
     }
 
     /**

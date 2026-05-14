@@ -1,5 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.mapper;
 
+import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -27,6 +28,8 @@ public interface ChannelMapper {
      * 根据分组查询频道
      */
     List<Channel> findByGroup(@Param("group") String group);
+
+    List<Channel> findByCondition(@Param("query") ChannelQuery query);
 
     /**
      * 插入频道

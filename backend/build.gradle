@@ -26,6 +26,8 @@ dependencies {
     implementation(libs.bundles.spring.boot.web)
     // Source: https://mvnrepository.com/artifact/io.lindstrom/m3u8-parser
     implementation("io.lindstrom:m3u8-parser:0.30")
+    // Source: https://mvnrepository.com/artifact/com.github.pagehelper/pagehelper-spring-boot-starter
+    implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:4.0.0'
 
     // Quartz for scheduled tasks
     implementation(libs.spring.boot.starter.quartz)

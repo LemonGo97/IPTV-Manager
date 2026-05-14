@@ -1,6 +1,10 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
+import com.lemongo97.iptv.iptvmanager.common.PageResult;
+import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
@@ -8,10 +12,10 @@ import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -373,6 +377,7 @@ public class ChannelService {
         return result;
     }
 
+    @Transactional
     public void dataClean() {
         List<OriginalChannelMetadata> originalChannelList = originalChannelMapper.findAll();
         List<Channel> channels = originalChannelList.stream()
@@ -391,5 +396,12 @@ public class ChannelService {
                 .toList();
         channelMapper.truncate();
         channelMapper.insert(channels);
+    }
+
+    public PageResult<Channel> findByQuery(ChannelQuery query) {
+        Page<Channel> page = PageHelper.startPage(query.getPageNum(), query.getPageSize())
+                .doSelectPage(() ->
+                        channelMapper.findByCondition(query));
+        return PageResult.of(page.getTotal(), page.getResult());
     }
 }
