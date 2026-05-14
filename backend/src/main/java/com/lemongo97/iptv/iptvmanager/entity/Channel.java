@@ -45,7 +45,7 @@ public class Channel {
     /**
      * 状态（有效/无效）
      */
-    private String status;
+    private Status status;
     /**
      * 国家/地区
      */
@@ -60,6 +60,11 @@ public class Channel {
     private Integer score;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public enum Status {
+        valid,
+        invalid
+    }
 
     public static class ChannelEPGTimeline extends ArrayList<ChannelEPGTimelineItem> {
 

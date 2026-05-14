@@ -33,4 +33,6 @@ public interface ChannelMapper {
      */
     void insert(@Param("channels") List<Channel> channels);
 
+    void truncate();
+
 }

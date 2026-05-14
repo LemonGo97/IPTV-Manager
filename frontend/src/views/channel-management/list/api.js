@@ -6,4 +6,7 @@ export default {
 
   // 获取频道 EPG 时间轴
   getTimeline: (id) => request.get(`/channel/${id}/timeline`),
+
+  // 数据清洗
+  dataClean: () => request.post(`/channel/clean`),
 }

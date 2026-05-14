@@ -27,10 +27,10 @@
     </update>
 
     <select id="findAll" resultMap="ChannelResultMap">
-        SELECT id, provider_id, name, url, tvg_id, tvg_name, tvg_logo, group_title, tvg_country, tvg_language, created_at, updated_at, deleted
+        SELECT id, provider_id, name, url, tvg_id, tvg_name, tvg_logo, group_title, tvg_country, tvg_language, created_at, updated_at
         FROM original_channels
         WHERE deleted = 0
-        ORDER BY sort_order ASC, id ASC
+        ORDER BY name ASC, id ASC
     </select>
 
     <select id="findById" resultMap="ChannelResultMap">

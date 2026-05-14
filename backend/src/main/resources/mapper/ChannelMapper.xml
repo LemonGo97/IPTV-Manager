@@ -17,6 +17,9 @@
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
+    <update id="truncate">
+        UPDATE channels SET deleted = 1
+    </update>
 
     <select id="findAll" resultMap="ChannelResultMap">
         SELECT id, name, logo, url, group_id, epg_source_id,
@@ -43,7 +46,6 @@
     </select>
 
     <insert id="insert">
-        UPDATE channels SET deleted = 1；
         INSERT INTO channels (name, logo, url, group_id, epg_source_id,
         status, country, language, score, created_at, updated_at, deleted)
         VALUES

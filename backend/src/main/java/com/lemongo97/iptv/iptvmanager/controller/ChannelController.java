@@ -62,4 +62,10 @@ public class ChannelController {
     public ApiResponse<List<Channel>> findByGroup(@PathVariable String group) {
         return ApiResponse.ok(channelService.findByGroup(group));
     }
+
+    @PostMapping("/clean")
+    public ApiResponse<Void> clean() {
+        channelService.dataClean();
+        return ApiResponse.ok(null);
+    }
 }

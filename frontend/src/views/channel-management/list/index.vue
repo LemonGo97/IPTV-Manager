@@ -429,8 +429,9 @@ function handleRefresh() {
 }
 
 // 开始处理
-function handleStartProcessing() {
-  $message.info('开始处理功能开发中...')
+async function handleStartProcessing() {
+  await api.dataClean()
+  $message.info('频道列表开始数据清洗并生成新的频道列表中...')
 }
 
 // 播放器名称映射
