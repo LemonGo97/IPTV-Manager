@@ -81,6 +81,7 @@
       :remote="true"
       :loading="loading"
       :scroll-x="1400"
+      :row-key="(row) => row.id"
       size="small"
     />
 
@@ -294,6 +295,7 @@ const columns = [
     width: 120,
     render: row =>
       h(NImage, {
+        key: row.id,
         src: row.logo || '/placeholder-logo.png',
         alt: row.name,
         width: 80,
@@ -316,7 +318,7 @@ const columns = [
   },
   {
     title: '频道组',
-    key: 'groupName',
+    key: 'channelGroup.name',
     width: 120,
   },
   {
