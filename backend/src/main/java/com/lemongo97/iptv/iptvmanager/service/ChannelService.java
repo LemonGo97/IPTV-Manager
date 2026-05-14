@@ -6,8 +6,12 @@ import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
+import com.lemongo97.iptv.iptvmanager.entity.ChannelGroup;
+import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
+import com.lemongo97.iptv.iptvmanager.mapper.ChannelGroupMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.M3U8ProviderMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +32,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ChannelService {
 
+    private final M3U8ProviderMapper m3U8ProviderMapper;
     private final ChannelMapper channelMapper;
     private final OriginalChannelMapper originalChannelMapper;
+    private final ChannelGroupMapper channelGroupMapper;
 
     /**
      * 获取所有频道
@@ -385,6 +391,7 @@ public class ChannelService {
                         .setName(o.getName())
                         .setLogo(o.getTvGuideLogo())
                         .setUrl(o.getUrl())
+                        .setProviderId(o.getProviderId())
                         .setGroupId(0L)
                         .setEpgSourceId(o.getTvGuideId())
                         .setStatus(Channel.Status.valid)
@@ -403,5 +410,12 @@ public class ChannelService {
                 .doSelectPage(() ->
                         channelMapper.findByCondition(query));
         return PageResult.of(page.getTotal(), page.getResult());
+    }
+
+    public Map<String, ?> getOptions() {
+        Map<String, Object> options = new HashMap<>();
+        options.put("provider", m3U8ProviderMapper.getProviderNames());
+        options.put("group", channelGroupMapper.getGroupNames());
+        return options;
     }
 }

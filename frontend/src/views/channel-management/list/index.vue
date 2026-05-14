@@ -317,6 +317,11 @@ const columns = [
     ellipsis: {tooltip: true},
   },
   {
+    title: '订阅源',
+    key: 'provider.name',
+    width: 120,
+  },
+  {
     title: '频道组',
     key: 'channelGroup.name',
     width: 120,

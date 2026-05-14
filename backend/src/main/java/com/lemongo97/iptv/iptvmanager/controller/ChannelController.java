@@ -4,6 +4,8 @@ import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
 import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
+import com.lemongo97.iptv.iptvmanager.entity.ChannelGroup;
+import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
 import com.lemongo97.iptv.iptvmanager.service.ChannelService;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +38,7 @@ public class ChannelController {
      * 获取对应的EPG电子节目单时间轴
      * @return
      */
-    @GetMapping("/{id}/timeline")
+    @GetMapping("/{id:\\d+}/timeline")
     public ApiResponse<Channel.ChannelEPGTimeline> getEPGTimeline(@PathVariable Long id) {
         return ApiResponse.ok(channelService.getEPGTimeline(id));
     }
@@ -52,7 +54,7 @@ public class ChannelController {
     /**
      * 根据 ID 获取频道
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ApiResponse<Channel> findById(@PathVariable Long id) {
         return ApiResponse.ok(channelService.findById(id));
     }
@@ -63,6 +65,11 @@ public class ChannelController {
     @GetMapping("/group/{group}")
     public ApiResponse<List<Channel>> findByGroup(@PathVariable String group) {
         return ApiResponse.ok(channelService.findByGroup(group));
+    }
+
+    @GetMapping("/options")
+    public ApiResponse<Map<String, ?>> options() {
+        return ApiResponse.ok(channelService.getOptions());
     }
 
     @PostMapping("/clean")

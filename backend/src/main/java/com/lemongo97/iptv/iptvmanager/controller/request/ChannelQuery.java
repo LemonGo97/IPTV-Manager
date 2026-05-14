@@ -8,4 +8,6 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ChannelQuery extends PageQuery {
     private String name;
+    private Long providerId;
+    private Long groupId;
 }

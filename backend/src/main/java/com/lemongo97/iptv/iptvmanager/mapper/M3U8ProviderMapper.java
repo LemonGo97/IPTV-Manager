@@ -47,4 +47,6 @@ public interface M3U8ProviderMapper {
      * 删除 M3U8 源
      */
     int deleteById(@Param("id") Long id);
+
+    List<M3U8Provider> getProviderNames();
 }

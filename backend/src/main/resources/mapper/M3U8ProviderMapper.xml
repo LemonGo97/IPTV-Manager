@@ -46,6 +46,13 @@
         ORDER BY id DESC
     </select>
 
+    <select id="getProviderNames" resultMap="M3U8ProviderResultMap">
+        SELECT id, name
+        FROM m3u8_providers
+        WHERE deleted = 0
+        ORDER BY id DESC
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO m3u8_providers (name, type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted)
         VALUES (#{name}, #{type}, #{url}, #{filePath}, #{headers}, #{refreshRate}, #{enabled}, #{description}, #{createdAt}, #{updatedAt}, 0)

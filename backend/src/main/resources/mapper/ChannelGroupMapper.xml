@@ -36,6 +36,13 @@
         WHERE id = #{id} AND deleted = 0
     </select>
 
+    <select id="getGroupNames" resultMap="ChannelGroupResultMap">
+        SELECT id, name
+        FROM channel_groups
+        WHERE deleted = 0
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO channel_groups (name, sort_order, description, created_at, updated_at, deleted)
         VALUES (#{name}, #{sortOrder}, #{description}, #{createdAt}, #{updatedAt}, 0)

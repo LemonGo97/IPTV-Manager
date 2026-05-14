@@ -63,6 +63,9 @@ public class Channel {
 
     private ChannelGroup channelGroup;
 
+    private Long providerId;
+    private M3U8Provider provider;
+
     public enum Status {
         valid,
         invalid
