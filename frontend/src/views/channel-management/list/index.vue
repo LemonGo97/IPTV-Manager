@@ -82,6 +82,8 @@
       :loading="loading"
       :scroll-x="1400"
       :row-key="(row) => row.id"
+      :filters="filters"
+      @update:filters="handleFiltersChange"
       size="small"
     />
 
@@ -177,9 +179,10 @@ async function fetchStatistics() {
   }
 }
 
-// 页面加载时获取统计数据和表格数据
+// 页面加载时获取统计数据、表格数据和过滤器选项
 onMounted(() => {
   fetchStatistics()
+  fetchFilterOptions()
   fetchTableData()
 })
 
@@ -234,10 +237,31 @@ function formatDate(date) {
 const tableData = ref([])
 const loading = ref(false)
 
+// 表格过滤值
+const filters = ref({
+  'provider.name': null,
+  'channelGroup.name': null,
+})
+
 // 搜索参数
 const queryItems = reactive({
   name: '',
+  providerId: null,
+  groupId: null,
 })
+
+// 过滤器选项
+const providerOptions = ref([])
+const channelGroupOptions = ref([])
+
+// 处理过滤器变化
+function handleFiltersChange(filters) {
+  // filter value 现在直接是 ID
+  queryItems.providerId = filters['provider.name'] || null
+  queryItems.groupId = filters['channelGroup.name'] || null
+
+  fetchTableData()
+}
 
 // 分页配置
 const pagination = reactive({
@@ -267,6 +291,8 @@ async function fetchTableData() {
       pageNum: pagination.page,
       pageSize: pagination.pageSize,
       name: queryItems.name || undefined,
+      providerId: queryItems.providerId || undefined,
+      groupId: queryItems.groupId || undefined,
     })
     tableData.value = res.data.list || []
     pagination.itemCount = res.data.total || 0
@@ -275,6 +301,26 @@ async function fetchTableData() {
     console.error(error)
   } finally {
     loading.value = false
+  }
+}
+
+// 获取过滤器选项
+async function fetchFilterOptions() {
+  try {
+    const res = await api.getOptions()
+    providerOptions.value = (res.data.provider || []).map(item => ({
+      label: item.name,
+      value: item.id,
+    }))
+    channelGroupOptions.value = (res.data.group || []).map(item => ({
+      label: item.name,
+      value: item.id,
+    }))
+    console.log(providerOptions.value)
+    console.log(channelGroupOptions.value)
+  } catch (error) {
+    window.$message.error('获取过滤器选项失败')
+    console.error(error)
   }
 }
 
@@ -287,7 +333,7 @@ function handleSearch() {
 // 分页配置
 
 // 表格列定义
-const columns = [
+const columns = computed(() => [
   {title: 'ID', key: 'id', width: 80},
   {
     title: '频道LOGO',
@@ -320,11 +366,15 @@ const columns = [
     title: '订阅源',
     key: 'provider.name',
     width: 120,
+    filter: true,
+    filterOptions: providerOptions.value,
   },
   {
     title: '频道组',
     key: 'channelGroup.name',
     width: 120,
+    filter: true,
+    filterOptions: channelGroupOptions.value,
   },
   {
     title: '播放地址',
@@ -392,7 +442,7 @@ const columns = [
         ),
       ]),
   },
-]
+])
 
 // 复制到剪贴板
 function copyToClipboard(text) {

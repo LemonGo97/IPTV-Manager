@@ -127,11 +127,17 @@
             <if test="query.name != null">
                 AND c.name like concat('%', #{query.name}, '%')
             </if>
-            <if test="query.providerId != null">
-                AND c.provider_id = #{query.providerId}
+            <if test="@org.apache.commons.collections4.CollectionUtils@isNotEmpty(query.providerId)">
+                AND c.provider_id in
+                <foreach collection="query.providerId" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
             </if>
-            <if test="query.groupId != null">
-                AND c.group_id = #{query.groupId}
+            <if test="@org.apache.commons.collections4.CollectionUtils@isNotEmpty(query.groupId)">
+                AND c.group_id in
+                <foreach collection="query.groupId" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
             </if>
             <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(query.orderBy) and query.asc != null">
                 <choose>

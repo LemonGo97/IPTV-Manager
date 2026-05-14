@@ -7,6 +7,9 @@ export default {
   // 获取频道列表（分页、搜索、排序）
   getList: (params) => request.get('/channel', { params }),
 
+  // 获取过滤器选项
+  getOptions: () => request.get('/channel/options'),
+
   // 获取频道 EPG 时间轴
   getTimeline: (id) => request.get(`/channel/${id}/timeline`),
 
