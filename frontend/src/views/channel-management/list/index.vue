@@ -297,7 +297,7 @@ async function fetchTableData() {
     tableData.value = res.data.list || []
     pagination.itemCount = res.data.total || 0
   } catch (error) {
-    window.$message.error('获取数据失败')
+    $message.error('获取数据失败')
     console.error(error)
   } finally {
     loading.value = false
@@ -316,10 +316,8 @@ async function fetchFilterOptions() {
       label: item.name,
       value: item.id,
     }))
-    console.log(providerOptions.value)
-    console.log(channelGroupOptions.value)
   } catch (error) {
-    window.$message.error('获取过滤器选项失败')
+    $message.error('获取过滤器选项失败')
     console.error(error)
   }
 }
