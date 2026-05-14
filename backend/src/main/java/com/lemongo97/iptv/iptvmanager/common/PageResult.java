@@ -7,11 +7,11 @@ import java.util.List;
 @Data
 public class PageResult<T> {
     private long total;
-    private List<T> data;
+    private List<T> list;
 
-    public PageResult(long total, List<T> data) {
+    public PageResult(long total, List<T> list) {
         this.total = total;
-        this.data = data;
+        this.list = list;
     }
 
     public static <T> PageResult<T> of(long total, List<T> data) {

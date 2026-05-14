@@ -57,6 +57,11 @@
     <!-- 操作按钮区域 -->
     <div class="action-area">
       <n-space>
+        <n-input v-model:value="queryItems.name" placeholder="搜索频道名称" clearable style="width: 200px" @keyup.enter="handleSearch"/>
+        <n-button type="primary" @click="handleSearch">
+          <i class="i-material-symbols:search mr-4 text-18"/>
+          搜索
+        </n-button>
         <n-button type="primary" @click="handleRefresh">
           <i class="i-material-symbols:refresh mr-4 text-18"/>
           刷新
@@ -73,6 +78,8 @@
       :columns="columns"
       :data="tableData"
       :pagination="pagination"
+      :remote="true"
+      :loading="loading"
       :scroll-x="1400"
       size="small"
     />
@@ -129,7 +136,7 @@
 
 <script setup>
 import {NButton, NTag, NStatistic, NGrid, NGi, NDivider, NDataTable, NSteps, NStep, NModal, NTimeline, NTimelineItem, NImage, NDropdown, NP, NSpace} from 'naive-ui'
-import {h, nextTick, onMounted, ref, watch} from 'vue'
+import {h, nextTick, onMounted, reactive, ref, watch, computed} from 'vue'
 import { useClipboard } from '@vueuse/core'
 import api from './api'
 
@@ -169,9 +176,10 @@ async function fetchStatistics() {
   }
 }
 
-// 页面加载时获取统计数据
+// 页面加载时获取统计数据和表格数据
 onMounted(() => {
   fetchStatistics()
+  fetchTableData()
 })
 
 // 状态图标
@@ -221,82 +229,14 @@ function formatDate(date) {
   return `${month}月${day}日 星期${weekDay}`
 }
 
-// 频道组选项（用于表头过滤）
-const groupFilterOptions = ref([
-  {label: '央视', value: '央视'},
-  {label: '卫视', value: '卫视'},
-  {label: '地方台', value: '地方台'},
-  {label: '国际', value: '国际'},
-])
+// 表格数据
+const tableData = ref([])
+const loading = ref(false)
 
-// 状态选项（用于表头过滤）
-const statusFilterOptions = ref([
-  {label: '有效', value: 'valid'},
-  {label: '无效', value: 'invalid'},
-])
-
-// 国家选项（用于表头过滤）
-const countryFilterOptions = ref([
-  {label: '中国', value: '中国'},
-  {label: '美国', value: '美国'},
-  {label: '日本', value: '日本'},
-  {label: '韩国', value: '韩国'},
-  {label: '英国', value: '英国'},
-])
-
-// 模拟数据
-const tableData = ref([
-  {
-    id: 1,
-    logo: 'https://tb.zbds.top/logo/CCTV1.png',
-    name: 'CCTV-1',
-    groupName: '央视',
-    url: 'https://piccpndali.v.myalicdn.com/audio/cctv1_2.m3u8',
-    country: '中国',
-    language: '中文',
-    status: 'valid',
-  },
-  {
-    id: 2,
-    logo: 'https://tb.zbds.top/logo/湖南卫视.png',
-    name: '湖南卫视',
-    groupName: '卫视',
-    url: 'http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/dWlwPTEyNy4wLjAuMSZ1aWQ9cWluZy1jbXMmbm5fdGltZXpvbmU9OCZjZG5leF9pZD1hbF9obHNfbGR2dCZ1dWlkPTliODY4NmU5ZTM2YzYwMmMmZT02OTE0NjA0JnY9MSZpZD1ITldTWkdTVCZzPTcwN2RiYTc2YzJjNmJmMTQ4MmUyZGYzOWU2NWM3YWFi/HNWSZGST.m3u8',
-    country: '中国',
-    language: '中文',
-    status: 'valid',
-  },
-  {
-    id: 3,
-    logo: 'https://tb.zbds.top/logo/CCTV17.png',
-    name: 'BBC One',
-    groupName: '国际',
-    url: 'https://piccpndali.v.myalicdn.com/audio/cctv17_2.m3u8',
-    country: '英国',
-    language: '英语',
-    status: 'valid',
-  },
-  {
-    id: 4,
-    logo: 'https://tb.zbds.top/logo/CCTV13.png',
-    name: 'NHK World',
-    groupName: '国际',
-    url: 'https://piccpndali.v.myalicdn.com/audio/cctv13_2.m3u8',
-    country: '日本',
-    language: '日语',
-    status: 'invalid',
-  },
-  {
-    id: 5,
-    logo: 'https://tb.zbds.top/logo/CGTN.png',
-    name: 'KBS 1TV',
-    groupName: '国际',
-    url: 'https://0472.org/hls/cgtn.m3u8',
-    country: '韩国',
-    language: '韩语',
-    status: 'valid',
-  },
-])
+// 搜索参数
+const queryItems = reactive({
+  name: '',
+})
 
 // 分页配置
 const pagination = reactive({
@@ -306,9 +246,46 @@ const pagination = reactive({
   pageSizes: [10, 20, 50, 100],
   showQuickJumper: true,
   prefix: ({itemCount}) => `共 ${itemCount} 条`,
+  itemCount: 0,
+  onChange: (page) => {
+    pagination.page = page
+    fetchTableData()
+  },
+  onUpdatePageSize: (pageSize) => {
+    pagination.pageSize = pageSize
+    pagination.page = 1
+    fetchTableData()
+  },
 })
 
-// 表格列定义（带过滤功能）
+// 获取表格数据
+async function fetchTableData() {
+  loading.value = true
+  try {
+    const res = await api.getList({
+      pageNum: pagination.page,
+      pageSize: pagination.pageSize,
+      name: queryItems.name || undefined,
+    })
+    tableData.value = res.data.list || []
+    pagination.itemCount = res.data.total || 0
+  } catch (error) {
+    window.$message.error('获取数据失败')
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 搜索
+function handleSearch() {
+  pagination.page = 1
+  fetchTableData()
+}
+
+// 分页配置
+
+// 表格列定义
 const columns = [
   {title: 'ID', key: 'id', width: 80},
   {
@@ -336,15 +313,11 @@ const columns = [
     key: 'name',
     width: 200,
     ellipsis: {tooltip: true},
-    filter: true,
-    filterOptions: tableData.value.map(item => ({label: item.name, value: item.name})),
   },
   {
     title: '频道组',
     key: 'groupName',
     width: 120,
-    filter: true,
-    filterOptions: groupFilterOptions.value,
   },
   {
     title: '播放地址',
@@ -370,16 +343,12 @@ const columns = [
     title: '国家',
     key: 'country',
     width: 100,
-    filter: true,
-    filterOptions: countryFilterOptions.value,
   },
   {title: '语言', key: 'language', width: 100},
   {
     title: '状态',
     key: 'status',
     width: 100,
-    filter: true,
-    filterOptions: statusFilterOptions.value,
     render: row =>
       h(
         NTag,
@@ -425,7 +394,8 @@ function copyToClipboard(text) {
 
 // 刷新
 function handleRefresh() {
-  $message.info('刷新功能开发中...')
+  fetchStatistics()
+  fetchTableData()
 }
 
 // 开始处理
