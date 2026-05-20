@@ -10,7 +10,7 @@
           <template #default>
             根据规则过滤无效和测试频道
                 <div class="rule-content">
-                  <div class="rule-header">
+                  <div class="rule-header" v-if="hasEngineForType('FILTER')">
                     <n-button size="small" type="primary" @click="handleAdd('FILTER')">
                       <i class="i-material-symbols:add mr-4 text-16" />
                       新增规则
@@ -30,7 +30,7 @@
           <template #default>
             统一频道名称格式和标识
             <div class="rule-content">
-              <div class="rule-header">
+              <div class="rule-header" v-if="hasEngineForType('NAME')">
                 <n-button size="small" type="primary" @click="handleAdd('NAME')">
                   <i class="i-material-symbols:add mr-4 text-16" />
                   新增规则
@@ -50,7 +50,7 @@
           <template #default>
             合并相同频道为多条线路
             <div class="rule-content">
-              <div class="rule-header">
+              <div class="rule-header" v-if="hasEngineForType('MERGE')">
                 <n-button size="small" type="primary" @click="handleAdd('MERGE')">
                   <i class="i-material-symbols:add mr-4 text-16" />
                   新增规则
@@ -70,7 +70,7 @@
           <template #default>
             检测各源的延迟情况
             <div class="rule-content">
-              <div class="rule-header">
+              <div class="rule-header" v-if="hasEngineForType('DELAY')">
                 <n-button size="small" type="primary" @click="handleAdd('DELAY')">
                   <i class="i-material-symbols:add mr-4 text-16" />
                   新增规则
@@ -90,7 +90,7 @@
           <template #default>
             按类别整理归类频道
             <div class="rule-content">
-              <div class="rule-header">
+              <div class="rule-header" v-if="hasEngineForType('GROUP')">
                 <n-button size="small" type="primary" @click="handleAdd('GROUP')">
                   <i class="i-material-symbols:add mr-4 text-16" />
                   新增规则
@@ -165,6 +165,11 @@ const modalForm = ref({})
 const modalTitle = ref('')
 const currentRuleType = ref('')
 const engines = ref([])
+
+// 检查规则类型是否有可用引擎
+function hasEngineForType(ruleType) {
+  return engines.value.some(e => e.ruleType === ruleType)
+}
 
 // 模拟数据
 const filterRules = ref([
