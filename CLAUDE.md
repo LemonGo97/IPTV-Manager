@@ -603,6 +603,63 @@ VITE_PROXY_TARGET = 'http://localhost:8080'
 
 **规则**：所有路由路径前必须加上 `/#` 前缀。
 
+#### Chrome DevTools MCP 调试
+
+本项目支持使用 Chrome DevTools MCP 进行远程调试，适用于前端页面交互测试和问题排查。
+
+**常用调试操作**：
+
+| 操作 | 工具 | 说明 |
+|------|------|------|
+| 打开页面 | `navigate_page` | 导航到指定 URL |
+| 获取页面快照 | `take_snapshot` | 获取页面的可访问性树结构 |
+| 点击元素 | `click` | 通过 uid 点击页面元素 |
+| 填写表单 | `fill` / `fill_form` | 填写输入框或批量填写表单 |
+| 查看控制台 | `list_console_messages` | 查看浏览器控制台输出 |
+| 查看网络请求 | `list_network_requests` | 查看 HTTP 请求和响应 |
+| 截图 | `take_screenshot` | 截取当前页面或元素 |
+| 执行脚本 | `evaluate_script` | 在页面上下文中执行 JavaScript |
+
+**调试工作流示例**：
+
+```bash
+# 1. 列出所有页面
+mcp__chrome-devtools__list_pages
+
+# 2. 导航到目标页面
+mcp__chrome-devtools__navigate_page type="url" url="http://localhost:3200/#/channel-management/rules"
+
+# 3. 获取页面快照，查看可交互元素
+mcp__chrome-devtools__take_snapshot
+
+# 4. 点击"新增规则"按钮（使用快照中的 uid）
+mcp__chrome-devtools__click uid="元素uid"
+
+# 5. 填写表单
+mcp__chrome-devtools__fill uid="输入框uid" value="测试数据"
+
+# 6. 查看控制台输出，验证日志
+mcp__chrome-devtools__list_console_messages
+
+# 7. 截图保存当前状态
+mcp__chrome-devtools__take_screenshot filePath="debug-screenshot.png"
+```
+
+**调试技巧**：
+
+1. **元素定位**：使用 `take_snapshot` 获取页面结构，快照中的 `uid` 是点击和填写操作的关键
+2. **表单验证**：使用 `fill_form` 批量填写表单，比多次 `fill` 更高效
+3. **异步操作**：使用 `wait_for` 等待特定文本出现，确保页面加载完成
+4. **错误排查**：
+   - `list_console_messages` - 查看前端报错
+   - `list_network_requests` - 查看 API 请求状态码和响应
+5. **动态表单调试**：检查 NDynamicInput 是否正确渲染，使用 `evaluate_script` 查看组件状态
+
+**注意事项**：
+- 调试时使用 Hash 路由格式：`http://localhost:3200/#/path`
+- 遇到登录页面点击"一键登录"，不要修改权限守卫配置
+- 截图和快照可以保存为文件，便于后续分析
+
 #### 常见问题修复
 
 **1. 编辑按钮数据不回显**
@@ -941,7 +998,155 @@ epgTimelineData.value = timelineData
 />
 ```
 
+#### 动态表单系统
+
+使用 Vue3 的 `h` 函数实现基于后端配置的动态表单渲染。
+
+**核心概念**：
+- 根据后端引擎配置动态生成表单字段
+- 支持多种参数类型（INPUT, NUMBER, SWITCH, SELECT, DYNAMIC_INPUT, DYNAMIC_PAIR_INPUT）
+- 所有"新增规则"按钮共用一个弹窗，通过 `ruleType` 过滤可用引擎
+
+**NFormItem 插槽语法**：
+```javascript
+// 使用对象语法定义插槽
+h(NFormItem, {
+  key: param.field,
+  label: param.label,
+  path: param.field,
+}, {
+  default: () => renderParamInput(param),
+})
+```
+
+**Naive UI 事件绑定格式**：
+```javascript
+// 事件处理器必须使用带引号的属性名
+'h(组件, {
+  'onUpdate:value': val => { modalForm.value[fieldName] = val },
+})
+```
+
+**NDynamicInput 初始化**：
+```javascript
+// ❌ 错误：使用 defaultValue 会被 value 覆盖
+return h(NDynamicInput, {
+  defaultValue: [''],
+  value: modalForm.value[fieldName],
+})
+
+// ✅ 正确：在表单初始化时设置默认值
+case 'DYNAMIC_INPUT':
+  modalForm.value[param.field] = ['']  // 初始显示一个输入框
+  break
+```
+
+**支持的参数类型**：
+| 类型 | 组件 | 配置说明 |
+|------|------|----------|
+| INPUT | NInput | 基础文本输入 |
+| NUMBER | NInputNumber | 数字输入，需设置 `style: { width: '100%' }` |
+| SWITCH | NSwitch | 开关控件 |
+| SELECT | NSelect | 下拉选择，需提供 `options` 数组 |
+| DYNAMIC_INPUT | NDynamicInput | 动态数组输入，默认值为 `['']` |
+| DYNAMIC_PAIR_INPUT | NDynamicInput | 键值对输入，需配置 `keyPlaceholder` 和 `valuePlaceholder` |
+
+**MeModal 回调使用**：
+```vue
+<!-- ❌ 错误：使用 @confirm 事件 -->
+<MeModal @confirm="handleSave">
+
+<!-- ✅ 正确：使用 :onOk 属性 -->
+<MeModal :onOk="handleSave">
+```
+
+**完整示例**（`/channel-management/rules/index.vue`）：
+```javascript
+// 动态渲染参数表单
+const renderDynamicParams = computed(() => {
+  const params = currentEngineParams.value
+
+  return h('div', { class: 'dynamic-params-container' },
+    params.map(param =>
+      h(NFormItem, {
+        key: param.field,
+        label: param.label,
+        path: param.field,
+      }, {
+        default: () => renderParamInput(param),
+      })
+    )
+  )
+})
+
+// 根据类型渲染不同输入组件
+function renderParamInput(param) {
+  const fieldName = param.field
+  const label = param.label
+  const type = param.type
+  const placeholder = param.placeholder || `请输入${label}`
+
+  switch (type) {
+    case 'INPUT':
+      return h(NInput, {
+        placeholder,
+        value: modalForm.value[fieldName],
+        'onUpdate:value': val => { modalForm.value[fieldName] = val },
+      })
+
+    case 'DYNAMIC_PAIR_INPUT':
+      return h(NDynamicInput, {
+        preset: 'pair',
+        keyPlaceholder: param.keyPlaceholder || '键',
+        valuePlaceholder: param.valuePlaceholder || '值',
+        value: modalForm.value[fieldName] || [{ key: '', value: '' }],
+        'onUpdate:value': val => { modalForm.value[fieldName] = val },
+        onCreate: () => ({ key: '', value: '' }),
+      })
+  }
+}
+
+// 初始化引擎参数默认值
+function initEngineParams(engine) {
+  const params = JSON.parse(engine.params)
+  params.forEach(param => {
+    if (modalForm.value[param.field] === undefined) {
+      switch (param.type) {
+        case 'DYNAMIC_INPUT':
+          modalForm.value[param.field] = ['']
+          break
+        case 'DYNAMIC_PAIR_INPUT':
+          modalForm.value[param.field] = [{ key: '', value: '' }]
+          break
+        default:
+          modalForm.value[param.field] = ''
+      }
+    }
+  })
+}
+```
+
 ## 最新更新
+
+### 2026-05-21
+
+#### 频道处理规则 - 动态表单系统
+
+**实现功能**：
+- 基于后端引擎配置的动态表单渲染（`/channel-management/rules`）
+- 支持多种参数类型：INPUT, NUMBER, SWITCH, SELECT, DYNAMIC_INPUT, DYNAMIC_PAIR_INPUT
+- 所有"新增规则"按钮共用一个弹窗，通过 `ruleType` 过滤可用引擎
+- 单引擎时自动选择，多引擎时用户手动选择
+
+**技术要点**：
+- 使用 Vue3 `h` 函数实现动态组件渲染
+- NFormItem 插槽使用对象语法：`{ default: () => content }`
+- Naive UI 事件绑定格式：`'onUpdate:value'`（带引号）
+- NDynamicInput 初始化需要在表单中设置默认值，而非使用 `defaultValue` prop
+- MeModal 使用 `:onOk` 属性而非 `@confirm` 事件
+
+**API 接口**：
+- `GET /api/channel/cleanup/engines` - 获取支持的处理引擎列表
 
 ### 2026-05-13
 
