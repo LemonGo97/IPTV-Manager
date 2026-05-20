@@ -1,97 +1,116 @@
 <template>
   <CommonPage>
+
     <n-collapse class="rules-collapse" :default-expanded-names="['filter']" accordion>
-      <!-- 频道过滤规则 -->
-      <n-collapse-item title="频道过滤规则" name="filter">
-        <div class="rule-content">
-          <div class="rule-header">
-            <n-button size="small" type="primary" @click="handleAddFilter">
-              <i class="i-material-symbols:add mr-4 text-16" />
-              新增规则
-            </n-button>
-          </div>
-          <n-data-table
-            :columns="filterColumns"
-            :data="filterRules"
-            :pagination="false"
-            :scroll-x="1200"
-            size="small"
-          />
-          <div class="rule-actions">
-            <n-button @click="handleCancelFilter">取消</n-button>
-            <n-button type="primary" @click="handleSaveFilter">保存并应用</n-button>
-          </div>
-        </div>
-      </n-collapse-item>
-
-      <!-- 频道名称规范化规则 -->
-      <n-collapse-item title="频道名称规范化规则" name="normalize">
-        <div class="rule-content">
-          <div class="rule-header">
-            <n-button size="small" type="primary" @click="handleAddNormalize">
-              <i class="i-material-symbols:add mr-4 text-16" />
-              新增规则
-            </n-button>
-          </div>
-          <n-data-table
-            :columns="normalizeColumns"
-            :data="normalizeRules"
-            :pagination="false"
-            :scroll-x="1200"
-            size="small"
-          />
-          <div class="rule-actions">
-            <n-button @click="handleCancelNormalize">取消</n-button>
-            <n-button type="primary" @click="handleSaveNormalize">保存并应用</n-button>
-          </div>
-        </div>
-      </n-collapse-item>
-
-      <!-- 延迟检测规则 -->
-      <n-collapse-item title="延迟检测规则" name="delay">
-        <div class="rule-content">
-          <div class="rule-header">
-            <n-button size="small" type="primary" @click="handleAddDelay">
-              <i class="i-material-symbols:add mr-4 text-16" />
-              新增规则
-            </n-button>
-          </div>
-          <n-data-table
-            :columns="delayColumns"
-            :data="delayRules"
-            :pagination="false"
-            :scroll-x="1200"
-            size="small"
-          />
-          <div class="rule-actions">
-            <n-button @click="handleCancelDelay">取消</n-button>
-            <n-button type="primary" @click="handleSaveDelay">保存并应用</n-button>
-          </div>
-        </div>
-      </n-collapse-item>
-
-      <!-- 频道分组规则 -->
-      <n-collapse-item title="频道分组规则" name="group">
-        <div class="rule-content">
-          <div class="rule-header">
-            <n-button size="small" type="primary" @click="handleAddGroup">
-              <i class="i-material-symbols:add mr-4 text-16" />
-              新增规则
-            </n-button>
-          </div>
-          <n-data-table
-            :columns="groupColumns"
-            :data="groupRules"
-            :pagination="false"
-            :scroll-x="1200"
-            size="small"
-          />
-          <div class="rule-actions">
-            <n-button @click="handleCancelGroup">取消</n-button>
-            <n-button type="primary" @click="handleSaveGroup">保存并应用</n-button>
-          </div>
-        </div>
-      </n-collapse-item>
+      <n-steps vertical>
+        <n-step title="频道过滤" description="根据规则过滤无效和测试频道">
+          <template #title>
+            频道过滤
+          </template>
+          <template #default>
+            根据规则过滤无效和测试频道
+                <div class="rule-content">
+                  <div class="rule-header">
+                    <n-button size="small" type="primary" @click="handleAddFilter">
+                      <i class="i-material-symbols:add mr-4 text-16" />
+                      新增规则
+                    </n-button>
+                  </div>
+                  <n-data-table
+                    :columns="filterColumns"
+                    :data="filterRules"
+                    :pagination="false"
+                    :scroll-x="1200"
+                    size="small"
+                  />
+                </div>
+          </template>
+        </n-step>
+        <n-step title="名称规范化" description="统一频道名称格式和标识">
+          <template #default>
+            统一频道名称格式和标识
+            <div class="rule-content">
+              <div class="rule-header">
+                <n-button size="small" type="primary" @click="handleAddNormalize">
+                  <i class="i-material-symbols:add mr-4 text-16" />
+                  新增规则
+                </n-button>
+              </div>
+              <n-data-table
+                :columns="normalizeColumns"
+                :data="normalizeRules"
+                :pagination="false"
+                :scroll-x="1200"
+                size="small"
+              />
+            </div>
+          </template>
+        </n-step>
+        <n-step title="相同频道合并" description="合并相同频道为多条线路">
+          <template #default>
+            合并相同频道为多条线路
+            <div class="rule-content">
+              <div class="rule-header">
+                <n-button size="small" type="primary" @click="handleAddNormalize">
+                  <i class="i-material-symbols:add mr-4 text-16" />
+                  新增规则
+                </n-button>
+              </div>
+              <n-data-table
+                :columns="normalizeColumns"
+                :data="normalizeRules"
+                :pagination="false"
+                :scroll-x="1200"
+                size="small"
+              />
+            </div>
+          </template>
+        </n-step>
+        <n-step title="延迟检测" description="检测各源的延迟情况">
+          <template #default>
+            检测各源的延迟情况
+            <div class="rule-content">
+              <div class="rule-header">
+                <n-button size="small" type="primary" @click="handleAddDelay">
+                  <i class="i-material-symbols:add mr-4 text-16" />
+                  新增规则
+                </n-button>
+              </div>
+              <n-data-table
+                :columns="delayColumns"
+                :data="delayRules"
+                :pagination="false"
+                :scroll-x="1200"
+                size="small"
+              />
+            </div>
+          </template>
+        </n-step>
+        <n-step title="频道分组" description="按类别整理归类频道">
+          <template #default>
+            按类别整理归类频道
+            <div class="rule-content">
+              <div class="rule-header">
+                <n-button size="small" type="primary" @click="handleAddGroup">
+                  <i class="i-material-symbols:add mr-4 text-16" />
+                  新增规则
+                </n-button>
+              </div>
+              <n-data-table
+                :columns="groupColumns"
+                :data="groupRules"
+                :pagination="false"
+                :scroll-x="1200"
+                size="small"
+              />
+            </div>
+          </template>
+        </n-step>
+        <n-step title="信号评分" description="评估源信号质量并打分">
+          <template #default>
+          </template>
+        </n-step>
+      </n-steps>
     </n-collapse>
 
     <!-- 规则编辑弹窗 -->
@@ -168,9 +187,10 @@
 </template>
 
 <script setup>
-import { NButton, NSwitch } from 'naive-ui'
+import {NButton, NStep, NSteps, NSwitch} from 'naive-ui'
 import { CommonPage, MeCrud, MeModal } from '@/components'
 import { h } from 'vue'
+import api from './api'
 
 const modalRef = ref(null)
 const modalFormRef = ref(null)
@@ -422,8 +442,6 @@ defineOptions({
 }
 
 .rule-content {
-  padding: 16px;
-  background-color: var(--n-color-modal);
   border-radius: 4px;
 }
 

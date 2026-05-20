@@ -28,7 +28,8 @@ dependencies {
     implementation("io.lindstrom:m3u8-parser:0.30")
     // Source: https://mvnrepository.com/artifact/com.github.pagehelper/pagehelper-spring-boot-starter
     implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:4.0.0'
-
+    // Source: https://mvnrepository.com/artifact/com.github.houbb/opencc4j
+    implementation("com.github.houbb:opencc4j:1.14.0")
     // Quartz for scheduled tasks
     implementation(libs.spring.boot.starter.quartz)
 

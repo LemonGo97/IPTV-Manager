@@ -98,3 +98,12 @@ databaseChangeLog:
             path: db/sql/rebuild-channel-table-new.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: create-cleanup-engine-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-cleanup-engine-table.sql
+            relativeToChangelogFile: false
+            stripComments: true
