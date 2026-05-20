@@ -114,7 +114,7 @@
     </n-collapse>
 
     <!-- 动态规则编辑弹窗 -->
-    <MeModal ref="modalRef" width="600px" :title="modalTitle" @confirm="handleSave">
+    <MeModal ref="modalRef" width="600px" :title="modalTitle" :onOk="handleSave">
       <n-form
         ref="modalFormRef"
         label-placement="left"
