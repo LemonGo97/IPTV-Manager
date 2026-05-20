@@ -398,7 +398,7 @@ const groupColumns = [
 // 新增规则
 function handleAdd(ruleType) {
   currentRuleType.value = ruleType
-  modalTitle.value = `新增${getRuleTypeName(ruleType)}`
+  const title = `新增${getRuleTypeName(ruleType)}`
 
   // 过滤可用引擎
   const filtered = engines.value.filter(e => e.ruleType === ruleType)
@@ -415,15 +415,16 @@ function handleAdd(ruleType) {
     initEngineParams(filtered[0])
   }
 
-  modalRef.value?.open()
+  // 传入 title 确保 title 正确显示
+  modalRef.value?.open({ title })
 }
 
 // 编辑规则
 function handleEdit(row, ruleType) {
   currentRuleType.value = ruleType
-  modalTitle.value = `编辑${getRuleTypeName(ruleType)}`
+  const title = `编辑${getRuleTypeName(ruleType)}`
   modalForm.value = { ...row }
-  modalRef.value?.open()
+  modalRef.value?.open({ title })
 }
 
 // 删除规则
