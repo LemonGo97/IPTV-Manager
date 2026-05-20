@@ -128,7 +128,7 @@
           path="name"
           :rule="{ required: true, message: '请输入规则名称', trigger: ['input', 'blur'] }"
         >
-          <n-input v-model:value="modalForm.name" placeholder="请输入规则名称" />
+          <n-input v-model:value="modalForm.name" :input-props="{ name: 'name', autocomplete: 'off' }" placeholder="请输入规则名称" />
         </n-form-item>
 
         <!-- 引擎选择（当有多个引擎时显示） -->
@@ -141,6 +141,7 @@
           <n-select
             v-model:value="modalForm.engine"
             :options="engineOptions"
+            :input-props="{ name: 'engine', autocomplete: 'off' }"
             placeholder="请选择处理引擎"
             @update:value="handleEngineChange"
           />
@@ -234,6 +235,7 @@ function renderParamInput(param) {
       return h(NInput, {
         placeholder,
         value: modalForm.value[fieldName],
+        inputProps: { name: fieldName, autocomplete: 'off' },
         'onUpdate:value': val => { modalForm.value[fieldName] = val },
       })
 
@@ -241,6 +243,7 @@ function renderParamInput(param) {
       return h(NInputNumber, {
         placeholder,
         value: modalForm.value[fieldName],
+        inputProps: { name: fieldName, autocomplete: 'off' },
         'onUpdate:value': val => { modalForm.value[fieldName] = val },
         style: { width: '100%' },
       })
@@ -281,6 +284,7 @@ function renderParamInput(param) {
       return h(NInput, {
         placeholder,
         value: modalForm.value[fieldName],
+        inputProps: { name: fieldName, autocomplete: 'off' },
         'onUpdate:value': val => { modalForm.value[fieldName] = val },
       })
   }
@@ -463,8 +467,10 @@ function initEngineParams(engine) {
         // 根据类型设置默认值
         switch (param.type) {
           case 'INPUT':
-          case 'NUMBER':
             modalForm.value[param.field] = ''
+            break
+          case 'NUMBER':
+            modalForm.value[param.field] = null
             break
           case 'SWITCH':
             modalForm.value[param.field] = true
@@ -480,7 +486,7 @@ function initEngineParams(engine) {
             modalForm.value[param.field] = [{ key: '', value: '' }]
             break
           default:
-            modalForm.value[param.field] = ''
+            modalForm.value[param.field] = null
         }
       }
     })
