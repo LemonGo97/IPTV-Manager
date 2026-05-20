@@ -485,10 +485,22 @@ function initEngineParams(engine) {
 
 // 保存规则
 function handleSave() {
-  console.log('保存规则:', {
-    ruleType: currentRuleType.value,
-    ...modalForm.value,
+  // 构建参数对象（键值对）
+  const paramsObj = {}
+  currentEngineParams.value.forEach(param => {
+    paramsObj[param.field] = modalForm.value[param.field]
   })
+
+  // 构建提交数据结构
+  const submitData = {
+    name: modalForm.value.name,
+    engine: modalForm.value.engine,
+    ruleType: currentRuleType.value,
+    enabled: modalForm.value.enabled ?? true,
+    params: JSON.stringify(paramsObj),
+  }
+
+  console.log('保存规则:', submitData)
 
   window.$message.success('规则已保存（仅控制台输出，未调用API）')
   modalRef.value?.close()

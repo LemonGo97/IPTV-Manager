@@ -60,8 +60,8 @@ public class CleanRuleService {
     public List<CleanUpRuleParam> caseCover() {
 
         List<CleanUpRuleParam.SelectParam.SelectParamOption> options = List.of(
-                new CleanUpRuleParam.SelectParam.SelectParamOption("uppercase", "简体"),
-                new CleanUpRuleParam.SelectParam.SelectParamOption("lowercase", "繁体")
+                new CleanUpRuleParam.SelectParam.SelectParamOption("uppercase", "大写"),
+                new CleanUpRuleParam.SelectParam.SelectParamOption("lowercase", "小写")
         );
 
         CleanUpRuleParam.SelectParam input = new CleanUpRuleParam.SelectParam("input", "输入");
