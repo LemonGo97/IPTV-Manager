@@ -58,7 +58,7 @@ public class CleanUpRuleParam {
     @Data
     public static class SwitchParam extends CleanUpRuleParam {
         public SwitchParam(String field, String label) {
-            super(field, label, Type.INPUT);
+            super(field, label, Type.SWITCH);
         }
     }
 
@@ -69,7 +69,7 @@ public class CleanUpRuleParam {
         private List<SelectParamOption> options;
 
         public SelectParam(String field, String label) {
-            super(field, label, Type.SWITCH);
+            super(field, label, Type.SELECT);
         }
 
         @Data

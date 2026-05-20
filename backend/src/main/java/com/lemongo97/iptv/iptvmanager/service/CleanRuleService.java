@@ -19,12 +19,12 @@ public class CleanRuleService {
         return cleanupEngineMapper.findAll();
     }
 
-//    public static void main(String[] args) {
-//        CleanRuleService cleanRuleService = new CleanRuleService(null);
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        String json = objectMapper.writeValueAsString(cleanRuleService.string());
-//        System.out.println(json);
-//    }
+    public static void main(String[] args) {
+        CleanRuleService cleanRuleService = new CleanRuleService(null);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(cleanRuleService.http());
+        System.out.println(json);
+    }
 
     private List<CleanUpRuleParam> blacklist() {
         return List.of(new CleanUpRuleParam.DynamicInputParam("keyword", "关键字"));
