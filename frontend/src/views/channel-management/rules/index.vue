@@ -189,7 +189,7 @@
 <script setup>
 import {NButton, NStep, NSteps, NSwitch} from 'naive-ui'
 import { CommonPage, MeCrud, MeModal } from '@/components'
-import { h } from 'vue'
+import {h, onMounted, ref} from 'vue'
 import api from './api'
 
 const modalRef = ref(null)
@@ -424,6 +424,22 @@ function getRuleTypeName(type) {
   }
   return names[type] || type
 }
+
+const engines = ref([])
+
+async function fetchSupportEngineList() {
+  try {
+    const res = await api.listEngine()
+    engines.value = res.data || []
+  } catch (error) {
+    $message.error('获取引擎支持列表失败')
+    console.error(error)
+  }
+}
+
+onMounted(() => {
+  fetchSupportEngineList()
+})
 
 defineOptions({
   name: 'ChannelRules',
