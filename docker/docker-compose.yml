@@ -1,0 +1,43 @@
+# IPTV-Manager Docker Compose 配置
+# 用于快速开发和部署
+
+services:
+  iptv-manager:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: iptv-manager
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      # JVM 配置
+      - JVM_OPTS=-Xms512m -Xmx1024m
+      # Spring Boot 配置
+      - SPRING_PROFILES_ACTIVE=docker
+      # 时区
+      - TZ=Asia/Shanghai
+    volumes:
+      # 数据持久化（可选）
+      - iptv-data:/app/data
+      # 自定义 nginx 配置（可选）
+      - ./nginx-custom.conf:/etc/nginx/nginx.conf:ro
+      # SSL 证书（可选）
+      - ./ssl:/etc/nginx/ssl:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/nginx-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - iptv-network
+
+volumes:
+  iptv-data:
+    driver: local
+
+networks:
+  iptv-network:
+    driver: bridge
