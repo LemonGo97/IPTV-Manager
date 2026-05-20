@@ -11,7 +11,7 @@
             根据规则过滤无效和测试频道
                 <div class="rule-content">
                   <div class="rule-header">
-                    <n-button size="small" type="primary" @click="handleAddFilter">
+                    <n-button size="small" type="primary" @click="handleAdd('FILTER')">
                       <i class="i-material-symbols:add mr-4 text-16" />
                       新增规则
                     </n-button>
@@ -31,7 +31,7 @@
             统一频道名称格式和标识
             <div class="rule-content">
               <div class="rule-header">
-                <n-button size="small" type="primary" @click="handleAddNormalize">
+                <n-button size="small" type="primary" @click="handleAdd('NAME')">
                   <i class="i-material-symbols:add mr-4 text-16" />
                   新增规则
                 </n-button>
@@ -51,14 +51,14 @@
             合并相同频道为多条线路
             <div class="rule-content">
               <div class="rule-header">
-                <n-button size="small" type="primary" @click="handleAddNormalize">
+                <n-button size="small" type="primary" @click="handleAdd('MERGE')">
                   <i class="i-material-symbols:add mr-4 text-16" />
                   新增规则
                 </n-button>
               </div>
               <n-data-table
-                :columns="normalizeColumns"
-                :data="normalizeRules"
+                :columns="mergeColumns"
+                :data="mergeRules"
                 :pagination="false"
                 :scroll-x="1200"
                 size="small"
@@ -71,7 +71,7 @@
             检测各源的延迟情况
             <div class="rule-content">
               <div class="rule-header">
-                <n-button size="small" type="primary" @click="handleAddDelay">
+                <n-button size="small" type="primary" @click="handleAdd('DELAY')">
                   <i class="i-material-symbols:add mr-4 text-16" />
                   新增规则
                 </n-button>
@@ -91,7 +91,7 @@
             按类别整理归类频道
             <div class="rule-content">
               <div class="rule-header">
-                <n-button size="small" type="primary" @click="handleAddGroup">
+                <n-button size="small" type="primary" @click="handleAdd('GROUP')">
                   <i class="i-material-symbols:add mr-4 text-16" />
                   新增规则
                 </n-button>
@@ -113,8 +113,8 @@
       </n-steps>
     </n-collapse>
 
-    <!-- 规则编辑弹窗 -->
-    <MeModal ref="modalRef" width="600px" :title="modalTitle">
+    <!-- 动态规则编辑弹窗 -->
+    <MeModal ref="modalRef" width="600px" :title="modalTitle" @confirm="handleSave">
       <n-form
         ref="modalFormRef"
         label-placement="left"
@@ -122,7 +122,7 @@
         :label-width="120"
         :model="modalForm"
       >
-        <!-- 动态表单内容，根据规则类型渲染 -->
+        <!-- 规则名称 -->
         <n-form-item
           label="规则名称"
           path="name"
@@ -131,65 +131,32 @@
           <n-input v-model:value="modalForm.name" placeholder="请输入规则名称" />
         </n-form-item>
 
+        <!-- 引擎选择（当有多个引擎时显示） -->
         <n-form-item
-          label="匹配条件"
-          path="condition"
-          :rule="{ required: true, message: '请输入匹配条件', trigger: ['input', 'blur'] }"
-        >
-          <n-input v-model:value="modalForm.condition" placeholder="请输入匹配条件" />
-        </n-form-item>
-
-        <n-form-item
-          label="匹配类型"
-          path="matchType"
-          :rule="{ required: true, message: '请选择匹配类型', trigger: ['change', 'blur'] }"
+          v-if="availableEngines.length > 1"
+          label="处理引擎"
+          path="engine"
+          :rule="{ required: true, message: '请选择处理引擎', trigger: ['change', 'blur'] }"
         >
           <n-select
-            v-model:value="modalForm.matchType"
-            :options="[
-              { label: '包含', value: 'contains' },
-              { label: '等于', value: 'equals' },
-              { label: '正则表达式', value: 'regex' },
-            ]"
+            v-model:value="modalForm.engine"
+            :options="engineOptions"
+            placeholder="请选择处理引擎"
+            @update:value="handleEngineChange"
           />
         </n-form-item>
 
-        <n-form-item
-          v-if="currentRuleType !== 'filter'"
-          label="操作值"
-          path="actionValue"
-        >
-          <n-input v-model:value="modalForm.actionValue" placeholder="请输入操作值" />
-        </n-form-item>
-
-        <n-form-item
-          v-if="currentRuleType === 'group'"
-          label="目标分组"
-          path="targetGroup"
-          :rule="{ required: true, message: '请选择目标分组', trigger: ['change', 'blur'] }"
-        >
-          <n-select
-            v-model:value="modalForm.targetGroup"
-            :options="groupOptions"
-            placeholder="请选择目标分组"
-          />
-        </n-form-item>
-
-        <n-form-item label="启用状态" path="enabled">
-          <n-switch v-model:value="modalForm.enabled">
-            <template #checked>启用</template>
-            <template #unchecked>停用</template>
-          </n-switch>
-        </n-form-item>
+        <!-- 动态参数表单 -->
+        <component :is="renderDynamicParams" />
       </n-form>
     </MeModal>
   </CommonPage>
 </template>
 
 <script setup>
-import {NButton, NStep, NSteps, NSwitch} from 'naive-ui'
+import { NButton, NStep, NSteps, NSwitch, NDynamicInput, NInput, NInputNumber, NSelect, NFormItem } from 'naive-ui'
 import { CommonPage, MeCrud, MeModal } from '@/components'
-import {h, onMounted, ref} from 'vue'
+import { h, computed, onMounted, ref, render } from 'vue'
 import api from './api'
 
 const modalRef = ref(null)
@@ -197,50 +164,157 @@ const modalFormRef = ref(null)
 const modalForm = ref({})
 const modalTitle = ref('')
 const currentRuleType = ref('')
+const engines = ref([])
 
 // 模拟数据
 const filterRules = ref([
-  { id: 1, name: '过滤测试频道', condition: '测试', matchType: 'contains', enabled: true },
-  { id: 2, name: '过滤广告频道', condition: '广告', matchType: 'contains', enabled: false },
+  { id: 1, name: '过滤测试频道', engine: 'BlackListEngine', enabled: true },
+  { id: 2, name: '过滤广告频道', engine: 'WhiteListEngine', enabled: false },
 ])
 
 const normalizeRules = ref([
-  { id: 1, name: 'CCTV统一命名', condition: 'CCTV', matchType: 'contains', actionValue: 'CCTV中央台', enabled: true },
-  { id: 2, name: '去除标清标识', condition: '[480P]', matchType: 'regex', actionValue: '', enabled: true },
+  { id: 1, name: 'CCTV统一命名', engine: 'NameNormalizeEngine', enabled: true },
+  { id: 2, name: '去除标清标识', engine: 'RemoveSuffixEngine', enabled: true },
+])
+
+const mergeRules = ref([
+  { id: 1, name: '合并相同频道', engine: 'ChannelMergeEngine', enabled: true },
 ])
 
 const delayRules = ref([
-  { id: 1, name: '检测源延迟', condition: 'freetv.fun', matchType: 'contains', actionValue: '2000', enabled: true },
-  { id: 2, name: '检测源延迟', condition: 'iptv.com', matchType: 'contains', actionValue: '3000', enabled: false },
+  { id: 1, name: '检测源延迟', engine: 'DelayDetectionEngine', enabled: true },
+  { id: 2, name: '检测源延迟', engine: 'TimeoutDetectionEngine', enabled: false },
 ])
 
 const groupRules = ref([
-  { id: 1, name: '央视频道分组', condition: 'CCTV', matchType: 'contains', targetGroup: '1', enabled: true },
-  { id: 2, name: '卫视频道分组', condition: '卫视', matchType: 'contains', targetGroup: '2', enabled: true },
+  { id: 1, name: '央视频道分组', engine: 'ChannelGroupEngine', enabled: true },
+  { id: 2, name: '卫视频道分组', engine: 'ChannelGroupEngine', enabled: true },
 ])
 
-const groupOptions = ref([
-  { label: '央视', value: '1' },
-  { label: '卫视', value: '2' },
-  { label: '地方台', value: '3' },
-])
+// 根据规则类型过滤可用引擎
+const availableEngines = computed(() => {
+  if (!currentRuleType.value) return []
+  return engines.value.filter(e => e.ruleType === currentRuleType.value)
+})
+
+// 引擎选项
+const engineOptions = computed(() => {
+  return availableEngines.value.map(e => ({
+    label: e.name,
+    value: e.engine,
+  }))
+})
+
+// 当前选中引擎的参数配置
+const currentEngineParams = computed(() => {
+  if (!modalForm.value.engine) return []
+  const engine = availableEngines.value.find(e => e.engine === modalForm.value.engine)
+  if (!engine) return []
+  try {
+    return JSON.parse(engine.params)
+  } catch {
+    return []
+  }
+})
+
+// 渲染参数输入组件
+function renderParamInput(param) {
+  const fieldName = param.field
+  const label = param.label
+  const type = param.type
+  const placeholder = param.placeholder || `请输入${label}`
+
+  switch (type) {
+    case 'INPUT':
+      return h(NInput, {
+        placeholder,
+        value: modalForm.value[fieldName],
+        'onUpdate:value': val => { modalForm.value[fieldName] = val },
+      })
+
+    case 'NUMBER':
+      return h(NInputNumber, {
+        placeholder,
+        value: modalForm.value[fieldName],
+        'onUpdate:value': val => { modalForm.value[fieldName] = val },
+        style: { width: '100%' },
+      })
+
+    case 'SWITCH':
+      return h(NSwitch, {
+        value: modalForm.value[fieldName],
+        'onUpdate:value': val => { modalForm.value[fieldName] = val },
+      })
+
+    case 'SELECT':
+      return h(NSelect, {
+        placeholder,
+        options: param.options || [],
+        value: modalForm.value[fieldName],
+        'onUpdate:value': val => { modalForm.value[fieldName] = val },
+      })
+
+    case 'DYNAMIC_INPUT':
+      return h(NDynamicInput, {
+        placeholder,
+        value: modalForm.value[fieldName] || [''],
+        'onUpdate:value': val => { modalForm.value[fieldName] = val },
+        onCreate: () => '',
+      })
+
+    case 'DYNAMIC_PAIR_INPUT':
+      return h(NDynamicInput, {
+        preset: 'pair',
+        keyPlaceholder: param.keyPlaceholder || '键',
+        valuePlaceholder: param.valuePlaceholder || '值',
+        value: modalForm.value[fieldName] || [{ key: '', value: '' }],
+        'onUpdate:value': val => { modalForm.value[fieldName] = val },
+        onCreate: () => ({ key: '', value: '' }),
+      })
+
+    default:
+      return h(NInput, {
+        placeholder,
+        value: modalForm.value[fieldName],
+        'onUpdate:value': val => { modalForm.value[fieldName] = val },
+      })
+  }
+}
+
+// 动态渲染参数表单
+const renderDynamicParams = computed(() => {
+  const params = currentEngineParams.value
+
+  if (params.length === 0) {
+    return h('div', { class: 'text-gray-400 text-center py-4' }, '该引擎无需配置参数')
+  }
+
+  return h('div', { class: 'dynamic-params-container' }, params.map(param =>
+    h(NFormItem, {
+      key: param.field,
+      label: param.label,
+      path: param.field,
+    }, {
+      default: () => renderParamInput(param),
+    })
+  ))
+})
 
 // 频道过滤规则列
 const filterColumns = [
   { title: 'ID', key: 'id', width: 80 },
   { title: '规则名称', key: 'name', width: 200 },
-  { title: '匹配条件', key: 'condition', width: 150 },
-  { title: '匹配类型', key: 'matchType', width: 100, render: (row) => getMatchTypeLabel(row.matchType) },
-  { title: '启用状态', key: 'enabled', width: 100, render: (row) => h('span', row.enabled ? '启用' : '停用') },
+  { title: '处理引擎', key: 'engine', width: 200 },
+  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
   {
     title: '操作',
     key: 'actions',
     width: 150,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h('div', { class: 'flex gap-8' }, [
-        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'filter') }, { default: () => '编辑' }),
-        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row, 'filter') }, { default: () => '删除' }),
+        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'FILTER') }, { default: () => '编辑' }),
+        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
       ]),
   },
 ]
@@ -249,19 +323,36 @@ const filterColumns = [
 const normalizeColumns = [
   { title: 'ID', key: 'id', width: 80 },
   { title: '规则名称', key: 'name', width: 200 },
-  { title: '匹配条件', key: 'condition', width: 150 },
-  { title: '匹配类型', key: 'matchType', width: 100, render: (row) => getMatchTypeLabel(row.matchType) },
-  { title: '替换为', key: 'actionValue', width: 150 },
-  { title: '启用状态', key: 'enabled', width: 100, render: (row) => h('span', row.enabled ? '启用' : '停用') },
+  { title: '处理引擎', key: 'engine', width: 200 },
+  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
   {
     title: '操作',
     key: 'actions',
     width: 150,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h('div', { class: 'flex gap-8' }, [
-        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'normalize') }, { default: () => '编辑' }),
-        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row, 'normalize') }, { default: () => '删除' }),
+        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'NAME') }, { default: () => '编辑' }),
+        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
+      ]),
+  },
+]
+
+// 相同频道合并规则列
+const mergeColumns = [
+  { title: 'ID', key: 'id', width: 80 },
+  { title: '规则名称', key: 'name', width: 200 },
+  { title: '处理引擎', key: 'engine', width: 200 },
+  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 150,
+    fixed: 'right',
+    render: row =>
+      h('div', { class: 'flex gap-8' }, [
+        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'MERGE') }, { default: () => '编辑' }),
+        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
       ]),
   },
 ]
@@ -270,19 +361,17 @@ const normalizeColumns = [
 const delayColumns = [
   { title: 'ID', key: 'id', width: 80 },
   { title: '规则名称', key: 'name', width: 200 },
-  { title: '匹配条件', key: 'condition', width: 150 },
-  { title: '匹配类型', key: 'matchType', width: 100, render: (row) => getMatchTypeLabel(row.matchType) },
-  { title: '超时时间(ms)', key: 'actionValue', width: 120 },
-  { title: '启用状态', key: 'enabled', width: 100, render: (row) => h('span', row.enabled ? '启用' : '停用') },
+  { title: '处理引擎', key: 'engine', width: 200 },
+  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
   {
     title: '操作',
     key: 'actions',
     width: 150,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h('div', { class: 'flex gap-8' }, [
-        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'delay') }, { default: () => '编辑' }),
-        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row, 'delay') }, { default: () => '删除' }),
+        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'DELAY') }, { default: () => '编辑' }),
+        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
       ]),
   },
 ]
@@ -291,78 +380,56 @@ const delayColumns = [
 const groupColumns = [
   { title: 'ID', key: 'id', width: 80 },
   { title: '规则名称', key: 'name', width: 200 },
-  { title: '匹配条件', key: 'condition', width: 150 },
-  { title: '匹配类型', key: 'matchType', width: 100, render: (row) => getMatchTypeLabel(row.matchType) },
-  { title: '目标分组', key: 'targetGroup', width: 120, render: (row) => getGroupName(row.targetGroup) },
-  { title: '启用状态', key: 'enabled', width: 100, render: (row) => h('span', row.enabled ? '启用' : '停用') },
+  { title: '处理引擎', key: 'engine', width: 200 },
+  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
   {
     title: '操作',
     key: 'actions',
     width: 150,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h('div', { class: 'flex gap-8' }, [
-        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'group') }, { default: () => '编辑' }),
-        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row, 'group') }, { default: () => '删除' }),
+        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'GROUP') }, { default: () => '编辑' }),
+        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
       ]),
   },
 ]
 
-function getMatchTypeLabel(type) {
-  const labels = {
-    contains: '包含',
-    equals: '等于',
-    regex: '正则',
-  }
-  return labels[type] || type
-}
-
-function getGroupName(value) {
-  const group = groupOptions.value.find(g => g.value === value)
-  return group ? group.label : value
-}
-
 // 新增规则
-function handleAddFilter() {
-  currentRuleType.value = 'filter'
-  modalTitle.value = '新增频道过滤规则'
-  modalForm.value = { name: '', condition: '', matchType: 'contains', enabled: true }
-  modalRef.value?.open()
-}
+function handleAdd(ruleType) {
+  currentRuleType.value = ruleType
+  modalTitle.value = `新增${getRuleTypeName(ruleType)}`
 
-function handleAddNormalize() {
-  currentRuleType.value = 'normalize'
-  modalTitle.value = '新增频道名称规范化规则'
-  modalForm.value = { name: '', condition: '', matchType: 'contains', actionValue: '', enabled: true }
-  modalRef.value?.open()
-}
+  // 过滤可用引擎
+  const filtered = engines.value.filter(e => e.ruleType === ruleType)
 
-function handleAddDelay() {
-  currentRuleType.value = 'delay'
-  modalTitle.value = '新增延迟检测规则'
-  modalForm.value = { name: '', condition: '', matchType: 'contains', actionValue: '', enabled: true }
-  modalRef.value?.open()
-}
+  // 初始化表单
+  modalForm.value = {
+    name: '',
+    engine: filtered.length === 1 ? filtered[0].engine : null,
+    enabled: true,
+  }
 
-function handleAddGroup() {
-  currentRuleType.value = 'group'
-  modalTitle.value = '新增频道分组规则'
-  modalForm.value = { name: '', condition: '', matchType: 'contains', targetGroup: null, enabled: true }
+  // 初始化参数字段
+  if (filtered.length === 1) {
+    initEngineParams(filtered[0])
+  }
+
   modalRef.value?.open()
 }
 
 // 编辑规则
-function handleEdit(row, type) {
-  currentRuleType.value = type
-  modalTitle.value = `编辑${getRuleTypeName(type)}`
+function handleEdit(row, ruleType) {
+  currentRuleType.value = ruleType
+  modalTitle.value = `编辑${getRuleTypeName(ruleType)}`
   modalForm.value = { ...row }
   modalRef.value?.open()
 }
 
 // 删除规则
-function handleDelete(row, type) {
+function handleDelete(row) {
   window.$dialog.warning({
-    content: `确定删除该${getRuleTypeName(type)}吗？`,
+    content: `确定删除该规则吗？`,
     title: '提示',
     positiveText: '确定',
     negativeText: '取消',
@@ -373,66 +440,81 @@ function handleDelete(row, type) {
   })
 }
 
-// 保存并应用
-function handleSaveFilter() {
-  window.$message.success('频道过滤规则已保存并应用')
+// 引擎切换处理
+function handleEngineChange(engine) {
+  const selectedEngine = availableEngines.value.find(e => e.engine === engine)
+  if (selectedEngine) {
+    initEngineParams(selectedEngine)
+  }
+}
+
+// 初始化引擎参数字段
+function initEngineParams(engine) {
+  try {
+    const params = JSON.parse(engine.params)
+    params.forEach(param => {
+      if (modalForm.value[param.field] === undefined) {
+        // 根据类型设置默认值
+        switch (param.type) {
+          case 'INPUT':
+          case 'NUMBER':
+            modalForm.value[param.field] = ''
+            break
+          case 'SWITCH':
+            modalForm.value[param.field] = true
+            break
+          case 'SELECT':
+            // 默认选中第一个选项
+            modalForm.value[param.field] = (param.options?.[0]?.value) || null
+            break
+          case 'DYNAMIC_INPUT':
+            modalForm.value[param.field] = ['']
+            break
+          case 'DYNAMIC_PAIR_INPUT':
+            modalForm.value[param.field] = [{ key: '', value: '' }]
+            break
+          default:
+            modalForm.value[param.field] = ''
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Failed to parse engine params:', error)
+  }
+}
+
+// 保存规则
+function handleSave() {
+  console.log('保存规则:', {
+    ruleType: currentRuleType.value,
+    ...modalForm.value,
+  })
+
+  window.$message.success('规则已保存（仅控制台输出，未调用API）')
+  modalRef.value?.close()
+
   // TODO: 调用保存API
-}
-
-function handleSaveNormalize() {
-  window.$message.success('频道名称规范化规则已保存并应用')
-  // TODO: 调用保存API
-}
-
-function handleSaveDelay() {
-  window.$message.success('延迟检测规则已保存并应用')
-  // TODO: 调用保存API
-}
-
-function handleSaveGroup() {
-  window.$message.success('频道分组规则已保存并应用')
-  // TODO: 调用保存API
-}
-
-// 取消
-function handleCancelFilter() {
-  window.$message.info('已取消修改')
-  // TODO: 重置数据
-}
-
-function handleCancelNormalize() {
-  window.$message.info('已取消修改')
-  // TODO: 重置数据
-}
-
-function handleCancelDelay() {
-  window.$message.info('已取消修改')
-  // TODO: 重置数据
-}
-
-function handleCancelGroup() {
-  window.$message.info('已取消修改')
-  // TODO: 重置数据
 }
 
 function getRuleTypeName(type) {
   const names = {
-    filter: '频道过滤规则',
-    normalize: '频道名称规范化规则',
-    delay: '延迟检测规则',
-    group: '频道分组规则',
+    FILTER: '频道过滤规则',
+    NAME: '频道名称规范化规则',
+    MERGE: '相同频道合并规则',
+    DELAY: '延迟检测规则',
+    GROUP: '频道分组规则',
   }
   return names[type] || type
 }
 
-const engines = ref([])
-
+// 获取支持引擎列表
 async function fetchSupportEngineList() {
   try {
     const res = await api.listEngine()
     engines.value = res.data || []
+    console.log('支持的引擎列表:', engines.value)
   } catch (error) {
-    $message.error('获取引擎支持列表失败')
+    window.$message.error('获取引擎支持列表失败')
     console.error(error)
   }
 }
@@ -474,5 +556,20 @@ defineOptions({
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--n-divider-color);
+}
+
+/* 动态表单样式 */
+.n-form-item {
+  margin-bottom: 16px;
+}
+
+.n-form-item-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.n-form-item-blank {
+  width: 100%;
 }
 </style>

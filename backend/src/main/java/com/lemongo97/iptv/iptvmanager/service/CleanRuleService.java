@@ -22,7 +22,7 @@ public class CleanRuleService {
     public static void main(String[] args) {
         CleanRuleService cleanRuleService = new CleanRuleService(null);
         ObjectMapper objectMapper = new ObjectMapper();
-        String json = objectMapper.writeValueAsString(cleanRuleService.http());
+        String json = objectMapper.writeValueAsString(cleanRuleService.caseCover());
         System.out.println(json);
     }
 
@@ -51,7 +51,7 @@ public class CleanRuleService {
         input.setOptions(options);
 
         CleanUpRuleParam.SelectParam output = new CleanUpRuleParam.SelectParam("output", "输出语言");
-        input.setOptions(options);
+        output.setOptions(options);
         return List.of(
                 input, output
         );
@@ -68,7 +68,7 @@ public class CleanRuleService {
         input.setOptions(options);
 
         CleanUpRuleParam.SelectParam output = new CleanUpRuleParam.SelectParam("output", "输出");
-        input.setOptions(options);
+        output.setOptions(options);
         return List.of(
                 input, output
         );

@@ -116,3 +116,12 @@ databaseChangeLog:
             path: db/sql/create-cleanup-engine-table-new.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: create-cleanup-engine-table-new1
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-cleanup-engine-table-new1.sql
+            relativeToChangelogFile: false
+            stripComments: true
