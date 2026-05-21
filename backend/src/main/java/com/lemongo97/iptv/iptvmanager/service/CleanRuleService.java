@@ -140,6 +140,7 @@ public class CleanRuleService {
             rule.getRuleType(),
             rule.getEnabled() != null ? rule.getEnabled() : true,
             rule.getParams(),
+            0,
             now,
             now,
             false
@@ -161,6 +162,7 @@ public class CleanRuleService {
             rule.getRuleType() != null ? rule.getRuleType() : existing.getRuleType(),
             rule.getEnabled() != null ? rule.getEnabled() : existing.getEnabled(),
             rule.getParams() != null ? rule.getParams() : existing.getParams(),
+            existing.getSortOrder(),
             existing.getCreatedAt(),
             LocalDateTime.now(),
             existing.getDeleted()
@@ -176,5 +178,44 @@ public class CleanRuleService {
         findById(id);
         log.info("Deleting cleanup rule: id={}", id);
         cleanupRuleMapper.deleteById(id);
+    }
+
+    @Transactional
+    public void reorderRules(String ruleType, java.util.List<Long> ruleIds) {
+        log.info("Reordering {} rules: {}", ruleType, ruleIds);
+
+        var rules = new java.util.ArrayList<CleanupRule>();
+
+        for (int i = 0; i < ruleIds.size(); i++) {
+            Long id = ruleIds.get(i);
+            var rule = findById(id);
+
+            if (!rule.getRuleType().equals(ruleType)) {
+                throw new BusinessException(
+                    "Rule id=" + id + " has type " + rule.getRuleType() +
+                    ", expected " + ruleType
+                );
+            }
+
+            // Create updated rule with new sort order
+            var updatedRule = new CleanupRule(
+                rule.getId(),
+                rule.getName(),
+                rule.getEngine(),
+                rule.getRuleType(),
+                rule.getEnabled(),
+                rule.getParams(),
+                i, // new sort order
+                rule.getCreatedAt(),
+                LocalDateTime.now(),
+                rule.getDeleted()
+            );
+
+            rules.add(updatedRule);
+        }
+
+        // Batch update all sort orders
+        cleanupRuleMapper.batchUpdateSortOrder(rules);
+        log.info("Reordered {} {} rules successfully", ruleIds.size(), ruleType);
     }
 }

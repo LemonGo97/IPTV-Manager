@@ -143,3 +143,12 @@ databaseChangeLog:
             path: db/sql/create-cleanup-rules-table.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: add-sort-order-to-cleanup-rules
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/add-sort-order-to-cleanup-rules.sql
+            relativeToChangelogFile: false
+            stripComments: true

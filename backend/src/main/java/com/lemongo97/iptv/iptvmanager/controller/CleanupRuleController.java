@@ -17,6 +17,11 @@ public class CleanupRuleController {
     private final CleanRuleService cleanRuleService;
 
     /**
+     * 重排序请求 DTO
+     */
+    public record ReorderRequest(String ruleType, List<Long> ruleIds) {}
+
+    /**
      * 获取页面规则新增弹窗参数
      */
     @GetMapping("/engines")
@@ -65,6 +70,15 @@ public class CleanupRuleController {
     @DeleteMapping("/rules/{id}")
     public ApiResponse<Void> deleteRule(@PathVariable Long id) {
         cleanRuleService.deleteById(id);
+        return ApiResponse.ok(null);
+    }
+
+    /**
+     * 重排序规则
+     */
+    @PutMapping("/rules/reorder")
+    public ApiResponse<Void> reorderRules(@RequestBody ReorderRequest request) {
+        cleanRuleService.reorderRules(request.ruleType(), request.ruleIds());
         return ApiResponse.ok(null);
     }
 }

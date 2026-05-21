@@ -20,6 +20,7 @@ public class CleanupRule {
     private String ruleType;
     private Boolean enabled;
     private String params;
+    private Integer sortOrder;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean deleted;

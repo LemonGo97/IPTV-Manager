@@ -10,34 +10,35 @@
         <result property="ruleType" column="rule_type"/>
         <result property="enabled" column="enabled"/>
         <result property="params" column="params"/>
+        <result property="sortOrder" column="sort_order"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="deleted" column="deleted"/>
     </resultMap>
 
     <select id="findAll" resultMap="CleanupRuleResultMap">
-        SELECT id, name, engine, rule_type, enabled, params, created_at, updated_at, deleted
+        SELECT id, name, engine, rule_type, enabled, params, sort_order, created_at, updated_at, deleted
         FROM cleanup_rules
         WHERE deleted = 0
-        ORDER BY id DESC
+        ORDER BY sort_order ASC
     </select>
 
     <select id="findByRuleType" resultMap="CleanupRuleResultMap">
-        SELECT id, name, engine, rule_type, enabled, params, created_at, updated_at, deleted
+        SELECT id, name, engine, rule_type, enabled, params, sort_order, created_at, updated_at, deleted
         FROM cleanup_rules
         WHERE rule_type = #{ruleType} AND deleted = 0
-        ORDER BY id DESC
+        ORDER BY sort_order ASC
     </select>
 
     <select id="findById" resultMap="CleanupRuleResultMap">
-        SELECT id, name, engine, rule_type, enabled, params, created_at, updated_at, deleted
+        SELECT id, name, engine, rule_type, enabled, params, sort_order, created_at, updated_at, deleted
         FROM cleanup_rules
         WHERE id = #{id} AND deleted = 0
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO cleanup_rules (name, engine, rule_type, enabled, params, created_at, updated_at, deleted)
-        VALUES (#{name}, #{engine}, #{ruleType}, #{enabled}, #{params}, #{createdAt}, #{updatedAt}, 0)
+        INSERT INTO cleanup_rules (name, engine, rule_type, enabled, params, sort_order, created_at, updated_at, deleted)
+        VALUES (#{name}, #{engine}, #{ruleType}, #{enabled}, #{params}, #{sortOrder}, #{createdAt}, #{updatedAt}, 0)
     </insert>
 
     <update id="update">
@@ -47,6 +48,7 @@
             rule_type = #{ruleType},
             enabled = #{enabled},
             params = #{params},
+            sort_order = #{sortOrder},
             updated_at = #{updatedAt}
         WHERE id = #{id} AND deleted = 0
     </update>
@@ -55,6 +57,14 @@
         UPDATE cleanup_rules
         SET deleted = 1
         WHERE id = #{id}
+    </update>
+
+    <update id="batchUpdateSortOrder">
+        <foreach collection="rules" item="rule" separator=";">
+            UPDATE cleanup_rules
+            SET sort_order = #{rule.sortOrder}, updated_at = datetime('now')
+            WHERE id = #{rule.id} AND deleted = 0
+        </foreach>
     </update>
 
 </mapper>

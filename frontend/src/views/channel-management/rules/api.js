@@ -18,4 +18,10 @@ export default {
 
   // 删除规则
   delete: (id) => request.delete(`/channel/cleanup/rules/${id}`),
+
+  // 重排序规则
+  reorder: (ruleType, ruleIds) => request.put('/channel/cleanup/rules/reorder', {
+    ruleType,
+    ruleIds,
+  }),
 }

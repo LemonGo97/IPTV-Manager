@@ -24,4 +24,6 @@ public interface CleanupRuleMapper {
     int update(CleanupRule rule);
 
     int deleteById(@Param("id") Long id);
+
+    void batchUpdateSortOrder(@Param("rules") List<CleanupRule> rules);
 }

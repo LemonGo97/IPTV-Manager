@@ -9,54 +9,15 @@
           </template>
           <template #default>
             根据规则过滤无效和测试频道
-                <div class="rule-content">
-                  <div class="rule-header" v-if="hasEngineForType('FILTER')">
-                    <n-button size="small" type="primary" @click="handleAdd('FILTER')">
-                      <i class="i-material-symbols:add mr-4 text-16" />
-                      新增规则
-                    </n-button>
-                  </div>
-                  <n-list v-if="filterRules.length > 0" bordered>
-                    <n-list-item v-for="rule in filterRules" :key="rule.id">
-                      <div class="rule-item">
-                        <div class="rule-main">
-                          <div class="rule-header-row">
-                            <h4 class="rule-name">{{ rule.name }}</h4>
-                            <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
-                              {{ rule.enabled ? '启用' : '停用' }}
-                            </n-tag>
-                          </div>
-                          <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
-                          <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
-                            <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
-                              <span class="param-label">{{ param.label }}:</span>
-                              <span class="param-value">{{ param.value }}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="rule-actions">
-                          <n-button size="small" @click="handleEdit(rule, 'FILTER')">编辑</n-button>
-                          <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
-                        </div>
-                      </div>
-                    </n-list-item>
-                  </n-list>
-                  <n-empty v-else description="暂无频道过滤规则" size="small" />
-                </div>
-          </template>
-        </n-step>
-        <n-step title="名称规范化" description="统一频道名称格式和标识">
-          <template #default>
-            统一频道名称格式和标识
             <div class="rule-content">
-              <div class="rule-header" v-if="hasEngineForType('NAME')">
-                <n-button size="small" type="primary" @click="handleAdd('NAME')">
-                  <i class="i-material-symbols:add mr-4 text-16" />
+              <div class="rule-header" v-if="hasEngineForType('FILTER')">
+                <n-button size="small" type="primary" @click="handleAdd('FILTER')">
+                  <i class="i-material-symbols:add mr-4 text-16"/>
                   新增规则
                 </n-button>
               </div>
-              <n-list v-if="normalizeRules.length > 0" bordered>
-                <n-list-item v-for="rule in normalizeRules" :key="rule.id">
+              <n-list v-if="filterRules.length > 0" bordered>
+                <n-list-item v-for="rule in filterRules" :key="rule.id">
                   <div class="rule-item">
                     <div class="rule-main">
                       <div class="rule-header-row">
@@ -74,13 +35,60 @@
                       </div>
                     </div>
                     <div class="rule-actions">
-                      <n-button size="small" @click="handleEdit(rule, 'NAME')">编辑</n-button>
+                      <n-button size="small" @click="handleEdit(rule, 'FILTER')">编辑</n-button>
                       <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
                     </div>
                   </div>
                 </n-list-item>
               </n-list>
-              <n-empty v-else description="暂无名称规范化规则" size="small" />
+              <n-empty v-else description="暂无频道过滤规则" size="small"/>
+            </div>
+          </template>
+        </n-step>
+        <n-step title="名称规范化" description="统一频道名称格式和标识">
+          <template #default>
+            统一频道名称格式和标识
+            <div class="rule-content">
+              <div class="rule-header" v-if="hasEngineForType('NAME')">
+                <n-button size="small" type="primary" @click="handleAdd('NAME')">
+                  <i class="i-material-symbols:add mr-4 text-16"/>
+                  新增规则
+                </n-button>
+              </div>
+              <n-list v-if="normalizeRules.length > 0" bordered>
+                <draggable
+                  v-model="normalizeRules"
+                  @start="dragStart"
+                  @end="dragEnd"
+                  item-key="id">
+                  <template #item="{ element }">
+                    <n-list-item>
+                      <div class="rule-item">
+                        <div class="rule-main">
+                          <div class="rule-header-row">
+                            <h4 class="rule-name">{{ element.name }}</h4>
+                            <n-tag :type="element.enabled ? 'success' : 'default'" size="small">
+                              {{ element.enabled ? '启用' : '停用' }}
+                            </n-tag>
+                          </div>
+                          <div class="rule-engine">引擎: {{ getEngineLabel(element.engine) }}</div>
+                          <div v-if="getFormattedParams(element).length > 0" class="rule-params">
+                            <div v-for="param in getFormattedParams(element)" :key="param.label" class="rule-param">
+                              <span class="param-label">{{ param.label }}:</span>
+                              <span class="param-value">{{ param.value }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="rule-actions">
+                          <n-button size="small" @click="handleEdit(element, 'NAME')">编辑</n-button>
+                          <n-button size="small" type="error" @click="handleDelete(element)">删除</n-button>
+                        </div>
+                      </div>
+                    </n-list-item>
+                  </template>
+                </draggable>
+              </n-list>
+              <n-empty v-else description="暂无名称规范化规则" size="small"/>
             </div>
           </template>
         </n-step>
@@ -90,7 +98,7 @@
             <div class="rule-content">
               <div class="rule-header" v-if="hasEngineForType('MERGE')">
                 <n-button size="small" type="primary" @click="handleAdd('MERGE')">
-                  <i class="i-material-symbols:add mr-4 text-16" />
+                  <i class="i-material-symbols:add mr-4 text-16"/>
                   新增规则
                 </n-button>
               </div>
@@ -119,7 +127,7 @@
                   </div>
                 </n-list-item>
               </n-list>
-              <n-empty v-else description="暂无频道合并规则" size="small" />
+              <n-empty v-else description="暂无频道合并规则" size="small"/>
             </div>
           </template>
         </n-step>
@@ -129,7 +137,7 @@
             <div class="rule-content">
               <div class="rule-header" v-if="hasEngineForType('DELAY')">
                 <n-button size="small" type="primary" @click="handleAdd('DELAY')">
-                  <i class="i-material-symbols:add mr-4 text-16" />
+                  <i class="i-material-symbols:add mr-4 text-16"/>
                   新增规则
                 </n-button>
               </div>
@@ -158,7 +166,7 @@
                   </div>
                 </n-list-item>
               </n-list>
-              <n-empty v-else description="暂无延迟检测规则" size="small" />
+              <n-empty v-else description="暂无延迟检测规则" size="small"/>
             </div>
           </template>
         </n-step>
@@ -168,7 +176,7 @@
             <div class="rule-content">
               <div class="rule-header" v-if="hasEngineForType('GROUP')">
                 <n-button size="small" type="primary" @click="handleAdd('GROUP')">
-                  <i class="i-material-symbols:add mr-4 text-16" />
+                  <i class="i-material-symbols:add mr-4 text-16"/>
                   新增规则
                 </n-button>
               </div>
@@ -197,7 +205,7 @@
                   </div>
                 </n-list-item>
               </n-list>
-              <n-empty v-else description="暂无频道分组规则" size="small" />
+              <n-empty v-else description="暂无频道分组规则" size="small"/>
             </div>
           </template>
         </n-step>
@@ -209,19 +217,33 @@
     </n-collapse>
 
     <!-- 动态规则编辑弹窗 -->
-    <RuleModal ref="modalRef" :engines="engines" @save="handleSave" />
+    <RuleModal ref="modalRef" :engines="engines" @save="handleSave"/>
   </CommonPage>
 </template>
 
 <script setup>
-import { NButton, NList, NListItem, NTag, NEmpty } from 'naive-ui'
-import { CommonPage } from '@/components'
-import { h, onMounted, ref } from 'vue'
+import {NButton, NList, NListItem, NTag, NEmpty} from 'naive-ui'
+import draggable from "vuedraggable";
+import {CommonPage} from '@/components'
+import {h, onMounted, ref} from 'vue'
 import RuleModal from './RuleModal.vue'
 import api from './api'
 
 const modalRef = ref(null)
 const engines = ref([])
+const dragging = ref(false)
+
+function dragStart(e){
+  console.log("dragStart", e)
+  dragging.value=true
+  console.log("data", JSON.stringify(normalizeRules.value))
+}
+
+function dragEnd(e){
+  console.log("dragEnd", e)
+  dragging.value=false
+  console.log("data", JSON.stringify(normalizeRules.value))
+}
 
 // 检查规则类型是否有可用引擎
 function hasEngineForType(ruleType) {
@@ -284,7 +306,7 @@ function formatRuleParams(rule, engine) {
       // Skip empty string values
       if (displayValue === '' || displayValue === '[]') return
 
-      formatted.push({ label, value: displayValue })
+      formatted.push({label, value: displayValue})
     })
 
     return formatted
