@@ -60,11 +60,18 @@
     </update>
 
     <update id="batchUpdateSortOrder">
-        <foreach collection="rules" item="rule" separator=";">
-            UPDATE cleanup_rules
-            SET sort_order = #{rule.sortOrder}, updated_at = datetime('now')
-            WHERE id = #{rule.id} AND deleted = 0
+        UPDATE cleanup_rules
+        SET sort_order = CASE id
+            <foreach collection="rules" item="rule">
+                WHEN #{rule.id} THEN #{rule.sortOrder}
+            </foreach>
+        END,
+        updated_at = datetime('now')
+        WHERE id IN
+        <foreach collection="rules" item="rule" open="(" separator="," close=")">
+            #{rule.id}
         </foreach>
+        AND deleted = 0
     </update>
 
 </mapper>
