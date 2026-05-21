@@ -180,8 +180,37 @@ function handleOpen(ruleType, rowData = null) {
   const filtered = props.engines.filter(e => e.ruleType === ruleType)
 
   if (isEdit) {
-    // 编辑模式：使用传入的数据
-    modalForm.value = { ...rowData }
+    // 编辑模式：初始化表单
+    modalForm.value = {
+      name: '',
+      engine: filtered.length === 1 ? filtered[0].engine : null,
+      enabled: true,
+    }
+
+    // 初始化引擎参数字段
+    const engine = filtered.find(e => e.engine === rowData.engine)
+    if (engine) {
+      initEngineParams(engine)
+    }
+
+    // 填充现有数据
+    modalForm.value = {
+      ...modalForm.value,
+      id: rowData.id,
+      name: rowData.name,
+      engine: rowData.engine,
+      enabled: rowData.enabled,
+    }
+
+    // 解析并填充参数字段
+    if (rowData.params) {
+      try {
+        const paramsObj = JSON.parse(rowData.params)
+        Object.assign(modalForm.value, paramsObj)
+      } catch (error) {
+        console.error('Failed to parse params:', error)
+      }
+    }
   } else {
     // 新增模式：初始化表单
     modalForm.value = {
