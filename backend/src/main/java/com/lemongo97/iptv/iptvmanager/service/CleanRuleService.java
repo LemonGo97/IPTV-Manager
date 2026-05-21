@@ -1,30 +1,38 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
+import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.engine.CleanUpRuleParam;
 import com.lemongo97.iptv.iptvmanager.entity.CleanupEngine;
+import com.lemongo97.iptv.iptvmanager.entity.CleanupRule;
 import com.lemongo97.iptv.iptvmanager.mapper.CleanupEngineMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.CleanupRuleMapper;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class CleanRuleService {
 
     private final CleanupEngineMapper cleanupEngineMapper;
+    private final CleanupRuleMapper cleanupRuleMapper;
 
     public List<CleanupEngine> getEngineList(){
         return cleanupEngineMapper.findAll();
     }
 
-    public static void main(String[] args) {
-        CleanRuleService cleanRuleService = new CleanRuleService(null);
-        ObjectMapper objectMapper = new ObjectMapper();
-        String json = objectMapper.writeValueAsString(cleanRuleService.caseCover());
-        System.out.println(json);
-    }
+//    public static void main(String[] args) {
+//        CleanRuleService cleanRuleService = new CleanRuleService(null);
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        String json = objectMapper.writeValueAsString(cleanRuleService.caseCover());
+//        System.out.println(json);
+//    }
 
     private List<CleanUpRuleParam> blacklist() {
         return List.of(new CleanUpRuleParam.DynamicInputParam("keyword", "关键字"));
@@ -105,5 +113,68 @@ public class CleanRuleService {
                 input,
                 new CleanUpRuleParam.NumberParam("delayMinutes", "最大延迟时间")
         );
+    }
+
+    // ===== CRUD 方法 =====
+
+    public List<CleanupRule> findAll(String ruleType) {
+        if (ruleType == null || ruleType.isEmpty()) {
+            return cleanupRuleMapper.findAll();
+        }
+        return cleanupRuleMapper.findByRuleType(ruleType);
+    }
+
+    public CleanupRule findById(Long id) {
+        return cleanupRuleMapper.findById(id)
+                .orElseThrow(() -> new BusinessException("Cleanup rule not found: id=" + id));
+    }
+
+    @Transactional
+    public CleanupRule create(CleanupRule rule) {
+        log.info("Creating cleanup rule: {}", rule.getName());
+        var now = LocalDateTime.now();
+        var newRule = new CleanupRule(
+            null,
+            rule.getName(),
+            rule.getEngine(),
+            rule.getRuleType(),
+            rule.getEnabled() != null ? rule.getEnabled() : true,
+            rule.getParams(),
+            now,
+            now,
+            false
+        );
+        cleanupRuleMapper.insert(newRule);
+        log.info("Cleanup rule created: id={}", newRule.getId());
+        return newRule;
+    }
+
+    @Transactional
+    public CleanupRule update(Long id, CleanupRule rule) {
+        var existing = findById(id);
+        log.info("Updating cleanup rule: id={}", id);
+
+        var updated = new CleanupRule(
+            id,
+            rule.getName() != null ? rule.getName() : existing.getName(),
+            rule.getEngine() != null ? rule.getEngine() : existing.getEngine(),
+            rule.getRuleType() != null ? rule.getRuleType() : existing.getRuleType(),
+            rule.getEnabled() != null ? rule.getEnabled() : existing.getEnabled(),
+            rule.getParams() != null ? rule.getParams() : existing.getParams(),
+            existing.getCreatedAt(),
+            LocalDateTime.now(),
+            existing.getDeleted()
+        );
+
+        cleanupRuleMapper.update(updated);
+        log.info("Cleanup rule updated: id={}", id);
+        return updated;
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        findById(id);
+        log.info("Deleting cleanup rule: id={}", id);
+        cleanupRuleMapper.deleteById(id);
     }
 }

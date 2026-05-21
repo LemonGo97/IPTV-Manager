@@ -133,30 +133,12 @@ function hasEngineForType(ruleType) {
   return engines.value.some(e => e.ruleType === ruleType)
 }
 
-// 模拟数据
-const filterRules = ref([
-  { id: 1, name: '过滤测试频道', engine: 'BlackListEngine', enabled: true },
-  { id: 2, name: '过滤广告频道', engine: 'WhiteListEngine', enabled: false },
-])
-
-const normalizeRules = ref([
-  { id: 1, name: 'CCTV统一命名', engine: 'NameNormalizeEngine', enabled: true },
-  { id: 2, name: '去除标清标识', engine: 'RemoveSuffixEngine', enabled: true },
-])
-
-const mergeRules = ref([
-  { id: 1, name: '合并相同频道', engine: 'ChannelMergeEngine', enabled: true },
-])
-
-const delayRules = ref([
-  { id: 1, name: '检测源延迟', engine: 'DelayDetectionEngine', enabled: true },
-  { id: 2, name: '检测源延迟', engine: 'TimeoutDetectionEngine', enabled: false },
-])
-
-const groupRules = ref([
-  { id: 1, name: '央视频道分组', engine: 'ChannelGroupEngine', enabled: true },
-  { id: 2, name: '卫视频道分组', engine: 'ChannelGroupEngine', enabled: true },
-])
+// 规则数据（从后端获取）
+const filterRules = ref([])
+const normalizeRules = ref([])
+const mergeRules = ref([])
+const delayRules = ref([])
+const groupRules = ref([])
 
 // 频道过滤规则列
 const filterColumns = [
@@ -264,26 +246,38 @@ function handleEdit(row, ruleType) {
 }
 
 // 删除规则
-function handleDelete(row) {
+async function handleDelete(row) {
   window.$dialog.warning({
-    content: `确定删除该规则吗？`,
+    content: `确定删除规则"${row.name}"吗？`,
     title: '提示',
     positiveText: '确定',
     negativeText: '取消',
-    onPositiveClick: () => {
-      window.$message.success('删除成功')
-      // TODO: 调用删除API
+    onPositiveClick: async () => {
+      try {
+        await api.delete(row.id)
+        window.$message.success('删除成功')
+        await fetchRules() // 刷新列表
+      } catch (error) {
+        window.$message.error('删除失败')
+      }
     },
   })
 }
 
 // 保存规则
-function handleSave(data) {
-  console.log('保存规则:', data)
-
-  window.$message.success('规则已保存（仅控制台输出，未调用API）')
-
-  // TODO: 调用保存API
+async function handleSave(data) {
+  try {
+    if (data.id) {
+      await api.update(data.id, data)
+      window.$message.success('规则已更新')
+    } else {
+      await api.create(data)
+      window.$message.success('规则已创建')
+    }
+    await fetchRules() // 刷新列表
+  } catch (error) {
+    window.$message.error('保存失败: ' + (error.message || '未知错误'))
+  }
 }
 
 // 获取支持引擎列表
@@ -298,8 +292,27 @@ async function fetchSupportEngineList() {
   }
 }
 
+// 获取规则列表
+async function fetchRules() {
+  try {
+    const res = await api.getAll()
+    const allRules = res.data || []
+
+    // 按 ruleType 分组
+    filterRules.value = allRules.filter(r => r.ruleType === 'FILTER')
+    normalizeRules.value = allRules.filter(r => r.ruleType === 'NAME')
+    mergeRules.value = allRules.filter(r => r.ruleType === 'MERGE')
+    delayRules.value = allRules.filter(r => r.ruleType === 'DELAY')
+    groupRules.value = allRules.filter(r => r.ruleType === 'GROUP')
+  } catch (error) {
+    window.$message.error('获取规则列表失败')
+    console.error(error)
+  }
+}
+
 onMounted(() => {
   fetchSupportEngineList()
+  fetchRules()
 })
 
 defineOptions({

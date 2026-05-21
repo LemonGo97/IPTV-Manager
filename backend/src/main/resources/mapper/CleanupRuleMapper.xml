@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.CleanupRuleMapper">
+
+    <resultMap id="CleanupRuleResultMap" type="com.lemongo97.iptv.iptvmanager.entity.CleanupRule">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="engine" column="engine"/>
+        <result property="ruleType" column="rule_type"/>
+        <result property="enabled" column="enabled"/>
+        <result property="params" column="params"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="CleanupRuleResultMap">
+        SELECT id, name, engine, rule_type, enabled, params, created_at, updated_at, deleted
+        FROM cleanup_rules
+        WHERE deleted = 0
+        ORDER BY id DESC
+    </select>
+
+    <select id="findByRuleType" resultMap="CleanupRuleResultMap">
+        SELECT id, name, engine, rule_type, enabled, params, created_at, updated_at, deleted
+        FROM cleanup_rules
+        WHERE rule_type = #{ruleType} AND deleted = 0
+        ORDER BY id DESC
+    </select>
+
+    <select id="findById" resultMap="CleanupRuleResultMap">
+        SELECT id, name, engine, rule_type, enabled, params, created_at, updated_at, deleted
+        FROM cleanup_rules
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cleanup_rules (name, engine, rule_type, enabled, params, created_at, updated_at, deleted)
+        VALUES (#{name}, #{engine}, #{ruleType}, #{enabled}, #{params}, #{createdAt}, #{updatedAt}, 0)
+    </insert>
+
+    <update id="update">
+        UPDATE cleanup_rules
+        SET name = #{name},
+            engine = #{engine},
+            rule_type = #{ruleType},
+            enabled = #{enabled},
+            params = #{params},
+            updated_at = #{updatedAt}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE cleanup_rules
+        SET deleted = 1
+        WHERE id = #{id}
+    </update>
+
+</mapper>
