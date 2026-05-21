@@ -16,13 +16,32 @@
                       新增规则
                     </n-button>
                   </div>
-                  <n-data-table
-                    :columns="filterColumns"
-                    :data="filterRules"
-                    :pagination="false"
-                    :scroll-x="1200"
-                    size="small"
-                  />
+                  <n-list v-if="filterRules.length > 0" bordered>
+                    <n-list-item v-for="rule in filterRules" :key="rule.id">
+                      <div class="rule-item">
+                        <div class="rule-main">
+                          <div class="rule-header-row">
+                            <h4 class="rule-name">{{ rule.name }}</h4>
+                            <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
+                              {{ rule.enabled ? '启用' : '停用' }}
+                            </n-tag>
+                          </div>
+                          <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
+                          <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
+                            <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
+                              <span class="param-label">{{ param.label }}:</span>
+                              <span class="param-value">{{ param.value }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="rule-actions">
+                          <n-button size="small" @click="handleEdit(rule, 'FILTER')">编辑</n-button>
+                          <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
+                        </div>
+                      </div>
+                    </n-list-item>
+                  </n-list>
+                  <n-empty v-else description="暂无频道过滤规则" size="small" />
                 </div>
           </template>
         </n-step>
@@ -36,13 +55,32 @@
                   新增规则
                 </n-button>
               </div>
-              <n-data-table
-                :columns="normalizeColumns"
-                :data="normalizeRules"
-                :pagination="false"
-                :scroll-x="1200"
-                size="small"
-              />
+              <n-list v-if="normalizeRules.length > 0" bordered>
+                <n-list-item v-for="rule in normalizeRules" :key="rule.id">
+                  <div class="rule-item">
+                    <div class="rule-main">
+                      <div class="rule-header-row">
+                        <h4 class="rule-name">{{ rule.name }}</h4>
+                        <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
+                          {{ rule.enabled ? '启用' : '停用' }}
+                        </n-tag>
+                      </div>
+                      <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
+                      <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
+                        <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
+                          <span class="param-label">{{ param.label }}:</span>
+                          <span class="param-value">{{ param.value }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="rule-actions">
+                      <n-button size="small" @click="handleEdit(rule, 'NAME')">编辑</n-button>
+                      <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
+                    </div>
+                  </div>
+                </n-list-item>
+              </n-list>
+              <n-empty v-else description="暂无名称规范化规则" size="small" />
             </div>
           </template>
         </n-step>
@@ -56,13 +94,32 @@
                   新增规则
                 </n-button>
               </div>
-              <n-data-table
-                :columns="mergeColumns"
-                :data="mergeRules"
-                :pagination="false"
-                :scroll-x="1200"
-                size="small"
-              />
+              <n-list v-if="mergeRules.length > 0" bordered>
+                <n-list-item v-for="rule in mergeRules" :key="rule.id">
+                  <div class="rule-item">
+                    <div class="rule-main">
+                      <div class="rule-header-row">
+                        <h4 class="rule-name">{{ rule.name }}</h4>
+                        <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
+                          {{ rule.enabled ? '启用' : '停用' }}
+                        </n-tag>
+                      </div>
+                      <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
+                      <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
+                        <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
+                          <span class="param-label">{{ param.label }}:</span>
+                          <span class="param-value">{{ param.value }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="rule-actions">
+                      <n-button size="small" @click="handleEdit(rule, 'MERGE')">编辑</n-button>
+                      <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
+                    </div>
+                  </div>
+                </n-list-item>
+              </n-list>
+              <n-empty v-else description="暂无频道合并规则" size="small" />
             </div>
           </template>
         </n-step>
@@ -76,13 +133,32 @@
                   新增规则
                 </n-button>
               </div>
-              <n-data-table
-                :columns="delayColumns"
-                :data="delayRules"
-                :pagination="false"
-                :scroll-x="1200"
-                size="small"
-              />
+              <n-list v-if="delayRules.length > 0" bordered>
+                <n-list-item v-for="rule in delayRules" :key="rule.id">
+                  <div class="rule-item">
+                    <div class="rule-main">
+                      <div class="rule-header-row">
+                        <h4 class="rule-name">{{ rule.name }}</h4>
+                        <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
+                          {{ rule.enabled ? '启用' : '停用' }}
+                        </n-tag>
+                      </div>
+                      <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
+                      <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
+                        <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
+                          <span class="param-label">{{ param.label }}:</span>
+                          <span class="param-value">{{ param.value }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="rule-actions">
+                      <n-button size="small" @click="handleEdit(rule, 'DELAY')">编辑</n-button>
+                      <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
+                    </div>
+                  </div>
+                </n-list-item>
+              </n-list>
+              <n-empty v-else description="暂无延迟检测规则" size="small" />
             </div>
           </template>
         </n-step>
@@ -96,13 +172,32 @@
                   新增规则
                 </n-button>
               </div>
-              <n-data-table
-                :columns="groupColumns"
-                :data="groupRules"
-                :pagination="false"
-                :scroll-x="1200"
-                size="small"
-              />
+              <n-list v-if="groupRules.length > 0" bordered>
+                <n-list-item v-for="rule in groupRules" :key="rule.id">
+                  <div class="rule-item">
+                    <div class="rule-main">
+                      <div class="rule-header-row">
+                        <h4 class="rule-name">{{ rule.name }}</h4>
+                        <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
+                          {{ rule.enabled ? '启用' : '停用' }}
+                        </n-tag>
+                      </div>
+                      <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
+                      <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
+                        <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
+                          <span class="param-label">{{ param.label }}:</span>
+                          <span class="param-value">{{ param.value }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="rule-actions">
+                      <n-button size="small" @click="handleEdit(rule, 'GROUP')">编辑</n-button>
+                      <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
+                    </div>
+                  </div>
+                </n-list-item>
+              </n-list>
+              <n-empty v-else description="暂无频道分组规则" size="small" />
             </div>
           </template>
         </n-step>
@@ -119,8 +214,8 @@
 </template>
 
 <script setup>
-import { NButton } from 'naive-ui'
-import { CommonPage, MeCrud } from '@/components'
+import { NButton, NList, NListItem, NTag, NEmpty } from 'naive-ui'
+import { CommonPage } from '@/components'
 import { h, onMounted, ref } from 'vue'
 import RuleModal from './RuleModal.vue'
 import api from './api'
@@ -133,107 +228,91 @@ function hasEngineForType(ruleType) {
   return engines.value.some(e => e.ruleType === ruleType)
 }
 
+// 格式化规则参数
+function formatRuleParams(rule, engine) {
+  if (!rule.params || !engine.params) return []
+
+  try {
+    const params = JSON.parse(rule.params)
+    const engineParams = JSON.parse(engine.params)
+    const formatted = []
+
+    engineParams.forEach(param => {
+      const value = params[param.field]
+      if (value === undefined || value === null) return
+
+      let displayValue = value
+      let label = param.label
+
+      switch (param.type) {
+        case 'SWITCH':
+          displayValue = value ? '是' : '否'
+          break
+        case 'SELECT':
+          const option = param.options?.find(opt => opt.value === value)
+          displayValue = option?.label || value
+          break
+        case 'DYNAMIC_INPUT':
+          if (Array.isArray(value) && value.length > 0) {
+            const filtered = value.filter(v => v && v.trim())
+            if (filtered.length === 0) return
+            displayValue = filtered.join(', ')
+          } else {
+            return
+          }
+          break
+        case 'DYNAMIC_PAIR_INPUT':
+          if (Array.isArray(value) && value.length > 0) {
+            const pairs = value
+              .filter(pair => pair.key && pair.key.trim())
+              .map(pair => `${pair.key}: ${pair.value || ''}`)
+            if (pairs.length === 0) return
+            displayValue = pairs.join(' | ')
+          } else {
+            return
+          }
+          break
+        case 'NUMBER':
+          displayValue = String(value)
+          break
+        case 'INPUT':
+        default:
+          displayValue = String(value)
+          break
+      }
+
+      // Skip empty string values
+      if (displayValue === '' || displayValue === '[]') return
+
+      formatted.push({ label, value: displayValue })
+    })
+
+    return formatted
+  } catch (error) {
+    console.error('Failed to format params:', error)
+    return []
+  }
+}
+
+// 获取引擎中文名称
+function getEngineLabel(engineCode) {
+  const engine = engines.value.find(e => e.engine === engineCode)
+  return engine?.name || engineCode
+}
+
+// 获取格式化后的参数
+function getFormattedParams(rule) {
+  const engine = engines.value.find(e => e.engine === rule.engine)
+  if (!engine) return []
+  return formatRuleParams(rule, engine)
+}
+
 // 规则数据（从后端获取）
 const filterRules = ref([])
 const normalizeRules = ref([])
 const mergeRules = ref([])
 const delayRules = ref([])
 const groupRules = ref([])
-
-// 频道过滤规则列
-const filterColumns = [
-  { title: 'ID', key: 'id', width: 80 },
-  { title: '规则名称', key: 'name', width: 200 },
-  { title: '处理引擎', key: 'engine', width: 200 },
-  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 150,
-    fixed: 'right',
-    render: row =>
-      h('div', { class: 'flex gap-8' }, [
-        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'FILTER') }, { default: () => '编辑' }),
-        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
-      ]),
-  },
-]
-
-// 频道名称规范化规则列
-const normalizeColumns = [
-  { title: 'ID', key: 'id', width: 80 },
-  { title: '规则名称', key: 'name', width: 200 },
-  { title: '处理引擎', key: 'engine', width: 200 },
-  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 150,
-    fixed: 'right',
-    render: row =>
-      h('div', { class: 'flex gap-8' }, [
-        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'NAME') }, { default: () => '编辑' }),
-        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
-      ]),
-  },
-]
-
-// 相同频道合并规则列
-const mergeColumns = [
-  { title: 'ID', key: 'id', width: 80 },
-  { title: '规则名称', key: 'name', width: 200 },
-  { title: '处理引擎', key: 'engine', width: 200 },
-  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 150,
-    fixed: 'right',
-    render: row =>
-      h('div', { class: 'flex gap-8' }, [
-        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'MERGE') }, { default: () => '编辑' }),
-        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
-      ]),
-  },
-]
-
-// 延迟检测规则列
-const delayColumns = [
-  { title: 'ID', key: 'id', width: 80 },
-  { title: '规则名称', key: 'name', width: 200 },
-  { title: '处理引擎', key: 'engine', width: 200 },
-  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 150,
-    fixed: 'right',
-    render: row =>
-      h('div', { class: 'flex gap-8' }, [
-        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'DELAY') }, { default: () => '编辑' }),
-        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
-      ]),
-  },
-]
-
-// 频道分组规则列
-const groupColumns = [
-  { title: 'ID', key: 'id', width: 80 },
-  { title: '规则名称', key: 'name', width: 200 },
-  { title: '处理引擎', key: 'engine', width: 200 },
-  { title: '启用状态', key: 'enabled', width: 100, render: row => h('span', row.enabled ? '启用' : '停用') },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 150,
-    fixed: 'right',
-    render: row =>
-      h('div', { class: 'flex gap-8' }, [
-        h(NButton, { size: 'small', onClick: () => handleEdit(row, 'GROUP') }, { default: () => '编辑' }),
-        h(NButton, { size: 'small', type: 'error', onClick: () => handleDelete(row) }, { default: () => '删除' }),
-      ]),
-  },
-]
 
 // 新增规则
 function handleAdd(ruleType) {
@@ -329,5 +408,67 @@ defineOptions({
   margin-bottom: 16px;
   display: flex;
   justify-content: flex-end;
+}
+
+/* 列表项样式 */
+.rule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.rule-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.rule-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.rule-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rule-engine {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.rule-params {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rule-param {
+  display: flex;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.param-label {
+  color: #666;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.param-value {
+  color: #333;
+  flex: 1;
+  word-break: break-all;
+}
+
+.rule-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
 }
 </style>
