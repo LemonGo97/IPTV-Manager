@@ -17,29 +17,41 @@
                 </n-button>
               </div>
               <n-list v-if="filterRules.length > 0" bordered>
-                <n-list-item v-for="rule in filterRules" :key="rule.id">
-                  <div class="rule-item">
-                    <div class="rule-main">
-                      <div class="rule-header-row">
-                        <h4 class="rule-name">{{ rule.name }}</h4>
-                        <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
-                          {{ rule.enabled ? '启用' : '停用' }}
-                        </n-tag>
-                      </div>
-                      <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
-                      <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
-                        <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
-                          <span class="param-label">{{ param.label }}:</span>
-                          <span class="param-value">{{ param.value }}</span>
+                <draggable
+                  v-model="filterRules"
+                  @end="(e) => handleDragEnd(e, 'FILTER')"
+                  item-key="id"
+                  handle=".drag-handle"
+                  ghost-class="dragging-ghost">
+                  <template #item="{ element }">
+                    <n-list-item>
+                      <div class="rule-item">
+                        <div class="drag-handle">
+                          <i class="i-fe:menu text-18 cursor-move text-gray-400"/>
+                        </div>
+                        <div class="rule-main">
+                          <div class="rule-header-row">
+                            <h4 class="rule-name">{{ element.name }}</h4>
+                            <n-tag :type="element.enabled ? 'success' : 'default'" size="small">
+                              {{ element.enabled ? '启用' : '停用' }}
+                            </n-tag>
+                          </div>
+                          <div class="rule-engine">引擎: {{ getEngineLabel(element.engine) }}</div>
+                          <div v-if="getFormattedParams(element).length > 0" class="rule-params">
+                            <div v-for="param in getFormattedParams(element)" :key="param.label" class="rule-param">
+                              <span class="param-label">{{ param.label }}:</span>
+                              <span class="param-value">{{ param.value }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="rule-actions">
+                          <n-button size="small" @click="handleEdit(element, 'FILTER')">编辑</n-button>
+                          <n-button size="small" type="error" @click="handleDelete(element)">删除</n-button>
                         </div>
                       </div>
-                    </div>
-                    <div class="rule-actions">
-                      <n-button size="small" @click="handleEdit(rule, 'FILTER')">编辑</n-button>
-                      <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
-                    </div>
-                  </div>
-                </n-list-item>
+                    </n-list-item>
+                  </template>
+                </draggable>
               </n-list>
               <n-empty v-else description="暂无频道过滤规则" size="small"/>
             </div>
@@ -58,12 +70,16 @@
               <n-list v-if="normalizeRules.length > 0" bordered>
                 <draggable
                   v-model="normalizeRules"
-                  @start="dragStart"
-                  @end="dragEnd"
-                  item-key="id">
+                  @end="(e) => handleDragEnd(e, 'NAME')"
+                  item-key="id"
+                  handle=".drag-handle"
+                  ghost-class="dragging-ghost">
                   <template #item="{ element }">
                     <n-list-item>
                       <div class="rule-item">
+                        <div class="drag-handle">
+                          <i class="i-fe:menu text-18 cursor-move text-gray-400"/>
+                        </div>
                         <div class="rule-main">
                           <div class="rule-header-row">
                             <h4 class="rule-name">{{ element.name }}</h4>
@@ -103,29 +119,41 @@
                 </n-button>
               </div>
               <n-list v-if="mergeRules.length > 0" bordered>
-                <n-list-item v-for="rule in mergeRules" :key="rule.id">
-                  <div class="rule-item">
-                    <div class="rule-main">
-                      <div class="rule-header-row">
-                        <h4 class="rule-name">{{ rule.name }}</h4>
-                        <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
-                          {{ rule.enabled ? '启用' : '停用' }}
-                        </n-tag>
-                      </div>
-                      <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
-                      <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
-                        <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
-                          <span class="param-label">{{ param.label }}:</span>
-                          <span class="param-value">{{ param.value }}</span>
+                <draggable
+                  v-model="mergeRules"
+                  @end="(e) => handleDragEnd(e, 'MERGE')"
+                  item-key="id"
+                  handle=".drag-handle"
+                  ghost-class="dragging-ghost">
+                  <template #item="{ element }">
+                    <n-list-item>
+                      <div class="rule-item">
+                        <div class="drag-handle">
+                          <i class="i-fe:menu text-18 cursor-move text-gray-400"/>
+                        </div>
+                        <div class="rule-main">
+                          <div class="rule-header-row">
+                            <h4 class="rule-name">{{ element.name }}</h4>
+                            <n-tag :type="element.enabled ? 'success' : 'default'" size="small">
+                              {{ element.enabled ? '启用' : '停用' }}
+                            </n-tag>
+                          </div>
+                          <div class="rule-engine">引擎: {{ getEngineLabel(element.engine) }}</div>
+                          <div v-if="getFormattedParams(element).length > 0" class="rule-params">
+                            <div v-for="param in getFormattedParams(element)" :key="param.label" class="rule-param">
+                              <span class="param-label">{{ param.label }}:</span>
+                              <span class="param-value">{{ param.value }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="rule-actions">
+                          <n-button size="small" @click="handleEdit(element, 'MERGE')">编辑</n-button>
+                          <n-button size="small" type="error" @click="handleDelete(element)">删除</n-button>
                         </div>
                       </div>
-                    </div>
-                    <div class="rule-actions">
-                      <n-button size="small" @click="handleEdit(rule, 'MERGE')">编辑</n-button>
-                      <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
-                    </div>
-                  </div>
-                </n-list-item>
+                    </n-list-item>
+                  </template>
+                </draggable>
               </n-list>
               <n-empty v-else description="暂无频道合并规则" size="small"/>
             </div>
@@ -142,29 +170,41 @@
                 </n-button>
               </div>
               <n-list v-if="delayRules.length > 0" bordered>
-                <n-list-item v-for="rule in delayRules" :key="rule.id">
-                  <div class="rule-item">
-                    <div class="rule-main">
-                      <div class="rule-header-row">
-                        <h4 class="rule-name">{{ rule.name }}</h4>
-                        <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
-                          {{ rule.enabled ? '启用' : '停用' }}
-                        </n-tag>
-                      </div>
-                      <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
-                      <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
-                        <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
-                          <span class="param-label">{{ param.label }}:</span>
-                          <span class="param-value">{{ param.value }}</span>
+                <draggable
+                  v-model="delayRules"
+                  @end="(e) => handleDragEnd(e, 'DELAY')"
+                  item-key="id"
+                  handle=".drag-handle"
+                  ghost-class="dragging-ghost">
+                  <template #item="{ element }">
+                    <n-list-item>
+                      <div class="rule-item">
+                        <div class="drag-handle">
+                          <i class="i-fe:menu text-18 cursor-move text-gray-400"/>
+                        </div>
+                        <div class="rule-main">
+                          <div class="rule-header-row">
+                            <h4 class="rule-name">{{ element.name }}</h4>
+                            <n-tag :type="element.enabled ? 'success' : 'default'" size="small">
+                              {{ element.enabled ? '启用' : '停用' }}
+                            </n-tag>
+                          </div>
+                          <div class="rule-engine">引擎: {{ getEngineLabel(element.engine) }}</div>
+                          <div v-if="getFormattedParams(element).length > 0" class="rule-params">
+                            <div v-for="param in getFormattedParams(element)" :key="param.label" class="rule-param">
+                              <span class="param-label">{{ param.label }}:</span>
+                              <span class="param-value">{{ param.value }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="rule-actions">
+                          <n-button size="small" @click="handleEdit(element, 'DELAY')">编辑</n-button>
+                          <n-button size="small" type="error" @click="handleDelete(element)">删除</n-button>
                         </div>
                       </div>
-                    </div>
-                    <div class="rule-actions">
-                      <n-button size="small" @click="handleEdit(rule, 'DELAY')">编辑</n-button>
-                      <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
-                    </div>
-                  </div>
-                </n-list-item>
+                    </n-list-item>
+                  </template>
+                </draggable>
               </n-list>
               <n-empty v-else description="暂无延迟检测规则" size="small"/>
             </div>
@@ -181,29 +221,41 @@
                 </n-button>
               </div>
               <n-list v-if="groupRules.length > 0" bordered>
-                <n-list-item v-for="rule in groupRules" :key="rule.id">
-                  <div class="rule-item">
-                    <div class="rule-main">
-                      <div class="rule-header-row">
-                        <h4 class="rule-name">{{ rule.name }}</h4>
-                        <n-tag :type="rule.enabled ? 'success' : 'default'" size="small">
-                          {{ rule.enabled ? '启用' : '停用' }}
-                        </n-tag>
-                      </div>
-                      <div class="rule-engine">引擎: {{ getEngineLabel(rule.engine) }}</div>
-                      <div v-if="getFormattedParams(rule).length > 0" class="rule-params">
-                        <div v-for="param in getFormattedParams(rule)" :key="param.label" class="rule-param">
-                          <span class="param-label">{{ param.label }}:</span>
-                          <span class="param-value">{{ param.value }}</span>
+                <draggable
+                  v-model="groupRules"
+                  @end="(e) => handleDragEnd(e, 'GROUP')"
+                  item-key="id"
+                  handle=".drag-handle"
+                  ghost-class="dragging-ghost">
+                  <template #item="{ element }">
+                    <n-list-item>
+                      <div class="rule-item">
+                        <div class="drag-handle">
+                          <i class="i-fe:menu text-18 cursor-move text-gray-400"/>
+                        </div>
+                        <div class="rule-main">
+                          <div class="rule-header-row">
+                            <h4 class="rule-name">{{ element.name }}</h4>
+                            <n-tag :type="element.enabled ? 'success' : 'default'" size="small">
+                              {{ element.enabled ? '启用' : '停用' }}
+                            </n-tag>
+                          </div>
+                          <div class="rule-engine">引擎: {{ getEngineLabel(element.engine) }}</div>
+                          <div v-if="getFormattedParams(element).length > 0" class="rule-params">
+                            <div v-for="param in getFormattedParams(element)" :key="param.label" class="rule-param">
+                              <span class="param-label">{{ param.label }}:</span>
+                              <span class="param-value">{{ param.value }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="rule-actions">
+                          <n-button size="small" @click="handleEdit(element, 'GROUP')">编辑</n-button>
+                          <n-button size="small" type="error" @click="handleDelete(element)">删除</n-button>
                         </div>
                       </div>
-                    </div>
-                    <div class="rule-actions">
-                      <n-button size="small" @click="handleEdit(rule, 'GROUP')">编辑</n-button>
-                      <n-button size="small" type="error" @click="handleDelete(rule)">删除</n-button>
-                    </div>
-                  </div>
-                </n-list-item>
+                    </n-list-item>
+                  </template>
+                </draggable>
               </n-list>
               <n-empty v-else description="暂无频道分组规则" size="small"/>
             </div>
@@ -222,27 +274,52 @@
 </template>
 
 <script setup>
-import {NButton, NList, NListItem, NTag, NEmpty} from 'naive-ui'
-import draggable from "vuedraggable";
-import {CommonPage} from '@/components'
-import {h, onMounted, ref} from 'vue'
+import { NButton, NList, NListItem, NTag, NEmpty } from 'naive-ui'
+import draggable from 'vuedraggable'
+import { CommonPage } from '@/components'
+import { onMounted, ref } from 'vue'
 import RuleModal from './RuleModal.vue'
 import api from './api'
 
 const modalRef = ref(null)
 const engines = ref([])
-const dragging = ref(false)
 
-function dragStart(e){
-  console.log("dragStart", e)
-  dragging.value=true
-  console.log("data", JSON.stringify(normalizeRules.value))
-}
+// 处理拖拽结束事件
+async function handleDragEnd(event, ruleType) {
+  // 只在位置真正改变时才调用API
+  if (event.oldIndex === event.newIndex) return
 
-function dragEnd(e){
-  console.log("dragEnd", e)
-  dragging.value=false
-  console.log("data", JSON.stringify(normalizeRules.value))
+  // 根据规则类型获取对应的规则数组
+  let rules = []
+  switch (ruleType) {
+    case 'FILTER':
+      rules = filterRules.value
+      break
+    case 'NAME':
+      rules = normalizeRules.value
+      break
+    case 'MERGE':
+      rules = mergeRules.value
+      break
+    case 'DELAY':
+      rules = delayRules.value
+      break
+    case 'GROUP':
+      rules = groupRules.value
+      break
+  }
+
+  // 提取所有规则的ID，按新顺序排列
+  const ruleIds = rules.map(r => r.id)
+
+  try {
+    await api.reorder(ruleType, ruleIds)
+    window.$message.success('排序已更新')
+  } catch (error) {
+    window.$message.error('排序更新失败: ' + (error.message || '未知错误'))
+    // 失败时重新获取列表以恢复原顺序
+    await fetchRules()
+  }
 }
 
 // 检查规则类型是否有可用引擎
@@ -440,6 +517,18 @@ defineOptions({
   gap: 16px;
 }
 
+.drag-handle {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px 4px 0;
+  cursor: move;
+  flex-shrink: 0;
+}
+
+.drag-handle:hover i {
+  color: #316C72;
+}
+
 .rule-main {
   flex: 1;
   min-width: 0;
@@ -492,5 +581,15 @@ defineOptions({
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+}
+
+/* 拖拽时的幽灵样式 */
+.dragging-ghost {
+  opacity: 0.5;
+  background: #f0f0f0;
+}
+
+.dragging-ghost .rule-item {
+  border: 2px dashed #316C72;
 }
 </style>
