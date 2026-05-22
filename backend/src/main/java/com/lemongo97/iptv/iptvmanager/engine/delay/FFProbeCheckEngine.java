@@ -204,6 +204,7 @@ public class FFProbeCheckEngine implements CleaningEngine {
         }
     }
 
+    @Slf4j
     public static class TimeoutCallback extends AVIOInterruptCB.Callback_Pointer {
         private final long timeoutTime;
 
@@ -216,7 +217,7 @@ public class FFProbeCheckEngine implements CleaningEngine {
         @Override
         public int call(Pointer arg0) {
             if (System.currentTimeMillis() > timeoutTime) {
-                System.out.println("【警告】底层网络或解码超时，强制中断！");
+                log.debug("ffmpeg 底层网络或解码超时，强制中断！");
                 return 1; // 返回 1 表示立即中断所有阻塞的 FFmpeg 操作
             }
             return 0; // 返回 0 表示正常，继续等待

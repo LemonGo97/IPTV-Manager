@@ -14,6 +14,7 @@ import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -187,19 +188,33 @@ public class CleanupRuleService {
      */
     private List<Channel> convertOriginalChannelsToChannels() {
         return originalChannelMapper.findAll().stream()
-                .map(o -> new Channel()
-                        .setName(o.getName())
-                        .setLogo(o.getTvGuideLogo())
-                        .setUrl(o.getUrl())
-                        .setProviderId(o.getProviderId())
-                        .setGroupId(0L)
-                        .setEpgSourceId(o.getTvGuideId())
-                        .setStatus(Channel.Status.valid)
-                        .setCountry(o.getTvGuideCountry())
-                        .setLanguage(o.getTvGuideLanguage())
-                        .setScore(100L)
-                        .setCreatedAt(o.getCreatedAt())
-                        .setUpdatedAt(o.getUpdatedAt()))
+                .map(o -> {
+
+                    String name;
+
+                    if (StringUtils.isNotBlank(o.getTvGuideId())){
+                        name = o.getTvGuideId();
+                    } else if (StringUtils.isNotBlank(o.getTvGuideName())){
+                        name = o.getTvGuideName();
+                    } else {
+                        name = o.getName();
+                    }
+
+                    Channel channel = new Channel()
+                            .setName(name)
+                            .setLogo(o.getTvGuideLogo())
+                            .setUrl(o.getUrl())
+                            .setProviderId(o.getProviderId())
+                            .setGroupId(0L)
+                            .setEpgSourceId(o.getTvGuideId())
+                            .setStatus(Channel.Status.valid)
+                            .setCountry(o.getTvGuideCountry())
+                            .setLanguage(o.getTvGuideLanguage())
+                            .setScore(100L)
+                            .setCreatedAt(o.getCreatedAt())
+                            .setUpdatedAt(o.getUpdatedAt());
+                    return channel;
+                })
                 .toList();
     }
 
