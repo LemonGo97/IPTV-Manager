@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
+import com.lemongo97.iptv.iptvmanager.engine.CleanEngineManager;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.entity.ChannelGroup;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
@@ -36,6 +37,7 @@ public class ChannelService {
     private final ChannelMapper channelMapper;
     private final OriginalChannelMapper originalChannelMapper;
     private final ChannelGroupMapper channelGroupMapper;
+    private final CleanEngineManager cleanEngineManager;
 
     /**
      * 获取所有频道

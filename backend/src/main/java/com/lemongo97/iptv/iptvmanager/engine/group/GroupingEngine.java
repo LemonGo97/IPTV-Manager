@@ -1,6 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.engine.group;
 
 import com.lemongo97.iptv.iptvmanager.engine.CleaningEngine;
+import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import lombok.Data;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public class GroupingEngine implements CleaningEngine {
     private Long groupId;
 
     @Override
-    public List<Object> process(List<Object> channels, String paramsJson) {
+    public List<Channel> process(List<Channel> channels, String paramsJson) {
         return List.of();
     }
 }

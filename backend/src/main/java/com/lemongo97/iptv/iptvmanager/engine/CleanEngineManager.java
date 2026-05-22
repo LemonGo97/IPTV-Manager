@@ -1,5 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.engine;
 
+import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -33,14 +34,14 @@ public class CleanEngineManager {
 
     private final CleaningEngineFactory factory;
 
-    public List<Object> process(List<Object> channels, List<EngineConfig> configList){
+    public List<Channel> process(List<Channel> channels, List<EngineConfig> configList){
         List<EngineConfig> filterConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.FILTER).toList();
         List<EngineConfig> nameConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.NAME).toList();
         List<EngineConfig> mergeConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.MERGE).toList();
         List<EngineConfig> delayConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.DELAY).toList();
         List<EngineConfig> groupConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.GROUP).toList();
 
-        List<Object> processingChannels;
+        List<Channel> processingChannels;
 
         // 移除政治、色情或无法解析的非法频道
         processingChannels = this.doProcess(channels, filterConfig);
@@ -56,8 +57,8 @@ public class CleanEngineManager {
         return processingChannels;
     }
 
-    private List<Object> doProcess(List<Object> channels, List<EngineConfig> filterConfig) {
-        List<Object> processingChannels = null;
+    private List<Channel> doProcess(List<Channel> channels, List<EngineConfig> filterConfig) {
+        List<Channel> processingChannels = null;
         for (EngineConfig config : filterConfig) {
             CleaningEngine engine = factory.getEngine(config.getEngine());
             if (engine == null) continue;

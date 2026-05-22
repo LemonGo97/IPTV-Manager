@@ -1,6 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.engine.delay;
 
 import com.lemongo97.iptv.iptvmanager.engine.CleaningEngine;
+import com.lemongo97.iptv.iptvmanager.entity.Channel;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class FFProbeCheckEngine implements CleaningEngine {
     private Integer minVideoFrameHeight;
 
     @Override
-    public List<Object> process(List<Object> channels, String paramsJson) {
+    public List<Channel> process(List<Channel> channels, String paramsJson) {
         return List.of();
     }
 }
