@@ -179,3 +179,12 @@ databaseChangeLog:
             path: db/sql/create-cleanup-engine-table-new4.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: create-channel-cleaning-temp-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-channel-cleaning-temp-table.sql
+            relativeToChangelogFile: false
+            stripComments: true
