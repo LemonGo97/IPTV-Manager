@@ -30,6 +30,12 @@ dependencies {
     implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:4.0.0'
     // Source: https://mvnrepository.com/artifact/com.github.houbb/opencc4j
     implementation("com.github.houbb:opencc4j:1.14.0")
+    // Source: https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.6.1")
+    // Source: https://mvnrepository.com/artifact/org.bytedeco/ffmpeg
+    implementation 'org.bytedeco:ffmpeg:8.0.1-1.5.13'
+    // Source: https://mvnrepository.com/artifact/org.bytedeco/ffmpeg-platform
+    implementation 'org.bytedeco:ffmpeg-platform:8.0.1-1.5.13'
     // Quartz for scheduled tasks
     implementation(libs.spring.boot.starter.quartz)
 

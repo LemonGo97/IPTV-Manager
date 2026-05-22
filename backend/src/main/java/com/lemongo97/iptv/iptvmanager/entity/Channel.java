@@ -1,6 +1,5 @@
 package com.lemongo97.iptv.iptvmanager.entity;
 
-import com.lemongo97.iptv.iptvmanager.m3u8.OriginalChannel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -54,10 +53,17 @@ public class Channel {
      * 语言
      */
     private String language;
+
+
+    private Long httpDetectDelayMilliseconds;
+    private Long ffmpegDetectDelayMilliseconds;
+    private String videoInfo;
+    private String audioInfo;
+
     /**
      * 评分。满分100，分数越高质量越好
      */
-    private Integer score;
+    private Long score;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

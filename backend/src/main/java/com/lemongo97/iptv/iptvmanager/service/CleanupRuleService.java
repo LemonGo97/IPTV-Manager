@@ -57,7 +57,7 @@ public class CleanupRuleService {
      */
     public List<CleanUpRuleParam> ffprobeFilterParams() {
         return List.of(
-                new CleanUpRuleParam.NumberParam("delayMinutes", "最高延迟时间"),
+                new CleanUpRuleParam.NumberParam("delayMillisecond", "最高延迟时间"),
                 new CleanUpRuleParam.SwitchParam("discardNoVideo", "丢弃无视频"),
                 new CleanUpRuleParam.SwitchParam("discardNoAudio", "丢弃无音频"),
                 new CleanUpRuleParam.NumberParam("minVideoFrameWidth", "最小视频帧宽度"),
@@ -137,7 +137,7 @@ public class CleanupRuleService {
         input.setOptions(options);
         return List.of(
                 input,
-                new CleanUpRuleParam.NumberParam("delayMinutes", "最大延迟时间")
+                new CleanUpRuleParam.NumberParam("delayMillisecond", "最大延迟时间")
         );
     }
 
@@ -197,7 +197,7 @@ public class CleanupRuleService {
                         .setStatus(Channel.Status.valid)
                         .setCountry(o.getTvGuideCountry())
                         .setLanguage(o.getTvGuideLanguage())
-                        .setScore(100)
+                        .setScore(100L)
                         .setCreatedAt(o.getCreatedAt())
                         .setUpdatedAt(o.getUpdatedAt()))
                 .toList();

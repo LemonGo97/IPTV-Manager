@@ -152,3 +152,30 @@ databaseChangeLog:
             path: db/sql/add-sort-order-to-cleanup-rules.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: create-cleanup-engine-table-new3
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-cleanup-engine-table-new3.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: rebuild-channel-table-new1
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/rebuild-channel-table-new1.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: create-cleanup-engine-table-new4
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-cleanup-engine-table-new4.sql
+            relativeToChangelogFile: false
+            stripComments: true

@@ -65,7 +65,7 @@ public class CleanEngineManager {
 
             processingChannels = engine.process(channels, config.getConfigParams());
         }
-        return processingChannels;
+        return processingChannels == null ? channels : processingChannels;
     }
 
 }

@@ -11,6 +11,6 @@ import java.util.List;
 public class FFMpegCheckEngine implements CleaningEngine {
     @Override
     public List<Channel> process(List<Channel> channels, String paramsJson) {
-        return List.of();
+        return channels;
     }
 }

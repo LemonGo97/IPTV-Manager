@@ -375,6 +375,11 @@ const columns = computed(() => [
     filterOptions: channelGroupOptions.value,
   },
   {
+    title: '延迟（ms）',
+    key: 'score',
+    width: 120,
+  },
+  {
     title: '播放地址',
     key: 'url',
     width: 300,

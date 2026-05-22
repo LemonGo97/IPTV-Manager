@@ -17,6 +17,6 @@ public class GroupingEngine implements CleaningEngine {
 
     @Override
     public List<Channel> process(List<Channel> channels, String paramsJson) {
-        return List.of();
+        return channels;
     }
 }
