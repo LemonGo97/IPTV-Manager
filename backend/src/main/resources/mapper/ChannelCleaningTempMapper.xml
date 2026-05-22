@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.ChannelCleaningTempMapper">
+
+    <resultMap id="ChannelTempResultMap" type="com.lemongo97.iptv.iptvmanager.entity.Channel">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="logo" column="logo"/>
+        <result property="url" column="url"/>
+        <result property="providerId" column="provider_id"/>
+        <result property="groupId" column="group_id"/>
+        <result property="epgSourceId" column="epg_source_id"/>
+        <result property="status" column="status"/>
+        <result property="country" column="country"/>
+        <result property="language" column="language"/>
+        <result property="httpDetectDelayMilliseconds" column="http_detect_delay_milliseconds"/>
+        <result property="ffmpegDetectDelayMilliseconds" column="ffmpeg_detect_delay_milliseconds"/>
+        <result property="videoInfo" column="video_info"/>
+        <result property="audioInfo" column="audio_info"/>
+        <result property="score" column="score"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 物理清空中间表 -->
+    <update id="truncate">
+        DELETE FROM channel_cleaning_temp
+    </update>
+
+    <!-- 插入单个频道 -->
+    <insert id="insert">
+        INSERT INTO channel_cleaning_temp (
+            name, logo, url, provider_id, group_id, epg_source_id,
+            status, country, language,
+            http_detect_delay_milliseconds, ffmpeg_detect_delay_milliseconds,
+            video_info, audio_info, score, created_at, updated_at
+        ) VALUES (
+            #{channel.name}, #{channel.logo}, #{channel.url}, #{channel.providerId},
+            #{channel.groupId}, #{channel.epgSourceId}, #{channel.status},
+            #{channel.country}, #{channel.language}, #{channel.httpDetectDelayMilliseconds},
+            #{channel.ffmpegDetectDelayMilliseconds}, #{channel.videoInfo},
+            #{channel.audioInfo}, #{channel.score}, #{channel.createdAt}, #{channel.updatedAt}
+        )
+    </insert>
+
+    <!-- 查询所有频道 -->
+    <select id="findAll" resultMap="ChannelTempResultMap">
+        SELECT id, name, logo, url, provider_id, group_id, epg_source_id,
+               status, country, language,
+               http_detect_delay_milliseconds, ffmpeg_detect_delay_milliseconds,
+               video_info, audio_info, score, created_at, updated_at
+        FROM channel_cleaning_temp
+        ORDER BY id ASC
+    </select>
+
+    <!-- 统计频道数量 -->
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM channel_cleaning_temp
+    </select>
+
+</mapper>

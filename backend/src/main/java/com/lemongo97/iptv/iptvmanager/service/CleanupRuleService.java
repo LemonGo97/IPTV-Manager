@@ -10,6 +10,7 @@ import com.lemongo97.iptv.iptvmanager.entity.CleanupRule;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.mapper.CleanupEngineMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.CleanupRuleMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.ChannelCleaningTempMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class CleanupRuleService {
     private final ChannelMapper channelMapper;
     private final OriginalChannelMapper originalChannelMapper;
     private final CleanEngineManager cleanEngineManager;
+    private final ChannelCleaningTempMapper channelCleaningTempMapper;
 
     // ===== 引擎相关方法 =====
 
@@ -158,29 +160,54 @@ public class CleanupRuleService {
     /**
      * 执行数据清洗
      * 从原始频道元数据转换为频道，并应用清洗规则
+     * 新流程：使用中间表，逐个频道处理，避免清洗中断导致数据丢失
      */
     @Transactional
     public int executeDataCleanup() {
         log.info("Starting data cleanup process");
 
-        // 1. 获取所有启用的清洗规则
+        // 1. 清空中间表（物理删除）
+        channelCleaningTempMapper.truncate();
+        log.info("Cleaned temp table: channel_cleaning_temp");
+
+        // 2. 获取所有启用的清洗规则
         List<EngineConfig> configs = getEnabledEngineConfigs();
         log.debug("Found {} enabled cleanup rules", configs.size());
 
-        // 2. 获取原始频道元数据并转换为 Channel
+        // 3. 获取原始频道元数据并转换为 Channel
         List<Channel> channels = convertOriginalChannelsToChannels();
         log.info("Converted {} original channels to Channel format", channels.size());
 
-        // 3. 应用清洗引擎
-        List<Channel> cleanedChannels = cleanEngineManager.process(channels, configs);
-        log.info("Cleaned channels: {} -> {}", channels.size(), cleanedChannels.size());
+        // 4. 逐个处理频道并立即插入中间表
+        int processedCount = 0;
+        for (int i = 0; i < channels.size(); i++) {
+            Channel channel = channels.get(i);
 
-        // 4. 清空现有频道表并插入清洗后的数据
+            // 单频道处理（包装为单元素 List）
+            List<Channel> input = List.of(channel);
+            List<Channel> cleaned = cleanEngineManager.process(input, configs);
+
+            // 如果未被过滤，插入中间表
+            if (!cleaned.isEmpty()) {
+                channelCleaningTempMapper.insert(cleaned.getFirst());
+                processedCount++;
+            }
+
+            // 每处理 100 个频道记录一次日志
+            if ((i + 1) % 100 == 0) {
+                log.info("Processed {}/{} channels, {} valid so far", i + 1, channels.size(), processedCount);
+            }
+        }
+
+        log.info("Channel processing completed: {}/{} valid channels", processedCount, channels.size());
+
+        // 5. 从中间表转移到正式表
+        List<Channel> tempChannels = channelCleaningTempMapper.findAll();
         channelMapper.truncate();
-        channelMapper.insert(cleanedChannels);
-        log.info("Data cleanup completed successfully, {} channels saved", cleanedChannels.size());
+        channelMapper.insert(tempChannels);
 
-        return cleanedChannels.size();
+        log.info("Data cleanup completed successfully, {} channels saved to main table", tempChannels.size());
+        return tempChannels.size();
     }
 
     /**
