@@ -14,6 +14,7 @@ import com.lemongo97.iptv.iptvmanager.mapper.ChannelGroupMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.M3U8ProviderMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
+import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ public class ChannelService {
     private final OriginalChannelMapper originalChannelMapper;
     private final ChannelGroupMapper channelGroupMapper;
     private final CleanEngineManager cleanEngineManager;
+    private final ScheduledTaskService scheduledTaskService;
 
     /**
      * 获取所有频道
@@ -385,26 +387,12 @@ public class ChannelService {
         return result;
     }
 
-    @Transactional
+    /**
+     * 触发数据清洗任务
+     * 通过 Quartz Job 异步执行数据清洗
+     */
     public void dataClean() {
-        List<OriginalChannelMetadata> originalChannelList = originalChannelMapper.findAll();
-        List<Channel> channels = originalChannelList.stream()
-                .map(o -> new Channel()
-                        .setName(o.getName())
-                        .setLogo(o.getTvGuideLogo())
-                        .setUrl(o.getUrl())
-                        .setProviderId(o.getProviderId())
-                        .setGroupId(0L)
-                        .setEpgSourceId(o.getTvGuideId())
-                        .setStatus(Channel.Status.valid)
-                        .setCountry(o.getTvGuideCountry())
-                        .setLanguage(o.getTvGuideLanguage())
-                        .setScore(100)
-                        .setCreatedAt(o.getCreatedAt())
-                        .setUpdatedAt(o.getUpdatedAt()))
-                .toList();
-        channelMapper.truncate();
-        channelMapper.insert(channels);
+        scheduledTaskService.triggerManualDataCleanupJob();
     }
 
     public PageResult<Channel> findByQuery(ChannelQuery query) {

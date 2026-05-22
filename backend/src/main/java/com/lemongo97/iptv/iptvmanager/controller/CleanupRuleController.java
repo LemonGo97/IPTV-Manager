@@ -3,18 +3,18 @@ package com.lemongo97.iptv.iptvmanager.controller;
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
 import com.lemongo97.iptv.iptvmanager.entity.CleanupEngine;
 import com.lemongo97.iptv.iptvmanager.entity.CleanupRule;
-import com.lemongo97.iptv.iptvmanager.service.CleanRuleService;
-import lombok.AllArgsConstructor;
+import com.lemongo97.iptv.iptvmanager.service.CleanupRuleService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/channel/cleanup")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CleanupRuleController {
 
-    private final CleanRuleService cleanRuleService;
+    private final CleanupRuleService cleanupRuleService;
 
     /**
      * 重排序请求 DTO
@@ -26,7 +26,7 @@ public class CleanupRuleController {
      */
     @GetMapping("/engines")
     public ApiResponse<List<CleanupEngine>> listEngine(){
-        return ApiResponse.ok(cleanRuleService.getEngineList());
+        return ApiResponse.ok(cleanupRuleService.getEngineList());
     }
 
     /**
@@ -35,7 +35,7 @@ public class CleanupRuleController {
     @GetMapping("/rules")
     public ApiResponse<List<CleanupRule>> listRules(
             @RequestParam(required = false) String ruleType) {
-        return ApiResponse.ok(cleanRuleService.findAll(ruleType));
+        return ApiResponse.ok(cleanupRuleService.findAll(ruleType));
     }
 
     /**
@@ -43,7 +43,7 @@ public class CleanupRuleController {
      */
     @GetMapping("/rules/{id}")
     public ApiResponse<CleanupRule> getRule(@PathVariable Long id) {
-        return ApiResponse.ok(cleanRuleService.findById(id));
+        return ApiResponse.ok(cleanupRuleService.findById(id));
     }
 
     /**
@@ -51,7 +51,7 @@ public class CleanupRuleController {
      */
     @PostMapping("/rules")
     public ApiResponse<CleanupRule> createRule(@RequestBody CleanupRule rule) {
-        return ApiResponse.ok(cleanRuleService.create(rule));
+        return ApiResponse.ok(cleanupRuleService.create(rule));
     }
 
     /**
@@ -61,7 +61,7 @@ public class CleanupRuleController {
     public ApiResponse<CleanupRule> updateRule(
             @PathVariable Long id,
             @RequestBody CleanupRule rule) {
-        return ApiResponse.ok(cleanRuleService.update(id, rule));
+        return ApiResponse.ok(cleanupRuleService.update(id, rule));
     }
 
     /**
@@ -69,7 +69,7 @@ public class CleanupRuleController {
      */
     @DeleteMapping("/rules/{id}")
     public ApiResponse<Void> deleteRule(@PathVariable Long id) {
-        cleanRuleService.deleteById(id);
+        cleanupRuleService.deleteById(id);
         return ApiResponse.ok(null);
     }
 
@@ -78,7 +78,7 @@ public class CleanupRuleController {
      */
     @PutMapping("/rules/reorder")
     public ApiResponse<Void> reorderRules(@RequestBody ReorderRequest request) {
-        cleanRuleService.reorderRules(request.ruleType(), request.ruleIds());
+        cleanupRuleService.reorderRules(request.ruleType(), request.ruleIds());
         return ApiResponse.ok(null);
     }
 }

@@ -24,6 +24,10 @@ public class ScheduledTaskService {
     private static final String TRIGGER_GROUP = "M3U8_REFRESH_TRIGGER";
     private static final String MANUAL_JOB_GROUP = "M3U8_REFRESH_JOB_MANUAL";
     private static final String MANUAL_TRIGGER_GROUP = "M3U8_REFRESH_TRIGGER_MANUAL";
+    private static final String CLEANUP_JOB_GROUP = "DATA_CLEANUP_JOB";
+    private static final String CLEANUP_TRIGGER_GROUP = "DATA_CLEANUP_TRIGGER";
+    private static final String CLEANUP_MANUAL_JOB_GROUP = "DATA_CLEANUP_JOB_MANUAL";
+    private static final String CLEANUP_MANUAL_TRIGGER_GROUP = "DATA_CLEANUP_TRIGGER_MANUAL";
 
     /**
      * 创建或更新定时任务
@@ -117,5 +121,36 @@ public class ScheduledTaskService {
 
     private TriggerKey getTriggerKey(Long providerId) {
         return TriggerKey.triggerKey("m3u8-refresh-" + providerId, TRIGGER_GROUP);
+    }
+
+    /**
+     * 手动触发一次性数据清洗任务
+     *
+     * @return Quartz Job Key
+     */
+    public JobKey triggerManualDataCleanupJob() {
+        try {
+            String jobName = "data-cleanup-manual-" + System.currentTimeMillis();
+            JobKey jobKey = JobKey.jobKey(jobName, CLEANUP_MANUAL_JOB_GROUP);
+
+            JobDetail jobDetail = JobBuilder.newJob(DataCleanupJob.class)
+                    .withIdentity(jobKey)
+                    .usingJobData("triggerType", "manual")
+                    .storeDurably(false)
+                    .build();
+
+            // 立即触发的触发器
+            Trigger trigger = newTrigger()
+                    .withIdentity(TriggerKey.triggerKey(jobName, CLEANUP_MANUAL_TRIGGER_GROUP))
+                    .startNow()
+                    .build();
+
+            scheduler.scheduleJob(jobDetail, trigger);
+            log.info("Triggered manual data cleanup job");
+            return jobKey;
+        } catch (SchedulerException e) {
+            log.error("Failed to trigger manual data cleanup job", e);
+            throw new RuntimeException("Failed to trigger manual data cleanup job", e);
+        }
     }
 }
