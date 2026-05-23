@@ -108,57 +108,6 @@
             </div>
           </template>
         </n-step>
-        <n-step title="相同频道合并" description="合并相同频道为多条线路">
-          <template #default>
-            合并相同频道为多条线路
-            <div class="rule-content">
-              <div class="rule-header" v-if="hasEngineForType('MERGE')">
-                <n-button size="small" type="primary" @click="handleAdd('MERGE')">
-                  <i class="i-material-symbols:add mr-4 text-16"/>
-                  新增规则
-                </n-button>
-              </div>
-              <n-list v-if="mergeRules.length > 0" bordered>
-                <draggable
-                  v-model="mergeRules"
-                  @end="(e) => handleDragEnd(e, 'MERGE')"
-                  item-key="id"
-                  handle=".drag-handle"
-                  ghost-class="dragging-ghost">
-                  <template #item="{ element }">
-                    <n-list-item>
-                      <div class="rule-item">
-                        <div class="drag-handle">
-                          <i class="i-fe:menu text-18 cursor-move text-gray-400"/>
-                        </div>
-                        <div class="rule-main">
-                          <div class="rule-header-row">
-                            <h4 class="rule-name">{{ element.name }}</h4>
-                            <n-tag :type="element.enabled ? 'success' : 'default'" size="small">
-                              {{ element.enabled ? '启用' : '停用' }}
-                            </n-tag>
-                          </div>
-                          <div class="rule-engine">引擎: {{ getEngineLabel(element.engine) }}</div>
-                          <div v-if="getFormattedParams(element).length > 0" class="rule-params">
-                            <div v-for="param in getFormattedParams(element)" :key="param.label" class="rule-param">
-                              <span class="param-label">{{ param.label }}:</span>
-                              <span class="param-value">{{ param.value }}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="rule-actions">
-                          <n-button size="small" @click="handleEdit(element, 'MERGE')">编辑</n-button>
-                          <n-button size="small" type="error" @click="handleDelete(element)">删除</n-button>
-                        </div>
-                      </div>
-                    </n-list-item>
-                  </template>
-                </draggable>
-              </n-list>
-              <n-empty v-else description="暂无频道合并规则" size="small"/>
-            </div>
-          </template>
-        </n-step>
         <n-step title="延迟检测" description="检测各源的延迟情况">
           <template #default>
             检测各源的延迟情况
@@ -258,6 +207,57 @@
                 </draggable>
               </n-list>
               <n-empty v-else description="暂无频道分组规则" size="small"/>
+            </div>
+          </template>
+        </n-step>
+        <n-step title="相同频道合并" description="合并相同频道为多条线路">
+          <template #default>
+            合并相同频道为多条线路
+            <div class="rule-content">
+              <div class="rule-header" v-if="hasEngineForType('MERGE')">
+                <n-button size="small" type="primary" @click="handleAdd('MERGE')">
+                  <i class="i-material-symbols:add mr-4 text-16"/>
+                  新增规则
+                </n-button>
+              </div>
+              <n-list v-if="mergeRules.length > 0" bordered>
+                <draggable
+                  v-model="mergeRules"
+                  @end="(e) => handleDragEnd(e, 'MERGE')"
+                  item-key="id"
+                  handle=".drag-handle"
+                  ghost-class="dragging-ghost">
+                  <template #item="{ element }">
+                    <n-list-item>
+                      <div class="rule-item">
+                        <div class="drag-handle">
+                          <i class="i-fe:menu text-18 cursor-move text-gray-400"/>
+                        </div>
+                        <div class="rule-main">
+                          <div class="rule-header-row">
+                            <h4 class="rule-name">{{ element.name }}</h4>
+                            <n-tag :type="element.enabled ? 'success' : 'default'" size="small">
+                              {{ element.enabled ? '启用' : '停用' }}
+                            </n-tag>
+                          </div>
+                          <div class="rule-engine">引擎: {{ getEngineLabel(element.engine) }}</div>
+                          <div v-if="getFormattedParams(element).length > 0" class="rule-params">
+                            <div v-for="param in getFormattedParams(element)" :key="param.label" class="rule-param">
+                              <span class="param-label">{{ param.label }}:</span>
+                              <span class="param-value">{{ param.value }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="rule-actions">
+                          <n-button size="small" @click="handleEdit(element, 'MERGE')">编辑</n-button>
+                          <n-button size="small" type="error" @click="handleDelete(element)">删除</n-button>
+                        </div>
+                      </div>
+                    </n-list-item>
+                  </template>
+                </draggable>
+              </n-list>
+              <n-empty v-else description="暂无频道合并规则" size="small"/>
             </div>
           </template>
         </n-step>
