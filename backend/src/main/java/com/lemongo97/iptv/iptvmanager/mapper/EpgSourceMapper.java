@@ -19,6 +19,11 @@ public interface EpgSourceMapper {
 
     List<EpgSource> findEnabled();
 
+    /**
+     * 根据条件搜索 EPG 源
+     */
+    List<EpgSource> findByCondition(@Param("name") String name);
+
     int insert(EpgSource epgSource);
 
     int update(EpgSource epgSource);

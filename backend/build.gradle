@@ -39,6 +39,8 @@ dependencies {
     // Quartz for scheduled tasks
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.websocket)
+    // jsoup for XML parsing
+    implementation(libs.jsoup)
 
     // Liquibase for database migration
     implementation(libs.liquibase.core)

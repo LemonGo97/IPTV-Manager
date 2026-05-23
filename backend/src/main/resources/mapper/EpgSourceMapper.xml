@@ -35,6 +35,16 @@
         ORDER BY id DESC
     </select>
 
+    <select id="findByCondition" resultMap="EpgSourceResultMap">
+        SELECT id, name, url, type, enabled, description, created_at, updated_at, deleted
+        FROM epg_sources
+        WHERE deleted = 0
+        <if test="name != null and name != ''">
+            AND name LIKE '%' || #{name} || '%'
+        </if>
+        ORDER BY id DESC
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO epg_sources (name, url, type, enabled, description, created_at, updated_at, deleted)
         VALUES (#{name}, #{url}, #{type}, #{enabled}, #{description}, #{createdAt}, #{updatedAt}, 0)

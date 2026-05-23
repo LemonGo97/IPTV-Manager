@@ -24,8 +24,14 @@ public class EpgSourceController {
      * 获取所有 EPG 源
      */
     @GetMapping
-    public ApiResponse<List<EpgSource>> findAll() {
-        return ApiResponse.ok(epgSourceService.findAll());
+    public ApiResponse<List<EpgSource>> findAll(@RequestParam(required = false) String name) {
+        List<EpgSource> sources;
+        if (name != null && !name.isEmpty()) {
+            sources = epgSourceService.findByCondition(name);
+        } else {
+            sources = epgSourceService.findAll();
+        }
+        return ApiResponse.ok(sources);
     }
 
     /**

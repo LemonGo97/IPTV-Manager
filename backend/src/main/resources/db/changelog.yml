@@ -206,3 +206,21 @@ databaseChangeLog:
             path: db/sql/insert-cleanup-engine-table.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: add-deleted-field-to-epg-sources
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/add-deleted-field-to-epg-sources.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: create-epg-programs-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-epg-programs-table.sql
+            relativeToChangelogFile: false
+            stripComments: true

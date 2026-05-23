@@ -24,6 +24,7 @@ mybatis-spring-boot-starter = "4.0.1"
 liquibase = "4.29.2"
 liquibase-slf4j = "5.0.0"
 quartz = "2.5.0"
+jsoup = "1.18.3"
 
 [libraries]
 # Source: https://mvnrepository.com/artifact/io.netty/netty-bom
@@ -138,6 +139,8 @@ liquibase-slf4j = { module = "com.mattbertolini:liquibase-slf4j", version.ref = 
 
 # Source: https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
 quartz = { module = "org.quartz-scheduler:quartz", version.ref = "quartz" }
+# Source: https://mvnrepository.com/artifact/org.jsoup/jsoup
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 
 [bundles]
 netty-all = [

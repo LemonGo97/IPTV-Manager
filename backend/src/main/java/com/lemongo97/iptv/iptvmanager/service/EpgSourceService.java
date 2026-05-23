@@ -1,8 +1,10 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
+import com.lemongo97.iptv.iptvmanager.entity.EpgProgram;
 import com.lemongo97.iptv.iptvmanager.entity.EpgSource;
 import com.lemongo97.iptv.iptvmanager.mapper.EpgSourceMapper;
+import com.lemongo97.iptv.iptvmanager.parser.EpgParserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import java.util.List;
 public class EpgSourceService {
 
     private final EpgSourceMapper epgSourceMapper;
+    private final EpgProgramService epgProgramService;
+    private final EpgParserService epgParserService;
 
     public List<EpgSource> findAll() {
         return epgSourceMapper.findAll();
@@ -32,6 +36,13 @@ public class EpgSourceService {
 
     public List<EpgSource> findEnabled() {
         return epgSourceMapper.findEnabled();
+    }
+
+    /**
+     * 根据条件搜索 EPG 源
+     */
+    public List<EpgSource> findByCondition(String name) {
+        return epgSourceMapper.findByCondition(name);
     }
 
     @Transactional
@@ -94,8 +105,48 @@ public class EpgSourceService {
             throw new BusinessException("Cannot refresh disabled EPG source: id=" + id);
         }
 
-        // TODO: 实现 EPG 解析和入库逻辑
+        try {
+            // 1. 获取 EPG 数据
+            String xmlContent = fetchEpgData(epgSource.getUrl());
 
-        log.info("EPG source refreshed successfully: id={}", id);
+            // 2. 解析 EPG 数据
+            List<EpgProgram> programs = epgParserService.parse(xmlContent, id);
+
+            // 3. 删除旧的节目数据
+            epgProgramService.deleteBySourceId(id);
+
+            // 4. 批量插入新的节目数据
+            epgProgramService.insertBatch(programs);
+
+            log.info("EPG source refreshed successfully: id={}, programs={}", id, programs.size());
+
+        } catch (Exception e) {
+            log.error("Failed to refresh EPG source: id={}, error={}", id, e.getMessage(), e);
+            throw new BusinessException("Failed to refresh EPG source: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 从 URL 获取 EPG 数据
+     */
+    private String fetchEpgData(String url) {
+        try {
+            log.info("Fetching EPG data from: {}", url);
+
+            // 使用 HttpClient 获取数据
+            var request = new org.apache.hc.client5.http.classic.methods.HttpGet(url);
+            try (var httpClient = org.apache.hc.client5.http.impl.classic.HttpClients.createDefault()) {
+                var response = httpClient.execute(request);
+                var entity = response.getEntity();
+                if (entity == null) {
+                    throw new BusinessException("No content returned from EPG source");
+                }
+
+                return org.apache.hc.core5.http.io.entity.EntityUtils.toString(entity, "UTF-8");
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch EPG data from: {}", url, e);
+            throw new BusinessException("Failed to fetch EPG data: " + e.getMessage(), e);
+        }
     }
 }
