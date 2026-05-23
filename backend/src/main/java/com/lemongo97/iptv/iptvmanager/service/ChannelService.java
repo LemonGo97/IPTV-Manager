@@ -6,10 +6,7 @@ import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.engine.CleanEngineManager;
-import com.lemongo97.iptv.iptvmanager.entity.Channel;
-import com.lemongo97.iptv.iptvmanager.entity.ChannelGroup;
-import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
-import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
+import com.lemongo97.iptv.iptvmanager.entity.*;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelGroupMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.M3U8ProviderMapper;
@@ -25,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 频道服务
@@ -40,6 +38,7 @@ public class ChannelService {
     private final ChannelGroupMapper channelGroupMapper;
     private final CleanEngineManager cleanEngineManager;
     private final ScheduledTaskService scheduledTaskService;
+    private final TaskProgressService taskProgressService;
 
     /**
      * 获取所有频道
@@ -69,19 +68,20 @@ public class ChannelService {
      * @return
      */
     public Map<String, Object> statistic() {
-        // TODO 获取分组统计数据
-
         Map<String, Object> result = new HashMap<>();
-//        result.put("totalChannels", 1234);
-//        result.put("validChannels", 1156);
-//        result.put("invalidChannels", 78);
-        result.put("status", "已完成");
 
         Map<String, Integer> statistics = channelMapper.statistics();
         result.putAll(statistics);
 
         int groupCount = channelGroupMapper.count();
         result.put("groupCount", groupCount);
+
+        Optional<TaskProgress> latestTask = taskProgressService.getLatestTask("DATA_CLEANUP");
+        if (latestTask.isPresent()) {
+            result.put("status", latestTask.get().getStatus());
+        } else {
+            result.put("status", TaskProgress.Status.NOT_RUNNING);
+        }
 
         return result;
     }
