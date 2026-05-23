@@ -2,6 +2,7 @@ package com.lemongo97.iptv.iptvmanager.controller;
 
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
 import com.lemongo97.iptv.iptvmanager.entity.EpgSource;
+import com.lemongo97.iptv.iptvmanager.entity.TaskProgress;
 import com.lemongo97.iptv.iptvmanager.service.EpgSourceService;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,11 +69,12 @@ public class EpgSourceController {
     }
 
     /**
-     * 刷新 EPG 源
+     * 刷新 EPG 源（异步）
+     * 返回任务进度对象，前端可轮询任务状态
      */
     @PostMapping("/{id}/refresh")
-    public ApiResponse<Void> refresh(@PathVariable Long id) {
-        epgSourceService.refresh(id);
-        return ApiResponse.ok("EPG source refreshed successfully");
+    public ApiResponse<TaskProgress> refresh(@PathVariable Long id) {
+        TaskProgress task = epgSourceService.refresh(id);
+        return ApiResponse.ok(task, "EPG source refresh task submitted");
     }
 }

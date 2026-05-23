@@ -178,15 +178,17 @@ const {
   refresh: () => $table.value?.handleSearch(),
 })
 
-// 刷新EPG源
+// 刷新EPG源（异步）
 async function handleRefresh(row) {
   const $message = window.$message
   try {
-    $message.loading('正在刷新EPG数据...')
-    await api.refresh(row.id)
-    $message.success('EPG数据刷新成功')
+    const result = await api.refresh(row.id)
+    // result.data 包含 TaskProgress 对象（taskId, status, progress 等）
+    const taskId = result.data?.taskId
+    $message.success(`EPG刷新任务已提交${taskId ? `，任务ID: ${taskId}` : ''}，请稍后查看结果`)
+    // 不立即刷新表格，因为任务在后台执行中
   } catch (error) {
-    $message.error('EPG数据刷新失败: ' + (error.message || '未知错误'))
+    $message.error('EPG刷新任务提交失败: ' + (error.message || '未知错误'))
   }
 }
 

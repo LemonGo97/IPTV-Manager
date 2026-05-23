@@ -29,6 +29,10 @@ public class ScheduledTaskService {
     private static final String CLEANUP_TRIGGER_GROUP = "DATA_CLEANUP_TRIGGER";
     private static final String CLEANUP_MANUAL_JOB_GROUP = "DATA_CLEANUP_JOB_MANUAL";
     private static final String CLEANUP_MANUAL_TRIGGER_GROUP = "DATA_CLEANUP_TRIGGER_MANUAL";
+    private static final String EPG_JOB_GROUP = "EPG_REFRESH_JOB";
+    private static final String EPG_TRIGGER_GROUP = "EPG_REFRESH_TRIGGER";
+    private static final String EPG_MANUAL_JOB_GROUP = "EPG_REFRESH_JOB_MANUAL";
+    private static final String EPG_MANUAL_TRIGGER_GROUP = "EPG_REFRESH_TRIGGER_MANUAL";
 
     /**
      * 创建或更新定时任务
@@ -153,6 +157,40 @@ public class ScheduledTaskService {
         } catch (SchedulerException e) {
             log.error("Failed to trigger manual data cleanup job", e);
             throw new RuntimeException("Failed to trigger manual data cleanup job", e);
+        }
+    }
+
+    /**
+     * 手动触发一次性 EPG 刷新任务
+     *
+     * @param sourceId EPG 源 ID
+     * @param taskId 任务进度 ID
+     * @return Quartz Job Key
+     */
+    public JobKey triggerManualEpgRefreshJob(Long sourceId, String taskId) {
+        try {
+            String jobName = "epg-manual-" + sourceId + "-" + System.currentTimeMillis();
+            JobKey jobKey = JobKey.jobKey(jobName, EPG_MANUAL_JOB_GROUP);
+
+            JobDetail jobDetail = JobBuilder.newJob(EpgRefreshJob.class)
+                    .withIdentity(jobKey)
+                    .usingJobData("sourceId", sourceId)
+                    .usingJobData("taskId", taskId)
+                    .storeDurably(false)
+                    .build();
+
+            // 立即触发的触发器
+            Trigger trigger = newTrigger()
+                    .withIdentity(TriggerKey.triggerKey(jobName, EPG_MANUAL_TRIGGER_GROUP))
+                    .startNow()
+                    .build();
+
+            scheduler.scheduleJob(jobDetail, trigger);
+            log.info("Triggered manual EPG refresh job: source={}, task={}", sourceId, taskId);
+            return jobKey;
+        } catch (SchedulerException e) {
+            log.error("Failed to trigger manual EPG refresh job: source={}, task={}", sourceId, taskId, e);
+            throw new RuntimeException("Failed to trigger manual EPG refresh job", e);
         }
     }
 }

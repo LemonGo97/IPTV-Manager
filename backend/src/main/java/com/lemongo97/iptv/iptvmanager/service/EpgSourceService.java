@@ -3,8 +3,10 @@ package com.lemongo97.iptv.iptvmanager.service;
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.entity.EpgProgram;
 import com.lemongo97.iptv.iptvmanager.entity.EpgSource;
+import com.lemongo97.iptv.iptvmanager.entity.TaskProgress;
 import com.lemongo97.iptv.iptvmanager.mapper.EpgSourceMapper;
 import com.lemongo97.iptv.iptvmanager.parser.EpgParserService;
+import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,8 @@ public class EpgSourceService {
     private final EpgSourceMapper epgSourceMapper;
     private final EpgProgramService epgProgramService;
     private final EpgParserService epgParserService;
+    private final ScheduledTaskService scheduledTaskService;
+    private final TaskProgressService taskProgressService;
 
     public List<EpgSource> findAll() {
         return epgSourceMapper.findAll();
@@ -96,57 +100,29 @@ public class EpgSourceService {
         epgSourceMapper.deleteById(id);
     }
 
+    /**
+     * 刷新 EPG 源（异步）
+     * 创建任务记录并提交给 Quartz 执行，立即返回任务信息
+     *
+     * @param id EPG 源 ID
+     * @return 任务进度对象
+     */
     @Transactional
-    public void refresh(Long id) {
+    public TaskProgress refresh(Long id) {
         var epgSource = findById(id);
-        log.info("Refreshing EPG source: id={}, url={}", id, epgSource.getUrl());
+        log.info("Submitting EPG source refresh task: id={}, url={}", id, epgSource.getUrl());
 
         if (!epgSource.getEnabled()) {
             throw new BusinessException("Cannot refresh disabled EPG source: id=" + id);
         }
 
-        try {
-            // 1. 获取 EPG 数据
-            String xmlContent = fetchEpgData(epgSource.getUrl());
+        // 创建任务进度记录
+        TaskProgress task = taskProgressService.createTask("EPG_REFRESH", null, "EPG 刷新任务已创建");
 
-            // 2. 解析 EPG 数据
-            List<EpgProgram> programs = epgParserService.parse(xmlContent, id);
+        // 提交给 Quartz 执行
+        scheduledTaskService.triggerManualEpgRefreshJob(epgSource.getId(), task.getTaskId());
+        log.info("Submitted EPG refresh to Quartz: taskId={}, sourceId={}", task.getTaskId(), epgSource.getId());
 
-            // 3. 删除旧的节目数据
-            epgProgramService.deleteBySourceId(id);
-
-            // 4. 批量插入新的节目数据
-            epgProgramService.insertBatch(programs);
-
-            log.info("EPG source refreshed successfully: id={}, programs={}", id, programs.size());
-
-        } catch (Exception e) {
-            log.error("Failed to refresh EPG source: id={}, error={}", id, e.getMessage(), e);
-            throw new BusinessException("Failed to refresh EPG source: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 从 URL 获取 EPG 数据
-     */
-    private String fetchEpgData(String url) {
-        try {
-            log.info("Fetching EPG data from: {}", url);
-
-            // 使用 HttpClient 获取数据
-            var request = new org.apache.hc.client5.http.classic.methods.HttpGet(url);
-            try (var httpClient = org.apache.hc.client5.http.impl.classic.HttpClients.createDefault()) {
-                var response = httpClient.execute(request);
-                var entity = response.getEntity();
-                if (entity == null) {
-                    throw new BusinessException("No content returned from EPG source");
-                }
-
-                return org.apache.hc.core5.http.io.entity.EntityUtils.toString(entity, "UTF-8");
-            }
-        } catch (Exception e) {
-            log.error("Failed to fetch EPG data from: {}", url, e);
-            throw new BusinessException("Failed to fetch EPG data: " + e.getMessage(), e);
-        }
+        return task;
     }
 }
