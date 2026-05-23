@@ -435,8 +435,30 @@ const columns = computed(() => [
   {
     title: '频道名称',
     key: 'name',
-    width: 200,
+    width: 120,
     ellipsis: {tooltip: true},
+  },
+  {
+    title: '状态',
+    key: 'status',
+    width: 80,
+    render: row =>
+      h(
+        NTag,
+        {type: row.status === 'valid' ? 'success' : 'error'},
+        {default: () => (row.status === 'valid' ? '有效' : '无效')}
+      ),
+    filter: true,
+    filterOptions: [
+      {
+        label: "有效",
+        value: 'valid'
+      },
+      {
+        label: "无效",
+        value: 'invalid'
+      }
+    ]
   },
   {
     title: '订阅源',
@@ -455,17 +477,43 @@ const columns = computed(() => [
   {
     title: '延迟（ms）',
     key: 'httpDetectDelayMilliseconds',
-    width: 120,
+    width: 200,
+    render(row) {
+      return h(NSpace, {
+        vertical: true
+      },{
+        default: () => {
+          return [
+            h('span', `HTTP 检测：${row.httpDetectDelayMilliseconds || '超时' }`),
+            h('span', `ffmpeg 检测：${row.ffmpegDetectDelayMilliseconds || '超时' }`)
+          ];
+        }
+      })
+    }
   },
   {
-    title: '视频流信息',
-    key: 'videoInfo',
-    width: 120,
-  },
-  {
-    title: '音频流信息',
-    key: 'audioInfo',
-    width: 120,
+    title: '音视频信息',
+    key: 'mediaInfo',
+    width: 240,
+    render(row) {
+      return h(NSpace, {
+        vertical: true
+      },{
+        default: () => {
+          console.log(row.videoInfo)
+          let res = []
+          if(row.videoInfo) {
+            let vinfo = JSON.parse(row.videoInfo)
+            res.push(h('span', `视频流信息：${vinfo.width} x ${vinfo.height} ${vinfo.codec}`))
+          }
+          if(row.audioInfo) {
+            let ainfo = JSON.parse(row.audioInfo)
+            res.push(h('span', `音频流信息：${ainfo.codec} ${ainfo.rate}`))
+          }
+          return res;
+        }
+      })
+    }
   },
   {
     title: '播放地址',
@@ -493,28 +541,6 @@ const columns = computed(() => [
     width: 100,
   },
   {title: '语言', key: 'language', width: 100},
-  {
-    title: '状态',
-    key: 'status',
-    width: 100,
-    render: row =>
-      h(
-        NTag,
-        {type: row.status === 'valid' ? 'success' : 'error'},
-        {default: () => (row.status === 'valid' ? '有效' : '无效')}
-      ),
-    filter: true,
-    filterOptions: [
-      {
-        label: "有效",
-        value: 'valid'
-      },
-      {
-        label: "无效",
-        value: 'invalid'
-      }
-    ]
-  },
   {
     title: '操作',
     key: 'actions',
