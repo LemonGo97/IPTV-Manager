@@ -38,6 +38,7 @@ dependencies {
     implementation 'org.bytedeco:ffmpeg-platform:8.0.1-1.5.13'
     // Quartz for scheduled tasks
     implementation(libs.spring.boot.starter.quartz)
+    implementation(libs.spring.boot.starter.websocket)
 
     // Liquibase for database migration
     implementation(libs.liquibase.core)

@@ -4,9 +4,10 @@ spring:
 
   profiles:
     active: dev
-
   datasource:
     driver-class-name: org.sqlite.JDBC
+  websocket:
+    prefix: "/ws"
 
 mybatis:
   configuration:
