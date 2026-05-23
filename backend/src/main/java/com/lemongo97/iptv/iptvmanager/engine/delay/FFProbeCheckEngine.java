@@ -34,11 +34,17 @@ public class FFProbeCheckEngine implements CleaningEngine {
         FFProbeCheckEngineParam param = JSONUtil.fromJsonString(paramsJson, FFProbeCheckEngineParam.class);
         List<Channel> result = new ArrayList<>();
         for (Channel channel : channels) {
+            if (channel.getStatus() == Channel.Status.invalid){
+                log.debug("Channel {} has status invalid, next", channel);
+                result.add(channel);
+                continue;
+            }
             String url = channel.getUrl();
             log.debug("开始使用 ffmpeg 检测 {} 的 URL链接: {}", channel.getName(), channel.getUrl());
 
             FFProbeCheckReport checkReport = this.doDetect(url, param);
             if(checkReport == null) {
+                channel.setStatus(Channel.Status.invalid);
                 result.add(channel);
                 continue;
             }

@@ -1,5 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
+import com.github.houbb.opencc4j.util.ZhConverterUtil;
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.engine.CleanEngineManager;
 import com.lemongo97.iptv.iptvmanager.engine.CleanUpRuleParam;
@@ -162,7 +163,6 @@ public class CleanupRuleService {
      * 从原始频道元数据转换为频道，并应用清洗规则
      * 新流程：使用中间表，逐个频道处理，避免清洗中断导致数据丢失
      */
-    @Transactional
     public int executeDataCleanup() {
         log.info("Starting data cleanup process");
 
@@ -217,15 +217,38 @@ public class CleanupRuleService {
         return originalChannelMapper.findAll().stream()
                 .map(o -> {
 
-                    String name;
+                    boolean tvgNameZh = ZhConverterUtil.containsChinese(o.getTvGuideName());
+                    boolean tvgIdZh = ZhConverterUtil.containsChinese(o.getTvGuideId());
+                    boolean cname = ZhConverterUtil.containsChinese(o.getName());
 
-                    if (StringUtils.isNotBlank(o.getTvGuideId())){
-                        name = o.getTvGuideId();
-                    } else if (StringUtils.isNotBlank(o.getTvGuideName())){
+                    String name;
+                    if (tvgNameZh){
                         name = o.getTvGuideName();
                     } else {
-                        name = o.getName();
+                        if (tvgIdZh && cname){
+                            name = o.getTvGuideId();
+                        }else {
+                            name = o.getName();
+                        }
                     }
+
+
+//                    if (StringUtils.isNotBlank(o.getTvGuideName())){
+//                        name = o.getTvGuideName();
+//                    } else {
+//                        String tvGuideName = o.getTvGuideName();
+//                        String tvGuideId = o.getTvGuideId();
+//                        String name1 = o.getName();
+//                        if (StringUtils.isBlank(tvGuideId)) {
+//                            name = name1;
+//                        } else {
+//                            if (ZhConverterUtil.containsChinese(tvGuideId)) {
+//                                name = tvGuideId;
+//                            } else {
+//                                name = name1;
+//                            }
+//                        }
+//                    }
 
                     Channel channel = new Channel()
                             .setName(name)

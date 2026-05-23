@@ -188,10 +188,10 @@
             (#{item.name}, #{item.logo}, #{item.url}, #{item.providerId}, #{item.groupId}, #{item.epgSourceId},
             #{item.status},
             #{item.country}, #{item.language},
-            #{httpDetectDelayMilliseconds},
-            #{ffmpegDetectDelayMilliseconds},
-            #{videoInfo},
-            #{audioInfo},
+            #{item.httpDetectDelayMilliseconds},
+            #{item.ffmpegDetectDelayMilliseconds},
+            #{item.videoInfo},
+            #{item.audioInfo},
             #{item.score}, #{item.createdAt}, #{item.updatedAt}, 0)
         </foreach>
     </insert>

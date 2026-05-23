@@ -42,6 +42,10 @@ public class HttpCheckEngine implements CleaningEngine {
                 .build()) {
             for (Channel channel : channels) {
 
+                if (channel.getStatus() == Channel.Status.invalid){
+                    log.debug("Channel {} has status invalid, next", channel);
+                    continue;
+                }
 
                 log.debug("开始使用 HTTP {} 检测 {} 的 URL链接: {}", param.getType(), channel.getName(), channel.getUrl());
                 try{
@@ -73,6 +77,7 @@ public class HttpCheckEngine implements CleaningEngine {
                     log.debug("请求耗时: {} 毫秒", (endTime - startTime));
                     channel.setHttpDetectDelayMilliseconds((endTime - startTime));
                 }catch (Exception e){
+                    channel.setStatus(Channel.Status.invalid);
                     log.error(e.getMessage(), e);
                     continue;
                 }
