@@ -188,3 +188,12 @@ databaseChangeLog:
             path: db/sql/create-channel-cleaning-temp-table.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: create-task-progress-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-task-progress-table.sql
+            relativeToChangelogFile: false
+            stripComments: true

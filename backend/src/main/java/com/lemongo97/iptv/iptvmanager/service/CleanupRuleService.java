@@ -9,6 +9,7 @@ import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.CleanupEngine;
 import com.lemongo97.iptv.iptvmanager.entity.CleanupRule;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
+import com.lemongo97.iptv.iptvmanager.entity.TaskProgress;
 import com.lemongo97.iptv.iptvmanager.mapper.CleanupEngineMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.CleanupRuleMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelCleaningTempMapper;
@@ -39,6 +40,7 @@ public class CleanupRuleService {
     private final OriginalChannelMapper originalChannelMapper;
     private final CleanEngineManager cleanEngineManager;
     private final ChannelCleaningTempMapper channelCleaningTempMapper;
+    private final TaskProgressService taskProgressService;
 
     // ===== 引擎相关方法 =====
 
@@ -166,48 +168,80 @@ public class CleanupRuleService {
     public int executeDataCleanup() {
         log.info("Starting data cleanup process");
 
-        // 1. 清空中间表（物理删除）
-        channelCleaningTempMapper.truncate();
-        log.info("Cleaned temp table: channel_cleaning_temp");
+        // 1. 创建任务跟踪器
+        TaskProgress task = taskProgressService.createTask("DATA_CLEANUP", null, "初始化数据清洗任务");
+        String taskId = task.getTaskId();
+        taskProgressService.startTask(taskId);
 
-        // 2. 获取所有启用的清洗规则
-        List<EngineConfig> configs = getEnabledEngineConfigs();
-        log.debug("Found {} enabled cleanup rules", configs.size());
+        try {
+            // 2. 清空中间表（物理删除）
+            channelCleaningTempMapper.truncate();
+            log.info("Cleaned temp table: channel_cleaning_temp");
+            taskProgressService.updateProgress(taskId, 0, 5d, "已清空临时表");
 
-        // 3. 获取原始频道元数据并转换为 Channel
-        List<Channel> channels = convertOriginalChannelsToChannels();
-        log.info("Converted {} original channels to Channel format", channels.size());
+            // 3. 获取所有启用的清洗规则
+            List<EngineConfig> configs = getEnabledEngineConfigs();
+            log.debug("Found {} enabled cleanup rules", configs.size());
+            taskProgressService.updateProgress(taskId, 0, 10d, "加载清洗规则完成");
 
-        // 4. 逐个处理频道并立即插入中间表
-        int processedCount = 0;
-        for (int i = 0; i < channels.size(); i++) {
-            Channel channel = channels.get(i);
+            // 4. 获取原始频道元数据并转换为 Channel
+            List<Channel> channels = convertOriginalChannelsToChannels();
+            int totalChannels = channels.size();
+            log.info("Converted {} original channels to Channel format", totalChannels);
+            taskProgressService.updateProgress(taskId, 0, 15d, "找到 " + totalChannels + " 个原始频道");
 
-            // 单频道处理（包装为单元素 List）
-            List<Channel> input = List.of(channel);
-            List<Channel> cleaned = cleanEngineManager.process(input, configs);
+            // 5. 逐个处理频道并立即插入中间表
+            int processedCount = 0;
+            double lastProgressUpdate = 0;
 
-            // 如果未被过滤，插入中间表
-            if (!cleaned.isEmpty()) {
-                channelCleaningTempMapper.insert(cleaned.getFirst());
-                processedCount++;
+            for (int i = 0; i < channels.size(); i++) {
+                Channel channel = channels.get(i);
+
+                // 单频道处理（包装为单元素 List）
+                List<Channel> input = List.of(channel);
+                List<Channel> cleaned = cleanEngineManager.process(input, configs);
+
+                // 如果未被过滤，插入中间表
+                if (!cleaned.isEmpty()) {
+                    channelCleaningTempMapper.insert(cleaned.getFirst());
+                    processedCount++;
+                }
+
+                // 每5%更新一次进度
+                double currentProgress = 15 + ((i + 1) * 70.0 / totalChannels);
+                if (currentProgress > lastProgressUpdate || i == channels.size() - 1) {
+                    taskProgressService.updateProgress(
+                            taskId,
+                            processedCount,
+                            currentProgress,
+                            "已处理 " + (i + 1) + "/" + totalChannels + " 个频道"
+                    );
+                    lastProgressUpdate = currentProgress;
+                }
+
+                // 每处理 100 个频道记录一次日志
+                if ((i + 1) % 100 == 0) {
+                    log.info("Processed {}/{} channels, {} valid so far", i + 1, totalChannels, processedCount);
+                }
             }
 
-            // 每处理 100 个频道记录一次日志
-            if ((i + 1) % 100 == 0) {
-                log.info("Processed {}/{} channels, {} valid so far", i + 1, channels.size(), processedCount);
-            }
+            log.info("Channel processing completed: {}/{} valid channels", processedCount, totalChannels);
+
+            // 6. 从中间表转移到正式表
+            taskProgressService.updateProgress(taskId, processedCount, 90d, "正在保存到正式表");
+            List<Channel> tempChannels = channelCleaningTempMapper.findAll();
+            channelMapper.truncate();
+            channelMapper.insert(tempChannels);
+
+            taskProgressService.completeTask(taskId, "数据清洗完成，成功处理 " + tempChannels.size() + " 个频道");
+            log.info("Data cleanup completed successfully, {} channels saved to main table", tempChannels.size());
+            return tempChannels.size();
+
+        } catch (Exception e) {
+            log.error("Data cleanup failed", e);
+            taskProgressService.failTask(taskId, "数据清洗失败: " + e.getMessage());
+            throw e;
         }
-
-        log.info("Channel processing completed: {}/{} valid channels", processedCount, channels.size());
-
-        // 5. 从中间表转移到正式表
-        List<Channel> tempChannels = channelCleaningTempMapper.findAll();
-        channelMapper.truncate();
-        channelMapper.insert(tempChannels);
-
-        log.info("Data cleanup completed successfully, {} channels saved to main table", tempChannels.size());
-        return tempChannels.size();
     }
 
     /**
