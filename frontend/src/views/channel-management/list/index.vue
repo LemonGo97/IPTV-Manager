@@ -274,10 +274,13 @@ function setupWebsocket(){
     statistics.value.status = task.status
     stepsAreaLoadingStatus.value = task.status === 'RUNNING';
   }
-  ws.onclose = (e) => {
-    console.log("websocket closed")
+  ws.onclose = async (e) => {
+    console.debug("websocket closed")
+    websocket.value = null
+    await new Promise(resolve => setTimeout(resolve, 3000))
+    setupWebsocket()
   }
-  console.log("setupWebsocket")
+  console.debug("setupWebsocket")
   websocket.value = ws
 }
 
