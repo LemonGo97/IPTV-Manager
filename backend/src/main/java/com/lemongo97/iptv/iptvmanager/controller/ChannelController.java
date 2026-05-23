@@ -7,6 +7,7 @@ import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.entity.ChannelGroup;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
 import com.lemongo97.iptv.iptvmanager.service.ChannelService;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,14 +17,11 @@ import java.util.Map;
  * 频道控制器
  */
 @RestController
+@AllArgsConstructor
 @RequestMapping("/channel")
 public class ChannelController {
 
     private final ChannelService channelService;
-
-    public ChannelController(ChannelService channelService) {
-        this.channelService = channelService;
-    }
 
     /**
      * 获取统计信息

@@ -70,12 +70,19 @@ public class ChannelService {
      */
     public Map<String, Object> statistic() {
         // TODO 获取分组统计数据
+
         Map<String, Object> result = new HashMap<>();
-        result.put("totalChannels", 1234);
-        result.put("validChannels", 1156);
-        result.put("invalidChannels", 78);
-        result.put("groupCount", 12);
-        result.put("status", "进行中");
+//        result.put("totalChannels", 1234);
+//        result.put("validChannels", 1156);
+//        result.put("invalidChannels", 78);
+        result.put("status", "已完成");
+
+        Map<String, Integer> statistics = channelMapper.statistics();
+        result.putAll(statistics);
+
+        int groupCount = channelGroupMapper.count();
+        result.put("groupCount", groupCount);
+
         return result;
     }
 

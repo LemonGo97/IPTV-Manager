@@ -241,6 +241,7 @@ const loading = ref(false)
 const filters = ref({
   'provider.name': null,
   'channelGroup.name': null,
+  'status': null,
 })
 
 // 搜索参数
@@ -248,6 +249,7 @@ const queryItems = reactive({
   name: '',
   providerId: null,
   groupId: null,
+  status: null,
 })
 
 // 过滤器选项
@@ -259,6 +261,7 @@ function handleFiltersChange(filters) {
   // filter value 现在直接是 ID
   queryItems.providerId = filters['provider.name'] || null
   queryItems.groupId = filters['channelGroup.name'] || null
+  queryItems.status = filters['status'] || null
 
   fetchTableData()
 }
@@ -293,6 +296,7 @@ async function fetchTableData() {
       name: queryItems.name || undefined,
       providerId: queryItems.providerId || undefined,
       groupId: queryItems.groupId || undefined,
+      status: queryItems.status || undefined,
     })
     tableData.value = res.data.list || []
     pagination.itemCount = res.data.total || 0
@@ -376,7 +380,17 @@ const columns = computed(() => [
   },
   {
     title: '延迟（ms）',
-    key: 'score',
+    key: 'httpDetectDelayMilliseconds',
+    width: 120,
+  },
+  {
+    title: '视频流信息',
+    key: 'videoInfo',
+    width: 120,
+  },
+  {
+    title: '音频流信息',
+    key: 'audioInfo',
     width: 120,
   },
   {
@@ -415,6 +429,17 @@ const columns = computed(() => [
         {type: row.status === 'valid' ? 'success' : 'error'},
         {default: () => (row.status === 'valid' ? '有效' : '无效')}
       ),
+    filter: true,
+    filterOptions: [
+      {
+        label: "有效",
+        value: 'valid'
+      },
+      {
+        label: "无效",
+        value: 'invalid'
+      }
+    ]
   },
   {
     title: '操作',

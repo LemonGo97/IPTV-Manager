@@ -1,6 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.controller.request;
 
 import com.lemongo97.iptv.iptvmanager.common.PageQuery;
+import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -12,4 +13,5 @@ public class ChannelQuery extends PageQuery {
     private String name;
     private List<Long> providerId;
     private List<Long> groupId;
+    private List<Channel.Status> status;
 }

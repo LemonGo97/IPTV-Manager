@@ -159,6 +159,12 @@
                     #{item}
                 </foreach>
             </if>
+            <if test="@org.apache.commons.collections4.CollectionUtils@isNotEmpty(query.status)">
+                AND c.status in
+                <foreach collection="query.status" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
             <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(query.orderBy) and query.asc != null">
                 <choose>
                     <when test="query.orderBy == 'name'">
@@ -174,6 +180,13 @@
             </if>
         </where>
 
+    </select>
+    <select id="statistics" resultType="java.util.Map">
+        SELECT
+            COUNT(*) AS totalChannels,
+            COUNT(CASE WHEN status = 'valid' THEN 1 END) AS validChannels,
+            COUNT(CASE WHEN status = 'invalid' THEN 1 END) AS invalidChannels
+        FROM channels WHERE deleted = 0
     </select>
 
     <insert id="insert">

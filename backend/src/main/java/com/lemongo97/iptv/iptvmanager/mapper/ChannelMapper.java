@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -37,5 +38,7 @@ public interface ChannelMapper {
     void insert(@Param("channels") List<Channel> channels);
 
     void truncate();
+
+    Map<String, Integer> statistics();
 
 }

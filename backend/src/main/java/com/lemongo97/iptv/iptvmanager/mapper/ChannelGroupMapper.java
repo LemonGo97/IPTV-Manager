@@ -26,4 +26,6 @@ public interface ChannelGroupMapper {
     int deleteById(@Param("id") Long id);
 
     List<ChannelGroup> getGroupNames();
+
+    int count();
 }
