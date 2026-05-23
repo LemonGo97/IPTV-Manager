@@ -1,5 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.quartz;
 
+import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -128,7 +129,7 @@ public class ScheduledTaskService {
      *
      * @return Quartz Job Key
      */
-    public JobKey triggerManualDataCleanupJob() {
+    public JobKey triggerManualDataCleanupJob(RuleType step) {
         try {
             String jobName = "data-cleanup-manual-" + System.currentTimeMillis();
             JobKey jobKey = JobKey.jobKey(jobName, CLEANUP_MANUAL_JOB_GROUP);
@@ -136,6 +137,7 @@ public class ScheduledTaskService {
             JobDetail jobDetail = JobBuilder.newJob(DataCleanupJob.class)
                     .withIdentity(jobKey)
                     .usingJobData("triggerType", "manual")
+                    .usingJobData("step", step.name())
                     .storeDurably(false)
                     .build();
 

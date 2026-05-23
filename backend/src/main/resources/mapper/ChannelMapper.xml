@@ -59,6 +59,7 @@
                logo,
                url,
                group_id,
+               provider_id,
                epg_source_id,
                status,
                country,
@@ -72,7 +73,7 @@
                updated_at
         FROM channels
         WHERE deleted = 0
-        ORDER BY sort_order ASC, id ASC
+        ORDER BY id ASC
     </select>
 
     <select id="findById" resultMap="ChannelResultMap">
@@ -138,12 +139,11 @@
         FROM
         channels c
         LEFT JOIN channel_groups cg
-        on c.group_id = cg.id
+        ON c.group_id = cg.id AND cg.deleted = 0
         LEFT JOIN m3u8_providers p
-        on c.provider_id = p.id
-
+        ON c.provider_id = p.id AND p.deleted = 0
         <where>
-            c.deleted = 0 AND cg.deleted = 0 AND p.deleted = 0
+            c.deleted = 0
             <if test="query.name != null">
                 AND c.name like concat('%', #{query.name}, '%')
             </if>

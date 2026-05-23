@@ -34,27 +34,46 @@ public class CleanEngineManager {
 
     private final CleaningEngineFactory factory;
 
-    public List<Channel> process(List<Channel> channels, List<EngineConfig> configList){
+    public List<Channel> process(List<Channel> channels, List<EngineConfig> configList, RuleType step){
         List<EngineConfig> filterConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.FILTER).toList();
         List<EngineConfig> nameConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.NAME).toList();
         List<EngineConfig> mergeConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.MERGE).toList();
         List<EngineConfig> delayConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.DELAY).toList();
         List<EngineConfig> groupConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.GROUP).toList();
 
-        List<Channel> processingChannels;
+        switch(step){
+            case FILTER -> {
+                return this.doProcess(channels, filterConfig);
+            }
+            case NAME -> {
+                return this.doProcess(channels, nameConfig);
+            }
+            case MERGE -> {
+                return this.doProcess(channels, mergeConfig);
+            }
+            case DELAY -> {
+                return this.doProcess(channels, delayConfig);
+            }
+            case GROUP -> {
+                return this.doProcess(channels, groupConfig);
+            }
+            default -> {
+                List<Channel> processingChannels;
 
-        // 移除政治、色情或无法解析的非法频道
-        processingChannels = this.doProcess(channels, filterConfig);
-        // 将 "CCTV1 综合", "CCTV-1 高清" 统一为 "CCTV-1"
-        processingChannels = this.doProcess(processingChannels, nameConfig);
-        // 将相同名称的频道合并，保留多个播放源（备用线路）
-        processingChannels = this.doProcess(processingChannels, mergeConfig);
-        // 测试测速，剔除超时或死链，按延迟对播放源排序
-        processingChannels = this.doProcess(processingChannels, delayConfig);
-        // 根据名称或标签分类，如 "央视频道", "卫视频道"
-        processingChannels = this.doProcess(processingChannels, groupConfig);
+                // 移除政治、色情或无法解析的非法频道
+                processingChannels = this.doProcess(channels, filterConfig);
+                // 将 "CCTV1 综合", "CCTV-1 高清" 统一为 "CCTV-1"
+                processingChannels = this.doProcess(processingChannels, nameConfig);
+                // 将相同名称的频道合并，保留多个播放源（备用线路）
+                processingChannels = this.doProcess(processingChannels, mergeConfig);
+                // 测试测速，剔除超时或死链，按延迟对播放源排序
+                processingChannels = this.doProcess(processingChannels, delayConfig);
+                // 根据名称或标签分类，如 "央视频道", "卫视频道"
+                processingChannels = this.doProcess(processingChannels, groupConfig);
 
-        return processingChannels;
+                return processingChannels;
+            }
+        }
     }
 
     private List<Channel> doProcess(List<Channel> channels, List<EngineConfig> filterConfig) {

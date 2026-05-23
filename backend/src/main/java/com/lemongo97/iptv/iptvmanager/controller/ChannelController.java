@@ -3,6 +3,7 @@ package com.lemongo97.iptv.iptvmanager.controller;
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
 import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
+import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.entity.ChannelGroup;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
@@ -70,9 +71,9 @@ public class ChannelController {
         return ApiResponse.ok(channelService.getOptions());
     }
 
-    @PostMapping("/clean")
-    public ApiResponse<Void> clean() {
-        channelService.dataClean();
+    @PostMapping("/clean/{step}")
+    public ApiResponse<Void> clean(@PathVariable RuleType step) {
+        channelService.dataClean(step);
         return ApiResponse.ok(null);
     }
 }

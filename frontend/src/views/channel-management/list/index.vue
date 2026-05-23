@@ -66,10 +66,20 @@
           <i class="i-material-symbols:refresh mr-4 text-18"/>
           刷新
         </n-button>
-        <n-button type="success" @click="handleStartProcessing">
-          <i class="i-material-symbols:play-arrow mr-4 text-18"/>
-          开始处理
-        </n-button>
+        <n-spin :show="stepsAreaLoadingStatus">
+          <n-button type="success" @click="handleStartProcessing">
+            <i class="i-material-symbols:play-arrow mr-4 text-18"/>
+            开始处理
+          </n-button>
+        </n-spin>
+        <n-spin :show="stepsAreaLoadingStatus">
+          <n-dropdown trigger="click" :options="stepPressOptions" @select="handleStepPressSelect">
+            <n-button type="success">
+              <i class="i-material-symbols:keyboard-arrow-down-rounded text-18"/>
+              分步处理
+            </n-button>
+          </n-dropdown>
+        </n-spin>
       </n-space>
     </div>
 
@@ -167,12 +177,13 @@ const statistics = ref({
 async function fetchStatistics() {
   try {
     const res = await api.getStatistic()
+    stepsAreaLoadingStatus.value = res.data.status === 'RUNNING';
     statistics.value = {
       totalChannels: res.data.totalChannels || 0,
       validChannels: res.data.validChannels || 0,
       invalidChannels: res.data.invalidChannels || 0,
       groupCount: res.data.groupCount || 0,
-      status: res.data.status || '就绪',
+      status: res.data.status || 'NOT_RUNNING',
     }
   } catch (error) {
     $message.error('获取统计数据失败')
@@ -193,6 +204,29 @@ onBeforeUnmount(() => {
     websocket.value.close()
   }
 })
+
+const stepPressOptions = [
+  {
+    label: '频道过滤',
+    key: 'FILTER',
+  },
+  {
+    label: '名称规范化',
+    key: 'NAME'
+  },
+  {
+    label: '相同频道合并',
+    key: 'MERGE'
+  },
+  {
+    label: '延迟检测',
+    key: 'DELAY'
+  },
+  {
+    label: '频道分组',
+    key: 'GROUP'
+  }
+]
 
 // 状态图标
 const statusIcon = computed(() => {
@@ -218,6 +252,7 @@ const stepStatus = ref('process') // process, finish, error, wait
 const epgModalVisible = ref(false)
 const epgChannelName = ref('')
 const epgContainerRef = ref(null)
+const stepsAreaLoadingStatus = ref(false)
 
 // 预览弹窗相关
 const previewModalVisible = ref(false)
@@ -236,8 +271,8 @@ function setupWebsocket(){
 
   ws.onmessage = (e) => {
     let task = JSON.parse(e.data)
-    console.log(task)
     statistics.value.status = task.status
+    stepsAreaLoadingStatus.value = task.status === 'RUNNING';
   }
   ws.onclose = (e) => {
     console.log("websocket closed")
@@ -521,7 +556,15 @@ function handleRefresh() {
 
 // 开始处理
 async function handleStartProcessing() {
+  stepsAreaLoadingStatus.value = true
   await api.dataClean()
+  $message.info('频道列表开始数据清洗并生成新的频道列表中...')
+}
+
+// 开始处理
+async function handleStepPressSelect(key) {
+  stepsAreaLoadingStatus.value = true
+  await api.dataClean(key)
   $message.info('频道列表开始数据清洗并生成新的频道列表中...')
 }
 

@@ -12,7 +12,6 @@ import com.lemongo97.iptv.iptvmanager.mapper.*;
 import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +22,7 @@ import tools.jackson.databind.node.ObjectNode;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -193,7 +190,7 @@ public class CleanupRuleService {
      * 从原始频道元数据转换为频道，并应用清洗规则
      * 新流程：使用中间表，逐个频道处理，避免清洗中断导致数据丢失
      */
-    public int executeDataCleanup() {
+    public int executeDataCleanup(RuleType step) {
         log.info("Starting data cleanup process");
 
         // 1. 创建任务跟踪器
@@ -213,7 +210,20 @@ public class CleanupRuleService {
             taskProgressService.updateProgress(taskId, 0, 10d, "加载清洗规则完成");
 
             // 4. 获取原始频道元数据并转换为 Channel
-            List<Channel> channels = convertOriginalChannelsToChannels();
+            List<Channel> channels;
+
+            // 如果传递了规则类型（分步），那么说明要对已处理的频道进行某个步骤的单独处理
+            if (step == null || step == RuleType.undefined){
+                channels = convertOriginalChannelsToChannels();
+            } else {
+                channels = getCoveredChannels();
+                // 若已处理好的频道为空，则说明未进行过处理，所以获取最原始的数据进行分步处理
+                if (channels.isEmpty()) {
+                    channels = convertOriginalChannelsToChannels();
+                }
+            }
+
+
             int totalChannels = channels.size();
             log.info("Converted {} original channels to Channel format", totalChannels);
             taskProgressService.updateProgress(taskId, 0, 15d, "找到 " + totalChannels + " 个原始频道");
@@ -227,7 +237,7 @@ public class CleanupRuleService {
 
                 // 单频道处理（包装为单元素 List）
                 List<Channel> input = List.of(channel);
-                List<Channel> cleaned = cleanEngineManager.process(input, configs);
+                List<Channel> cleaned = cleanEngineManager.process(input, configs, step);
 
                 // 如果未被过滤，插入中间表
                 if (!cleaned.isEmpty()) {
@@ -272,6 +282,10 @@ public class CleanupRuleService {
         }
     }
 
+    private List<Channel> getCoveredChannels() {
+        return channelMapper.findAll().stream().map(ch -> ch.setId(null)).toList();
+    }
+
     /**
      * 将原始频道元数据转换为频道对象
      */
@@ -293,24 +307,6 @@ public class CleanupRuleService {
                             name = o.getName();
                         }
                     }
-
-
-//                    if (StringUtils.isNotBlank(o.getTvGuideName())){
-//                        name = o.getTvGuideName();
-//                    } else {
-//                        String tvGuideName = o.getTvGuideName();
-//                        String tvGuideId = o.getTvGuideId();
-//                        String name1 = o.getName();
-//                        if (StringUtils.isBlank(tvGuideId)) {
-//                            name = name1;
-//                        } else {
-//                            if (ZhConverterUtil.containsChinese(tvGuideId)) {
-//                                name = tvGuideId;
-//                            } else {
-//                                name = name1;
-//                            }
-//                        }
-//                    }
 
                     Channel channel = new Channel()
                             .setName(name)

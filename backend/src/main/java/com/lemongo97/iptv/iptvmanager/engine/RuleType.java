@@ -5,5 +5,6 @@ public enum RuleType {
     NAME,
     MERGE,
     DELAY,
-    GROUP
+    GROUP,
+    undefined
 }

@@ -6,6 +6,7 @@ import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.engine.CleanEngineManager;
+import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.*;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelGroupMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
@@ -15,7 +16,6 @@ import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -398,8 +398,9 @@ public class ChannelService {
      * 触发数据清洗任务
      * 通过 Quartz Job 异步执行数据清洗
      */
-    public void dataClean() {
-        scheduledTaskService.triggerManualDataCleanupJob();
+    public void dataClean(RuleType step) {
+        log.info("Cleaning data... ==> {}", step);
+        scheduledTaskService.triggerManualDataCleanupJob(step);
     }
 
     public PageResult<Channel> findByQuery(ChannelQuery query) {

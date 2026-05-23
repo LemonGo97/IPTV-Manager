@@ -1,8 +1,10 @@
 package com.lemongo97.iptv.iptvmanager.quartz;
 
+import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.service.CleanupRuleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
@@ -23,12 +25,15 @@ public class DataCleanupJob implements org.quartz.Job {
     @Override
     public void execute(JobExecutionContext context) {
         String triggerType = context.getJobDetail().getJobDataMap().getString("triggerType");
+        String stepString = context.getJobDetail().getJobDataMap().getString("step");
         log.info("Executing data cleanup job, trigger: {}", triggerType);
+
+        RuleType step = StringUtils.isNotBlank(stepString) ? RuleType.valueOf(stepString) : null;
 
         long startTime = System.currentTimeMillis();
 
         try {
-            int channelCount = cleanupRuleService.executeDataCleanup();
+            int channelCount = cleanupRuleService.executeDataCleanup(step);
 
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
