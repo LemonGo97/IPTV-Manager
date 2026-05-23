@@ -32,7 +32,7 @@
           </n-statistic>
         </n-gi>
         <n-gi>
-          <n-statistic label="状态" :value="statistics.status">
+          <n-statistic label="状态" :value="statusText">
             <template #prefix>
               <i :class="statusIcon" class="status-icon mr-5 mt-5"/>
             </template>
@@ -139,9 +139,10 @@
 
 <script setup>
 import {NButton, NTag, NStatistic, NGrid, NGi, NDivider, NDataTable, NSteps, NStep, NModal, NTimeline, NTimelineItem, NImage, NDropdown, NP, NSpace} from 'naive-ui'
-import {h, nextTick, onMounted, reactive, ref, watch, computed} from 'vue'
+import {h, nextTick, onMounted, reactive, ref, watch, computed, onBeforeUnmount} from 'vue'
 import { useClipboard } from '@vueuse/core'
 import api from './api'
+import {createWebSocket} from "@/utils/index.js";
 
 // 使用剪贴板
 const { copy, copied } = useClipboard()
@@ -184,6 +185,13 @@ onMounted(() => {
   fetchStatistics()
   fetchFilterOptions()
   fetchTableData()
+  setupWebsocket()
+})
+
+onBeforeUnmount(() => {
+  if (websocket.value) {
+    websocket.value.close()
+  }
 })
 
 // 状态图标
@@ -192,6 +200,14 @@ const statusIcon = computed(() => {
     return 'i-mdi:human-scooter'
   }
   return 'i-mdi:walk'
+})
+
+// 状态图标
+const statusText = computed(() => {
+  if (statistics.value.status === 'RUNNING') {
+    return '清洗中'
+  }
+  return '未运行'
 })
 
 // 当前步骤（模拟）
@@ -210,6 +226,26 @@ const previewPlayerKey = ref('')
 
 // EPG时间轴数据（扁平结构）
 const epgTimelineData = ref([])
+
+// Websocket
+const websocket = ref(null)
+
+function setupWebsocket(){
+
+  let ws = createWebSocket("/channel/cleanup/status")
+
+  ws.onmessage = (e) => {
+    let task = JSON.parse(e.data)
+    console.log(task)
+    statistics.value.status = task.status
+  }
+  ws.onclose = (e) => {
+    console.log("websocket closed")
+  }
+  console.log("setupWebsocket")
+  websocket.value = ws
+}
+
 
 // 判断是否同一天
 function isSameDay(date1, date2) {

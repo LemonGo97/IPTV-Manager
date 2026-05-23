@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -33,6 +34,7 @@ public class ChannelCleanupStatusEndpoint extends AbstractWebSocketEndpoint {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String sessionId = session.getId();
+        log.debug("Session ID: {}", sessionId);
         sessions.put(sessionId, session);
     }
 
@@ -49,6 +51,18 @@ public class ChannelCleanupStatusEndpoint extends AbstractWebSocketEndpoint {
             } catch (IOException e) {
                 log.error("Error while sending message to channel cleanup status", e);
             }
+        }
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        String sessionId = session.getId();
+        try{
+            session.close(Optional.of(status).orElse(CloseStatus.NOT_ACCEPTABLE));
+        }catch (Exception e){
+            log.error("Error closing websocket session", e);
+        }finally {
+            sessions.remove(sessionId);
         }
     }
 
