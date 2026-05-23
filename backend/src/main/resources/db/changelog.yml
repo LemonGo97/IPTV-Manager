@@ -197,3 +197,12 @@ databaseChangeLog:
             path: db/sql/create-task-progress-table.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: insert-cleanup-engine-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/insert-cleanup-engine-table.sql
+            relativeToChangelogFile: false
+            stripComments: true

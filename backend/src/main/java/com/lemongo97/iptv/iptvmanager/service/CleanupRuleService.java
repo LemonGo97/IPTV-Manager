@@ -6,23 +6,26 @@ import com.lemongo97.iptv.iptvmanager.engine.CleanEngineManager;
 import com.lemongo97.iptv.iptvmanager.engine.CleanUpRuleParam;
 import com.lemongo97.iptv.iptvmanager.engine.EngineConfig;
 import com.lemongo97.iptv.iptvmanager.engine.RuleType;
-import com.lemongo97.iptv.iptvmanager.entity.CleanupEngine;
-import com.lemongo97.iptv.iptvmanager.entity.CleanupRule;
-import com.lemongo97.iptv.iptvmanager.entity.Channel;
-import com.lemongo97.iptv.iptvmanager.entity.TaskProgress;
-import com.lemongo97.iptv.iptvmanager.mapper.CleanupEngineMapper;
-import com.lemongo97.iptv.iptvmanager.mapper.CleanupRuleMapper;
-import com.lemongo97.iptv.iptvmanager.mapper.ChannelCleaningTempMapper;
-import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
-import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
+import com.lemongo97.iptv.iptvmanager.engine.group.GroupingEngine;
+import com.lemongo97.iptv.iptvmanager.entity.*;
+import com.lemongo97.iptv.iptvmanager.mapper.*;
+import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +44,7 @@ public class CleanupRuleService {
     private final CleanEngineManager cleanEngineManager;
     private final ChannelCleaningTempMapper channelCleaningTempMapper;
     private final TaskProgressService taskProgressService;
+    private final ChannelGroupMapper channelGroupMapper;
 
     // ===== 引擎相关方法 =====
 
@@ -48,7 +52,31 @@ public class CleanupRuleService {
      * 获取所有清洗引擎列表
      */
     public List<CleanupEngine> getEngineList() {
-        return cleanupEngineMapper.findAll();
+        List<CleanupEngine> engines = cleanupEngineMapper.findAll();
+        List<ChannelGroup> groups = channelGroupMapper.findAll();
+
+        List<ObjectNode> groupOptions = new ArrayList<>();
+        groups.forEach(group -> {
+            groupOptions.add(JsonNodeFactory.instance.objectNode()
+                    .put("label", group.getName())
+                    .put("value", group.getId()));
+        });
+
+        for (CleanupEngine engine : engines) {
+            if (Strings.CI.equals(engine.getFullClassName(), GroupingEngine.class.getName())){
+                JsonNode jsonNode = JSONUtil.parseJson(engine.getParams());
+                for (JsonNode node : jsonNode.asArray()) {
+                    ObjectNode object = node.asObject();
+                    JsonNode field = object.get("field");
+                    if (Strings.CI.equals(field.asString(), "groupId")) {
+                        ArrayNode options = object.get("options").asArray();
+                        options.addAll(groupOptions);
+                    }
+                }
+                engine.setParams(JSONUtil.toJsonString(jsonNode));
+            }
+        }
+        return engines;
     }
 
     /**
