@@ -284,6 +284,7 @@ function handleSave() {
 
   // 构建提交数据结构
   const submitData = {
+    id: modalForm.value.id,
     name: modalForm.value.name,
     engine: modalForm.value.engine,
     ruleType: currentRuleType.value,
