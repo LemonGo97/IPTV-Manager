@@ -1,14 +1,13 @@
 package com.lemongo97.iptv.iptvmanager.entity;
 
-import com.lemongo97.iptv.iptvmanager.mybatis.JsonArrayTypeHandler;
-import com.lemongo97.iptv.iptvmanager.mybatis.JsonObjectTypeHandler;
+import com.lemongo97.iptv.iptvmanager.config.mybatis.JsonArrayTypeHandler;
+import com.lemongo97.iptv.iptvmanager.config.mybatis.JsonObjectTypeHandler;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

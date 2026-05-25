@@ -1,11 +1,11 @@
-package com.lemongo97.iptv.iptvmanager.parser;
+package com.lemongo97.iptv.iptvmanager.parser.epg;
 
-import com.lemongo97.iptv.iptvmanager.parser.entity.EPGChannel;
-import com.lemongo97.iptv.iptvmanager.parser.entity.EPGProgramme;
-import com.lemongo97.iptv.iptvmanager.parser.entity.EPGTv;
-import com.lemongo97.iptv.iptvmanager.parser.handler.EPGChannelHandler;
-import com.lemongo97.iptv.iptvmanager.parser.handler.EPGProgrammeHandler;
-import com.lemongo97.iptv.iptvmanager.parser.handler.EPGTvHandler;
+import com.lemongo97.iptv.iptvmanager.parser.epg.entity.EPGChannel;
+import com.lemongo97.iptv.iptvmanager.parser.epg.entity.EPGProgramme;
+import com.lemongo97.iptv.iptvmanager.parser.epg.entity.EPGTv;
+import com.lemongo97.iptv.iptvmanager.parser.epg.handler.EPGChannelHandler;
+import com.lemongo97.iptv.iptvmanager.parser.epg.handler.EPGProgrammeHandler;
+import com.lemongo97.iptv.iptvmanager.parser.epg.handler.EPGTvHandler;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.jsoup.Jsoup;

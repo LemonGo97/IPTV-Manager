@@ -4,7 +4,7 @@ import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
 import com.lemongo97.iptv.iptvmanager.mapper.M3U8ProviderMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.M3U8RefreshTaskMapper;
-import com.lemongo97.iptv.iptvmanager.parser.M3U8ParserService;
+import com.lemongo97.iptv.iptvmanager.service.M3U8ParserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;

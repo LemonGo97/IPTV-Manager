@@ -1,11 +1,10 @@
-package com.lemongo97.iptv.iptvmanager.parser;
+package com.lemongo97.iptv.iptvmanager.service;
 
 import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
-import com.lemongo97.iptv.iptvmanager.m3u8.IPTVM3U8Parser;
-import com.lemongo97.iptv.iptvmanager.m3u8.IPTVTXTParser;
+import com.lemongo97.iptv.iptvmanager.parser.m3u8.IPTVM3U8Parser;
+import com.lemongo97.iptv.iptvmanager.parser.txt.IPTVTXTParser;
 import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
-import com.lemongo97.iptv.iptvmanager.service.M3U8RawDataService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;

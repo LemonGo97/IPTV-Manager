@@ -1,8 +1,8 @@
 package com.lemongo97.iptv.iptvmanager.entity;
 
-import com.lemongo97.iptv.iptvmanager.m3u8.ChannelName;
-import com.lemongo97.iptv.iptvmanager.m3u8.ChannelUrl;
-import com.lemongo97.iptv.iptvmanager.m3u8.MetadataAttribute;
+import com.lemongo97.iptv.iptvmanager.parser.m3u8.ChannelName;
+import com.lemongo97.iptv.iptvmanager.parser.m3u8.ChannelUrl;
+import com.lemongo97.iptv.iptvmanager.parser.m3u8.MetadataAttribute;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

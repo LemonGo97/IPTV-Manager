@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.m3u8;
+package com.lemongo97.iptv.iptvmanager.parser.m3u8;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

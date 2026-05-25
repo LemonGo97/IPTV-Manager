@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.parser.entity;
+package com.lemongo97.iptv.iptvmanager.parser.epg.entity;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
