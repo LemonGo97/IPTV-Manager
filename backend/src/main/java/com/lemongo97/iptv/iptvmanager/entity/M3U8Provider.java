@@ -16,7 +16,8 @@ import java.util.Map;
 public class M3U8Provider {
     private Long id;
     private String name;
-    private String type;
+    private Type type;
+    private ContentType contentType;
     private String url;
     private String filePath;
     private Map<String, String> headers;
@@ -26,4 +27,14 @@ public class M3U8Provider {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean deleted;
+
+    public enum Type{
+        online,
+        file
+    }
+
+    public enum ContentType {
+        M3U8,
+        TXT
+    }
 }

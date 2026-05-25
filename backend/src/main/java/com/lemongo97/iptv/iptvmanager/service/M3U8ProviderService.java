@@ -85,6 +85,7 @@ public class M3U8ProviderService {
                 null,
                 provider.getName(),
                 provider.getType(),
+                provider.getContentType(),
                 provider.getUrl(),
                 provider.getFilePath(),
                 provider.getHeaders(),
@@ -121,6 +122,7 @@ public class M3U8ProviderService {
                 id,
                 provider.getName() != null ? provider.getName() : existing.getName(),
                 provider.getType() != null ? provider.getType() : existing.getType(),
+                provider.getContentType() != null ? provider.getContentType() : existing.getContentType(),
                 provider.getUrl(),
                 provider.getFilePath(),
                 provider.getHeaders(),
@@ -203,20 +205,16 @@ public class M3U8ProviderService {
      * 验证 M3U8 源
      */
     private void validateProvider(M3U8Provider provider) {
-        String type = provider.getType();
+        M3U8Provider.Type type = provider.getType();
         if (type == null) {
             throw new BusinessException("Provider type is required");
         }
 
-        if (!"online".equals(type) && !"local".equals(type)) {
-            throw new BusinessException("Invalid provider type: " + type + ", must be 'online' or 'local'");
-        }
-
-        if ("online".equals(type) && provider.getUrl() == null) {
+        if (type == M3U8Provider.Type.online && provider.getUrl() == null) {
             throw new BusinessException("URL is required for online provider");
         }
 
-        if ("local".equals(type) && provider.getFilePath() == null) {
+        if (type == M3U8Provider.Type.file && provider.getFilePath() == null) {
             throw new BusinessException("File path is required for local provider");
         }
 
@@ -262,7 +260,8 @@ public class M3U8ProviderService {
             var provider = new M3U8Provider(
                 null,
                 providerName,
-                "local",
+                M3U8Provider.Type.online,
+                M3U8Provider.ContentType.M3U8,
                 null,
                 targetPath.toString(),
                 null,

@@ -29,7 +29,7 @@
           clearable
           :options="[
             { label: '在线订阅', value: 'online' },
-            { label: '本地文件', value: 'local' },
+            { label: '本地文件', value: 'file' },
           ]"
         />
       </MeQueryItem>
@@ -80,7 +80,7 @@
             <n-radio value="online">
               在线订阅
             </n-radio>
-            <n-radio value="local">
+            <n-radio value="file">
               本地文件
             </n-radio>
           </n-radio-group>
@@ -104,7 +104,7 @@
         </n-form-item>
 
         <n-form-item
-          v-if="modalForm.type === 'local'"
+          v-if="modalForm.type === 'file'"
           label="上传文件"
           path="file"
           :rule="{

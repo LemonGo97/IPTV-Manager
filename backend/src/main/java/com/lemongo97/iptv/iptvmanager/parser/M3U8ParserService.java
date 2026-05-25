@@ -36,10 +36,10 @@ public class M3U8ParserService {
     public int parse(M3U8Provider provider, Long taskId) {
         String content;
         switch (provider.getType()) {
-            case "online" -> {
+            case online -> {
                 content = getContentFromUrl(provider);
             }
-            case "local" -> {
+            case file -> {
                 content = getContentFromFile(provider);
             }
             default -> {
