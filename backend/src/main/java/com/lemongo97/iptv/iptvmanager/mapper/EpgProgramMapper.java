@@ -26,7 +26,7 @@ public interface EpgProgramMapper {
     /**
      * 根据频道名查询节目列表
      */
-    List<EpgProgram> findByChannelName(@Param("sourceId") Long sourceId, @Param("channelId") String channelId);
+    List<EpgProgram> findByChannelId(@Param("sourceId") Long sourceId, @Param("channelId") String channelId);
 
     /**
      * 获取指定源的所有频道（按频道名分组）

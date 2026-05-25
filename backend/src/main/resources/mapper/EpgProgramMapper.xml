@@ -34,7 +34,7 @@
         WHERE id = #{id} AND deleted = 0
     </select>
 
-    <select id="findByChannelName" resultMap="EpgProgramResultMap">
+    <select id="findByChannelId" resultMap="EpgProgramResultMap">
         SELECT id, epg_source_id, channel_id, start_time, stop_time,
                title, sub_title, description,
                created_at, updated_at, deleted

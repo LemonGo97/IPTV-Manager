@@ -113,6 +113,10 @@ public class Channel {
          * 语言
          */
         private String lang;
+        /**
+         * 简介
+         */
+        private String description;
 
         public enum Type {
             program,

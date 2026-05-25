@@ -19,7 +19,7 @@
                created_at, updated_at, deleted
         FROM epg_channels
         WHERE epg_source_id = #{sourceId} AND deleted = 0
-        ORDER BY channel_name, start_time
+        ORDER BY channel_id, id
     </select>
 
     <select id="findById" resultMap="EpgChannelResultMap">
@@ -30,11 +30,23 @@
     </select>
 
     <select id="findByChannelName" resultMap="EpgChannelResultMap">
-        SELECT id, epg_source_id, channel_id, display_name, icon,
-               created_at, updated_at, deleted
-        FROM epg_channels
-        WHERE epg_source_id = #{sourceId} AND channel_name = #{channelName} AND deleted = 0
-        ORDER BY start_time
+        SELECT
+            ec.id,
+            ec.epg_source_id,
+            ec.channel_id,
+            ec.display_name,
+            ec.icon,
+            ec.created_at,
+            ec.updated_at,
+            ec.deleted
+        FROM
+            epg_channels ec
+                LEFT JOIN epg_sources es ON ec.epg_source_id = es.id
+                AND es.deleted = 0
+                AND es.enabled = 1
+        WHERE
+            ec.deleted = 0
+          AND EXISTS (SELECT 1 FROM json_each (ec.display_name) WHERE LOWER(json_each.value ->> '$.value') LIKE LOWER(#{channelName}))
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
