@@ -411,27 +411,27 @@ function handleSearch() {
 // 表格列定义
 const columns = computed(() => [
   {title: 'ID', key: 'id', width: 80},
-  {
-    title: '频道LOGO',
-    key: 'logo',
-    width: 120,
-    render: row =>
-      h(NImage, {
-        key: row.id,
-        src: row.logo || '/placeholder-logo.png',
-        alt: row.name,
-        width: 80,
-        height: 50,
-        previewDisabled: true,
-        objectFit: 'contain',
-        style: {
-          borderRadius: '4px',
-          backgroundColor: 'rgba(0, 0, 0, 0.06)',
-          padding: '4px',
-          boxSizing: 'content-box',
-        },
-      }),
-  },
+  // {
+  //   title: '频道LOGO',
+  //   key: 'logo',
+  //   width: 120,
+  //   render: row =>
+  //     h(NImage, {
+  //       key: row.id,
+  //       src: row.logo || '/placeholder-logo.png',
+  //       alt: row.name,
+  //       width: 80,
+  //       height: 50,
+  //       previewDisabled: true,
+  //       objectFit: 'contain',
+  //       style: {
+  //         borderRadius: '4px',
+  //         backgroundColor: 'rgba(0, 0, 0, 0.06)',
+  //         padding: '4px',
+  //         boxSizing: 'content-box',
+  //       },
+  //     }),
+  // },
   {
     title: '频道名称',
     key: 'name',
