@@ -87,6 +87,25 @@
         </n-form-item>
 
         <n-form-item
+          label="内容类型"
+          path="contentType"
+          :rule="{
+            required: true,
+            message: '请选择内容类型',
+            trigger: ['change', 'blur'],
+          }"
+        >
+          <n-select
+            v-model:value="modalForm.contentType"
+            clearable
+            :options="[
+            { label: 'M3U8', value: 'M3U8' },
+            { label: 'TXT', value: 'TXT' },
+          ]"
+          />
+        </n-form-item>
+
+        <n-form-item
           v-if="modalForm.type === 'online'"
           label="订阅地址"
           path="url"
@@ -116,7 +135,7 @@
           <n-upload
             :file-list="fileList"
             :max="1"
-            accept=".m3u,.m3u8"
+            accept=".m3u,.m3u8,.txt,.text"
             :custom-request="handleFileUpload"
             @update:file-list="handleFileListChange"
           >

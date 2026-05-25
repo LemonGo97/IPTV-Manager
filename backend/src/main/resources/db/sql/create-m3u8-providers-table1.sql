@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS m3u8_providers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     type TEXT NOT NULL DEFAULT 'online',
-    content_type TEXT DEFAULT 'm3u8',
+    content_type TEXT DEFAULT 'M3U8',
     url TEXT,
     file_path TEXT,
     headers TEXT,
