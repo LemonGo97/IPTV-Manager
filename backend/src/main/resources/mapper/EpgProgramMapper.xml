@@ -7,24 +7,19 @@
         <id property="id" column="id"/>
         <result property="epgSourceId" column="epg_source_id"/>
         <result property="channelId" column="channel_id"/>
-        <result property="channelName" column="channel_name"/>
         <result property="startTime" column="start_time"/>
         <result property="stopTime" column="stop_time"/>
-        <result property="title" column="title"/>
+        <result property="title" column="title" typeHandler="com.lemongo97.iptv.iptvmanager.entity.EpgProgram$TitleTypeHandler"/>
         <result property="subTitle" column="sub_title"/>
-        <result property="description" column="description"/>
-        <result property="categories" column="categories"/>
-        <result property="icons" column="icons"/>
-        <result property="credits" column="credits"/>
-        <result property="ratings" column="ratings"/>
+        <result property="description" column="description" typeHandler="com.lemongo97.iptv.iptvmanager.entity.EpgProgram$DescriptionTypeHandler"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="deleted" column="deleted"/>
     </resultMap>
 
     <select id="findBySourceId" resultMap="EpgProgramResultMap">
-        SELECT id, epg_source_id, channel_id, channel_name, start_time, stop_time,
-               title, sub_title, description, categories, icons, credits, ratings,
+        SELECT id, epg_source_id, channel_id, start_time, stop_time,
+               title, sub_title, description,
                created_at, updated_at, deleted
         FROM epg_programs
         WHERE epg_source_id = #{sourceId} AND deleted = 0
@@ -32,51 +27,54 @@
     </select>
 
     <select id="findById" resultMap="EpgProgramResultMap">
-        SELECT id, epg_source_id, channel_id, channel_name, start_time, stop_time,
-               title, sub_title, description, categories, icons, credits, ratings,
+        SELECT id, epg_source_id, channel_id, start_time, stop_time,
+               title, sub_title, description,
                created_at, updated_at, deleted
         FROM epg_programs
         WHERE id = #{id} AND deleted = 0
     </select>
 
     <select id="findByChannelName" resultMap="EpgProgramResultMap">
-        SELECT id, epg_source_id, channel_id, channel_name, start_time, stop_time,
-               title, sub_title, description, categories, icons, credits, ratings,
+        SELECT id, epg_source_id, channel_id, start_time, stop_time,
+               title, sub_title, description,
                created_at, updated_at, deleted
         FROM epg_programs
-        WHERE epg_source_id = #{sourceId} AND channel_name = #{channelName} AND deleted = 0
+        WHERE epg_source_id = #{sourceId} AND channel_id = #{channelId} AND deleted = 0
         ORDER BY start_time
     </select>
 
     <select id="findChannelGroups" resultType="com.lemongo97.iptv.iptvmanager.mapper.EpgProgramMapper$ChannelGroup">
-        SELECT channel_name as channelName, COUNT(*) as programCount
-        FROM epg_programs
-        WHERE epg_source_id = #{sourceId} AND deleted = 0
-        GROUP BY channel_name
-        ORDER BY channel_name
+        SELECT ec.channel_id as channelId, ec.display_name ->> '$[0].value' as channelName, COUNT(*) as programCount
+        FROM epg_programs ep left join epg_channels ec
+        ON ep.channel_id = ec.channel_id AND ec.deleted = 0
+        WHERE ep.epg_source_id = #{sourceId} AND ep.deleted = 0
+        GROUP BY channelName
+        ORDER BY channelName
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO epg_programs (
-            epg_source_id, channel_id, channel_name, start_time, stop_time,
-            title, sub_title, description, categories, icons, credits, ratings,
+            epg_source_id, channel_id, start_time, stop_time,
+            title, sub_title, description,
             created_at, updated_at, deleted
         ) VALUES (
-            #{epgSourceId}, #{channelId}, #{channelName}, #{startTime}, #{stopTime},
-            #{title}, #{subTitle}, #{description}, #{categories}, #{icons}, #{credits}, #{ratings},
+            #{epgSourceId}, #{channelId}, #{startTime}, #{stopTime},
+            #{title, typeHandler=com.lemongo97.iptv.iptvmanager.entity.EpgProgram$TitleTypeHandler}, #{subTitle},
+            #{description, typeHandler=com.lemongo97.iptv.iptvmanager.entity.EpgProgram$DescriptionTypeHandler},
             #{createdAt}, #{updatedAt}, 0
         )
     </insert>
 
     <insert id="insertBatch" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO epg_programs (
-            epg_source_id, channel_id, channel_name, start_time, stop_time,
-            title, sub_title, description, categories, icons, credits, ratings,
+            epg_source_id, channel_id, start_time, stop_time,
+            title, sub_title, description,
             created_at, updated_at, deleted
         ) VALUES
         <foreach collection="programs" item="program" separator=",">
-            (#{program.epgSourceId}, #{program.channelId}, #{program.channelName}, #{program.startTime}, #{program.stopTime},
-             #{program.title}, #{program.subTitle}, #{program.description}, #{program.categories}, #{program.icons}, #{program.credits}, #{program.ratings},
+            (#{program.epgSourceId}, #{program.channelId}, #{program.startTime}, #{program.stopTime},
+             #{program.title, typeHandler=com.lemongo97.iptv.iptvmanager.entity.EpgProgram$TitleTypeHandler}, #{program.subTitle},
+             #{program.description, typeHandler=com.lemongo97.iptv.iptvmanager.entity.EpgProgram$DescriptionTypeHandler},
              #{program.createdAt}, #{program.updatedAt}, 0)
         </foreach>
     </insert>
@@ -85,23 +83,6 @@
         UPDATE epg_programs
         SET deleted = 1
         WHERE epg_source_id = #{sourceId}
-    </update>
-
-    <update id="update">
-        UPDATE epg_programs
-        SET channel_id = #{channelId},
-            channel_name = #{channelName},
-            start_time = #{startTime},
-            stop_time = #{stopTime},
-            title = #{title},
-            sub_title = #{subTitle},
-            description = #{description},
-            categories = #{categories},
-            icons = #{icons},
-            credits = #{credits},
-            ratings = #{ratings},
-            updated_at = #{updatedAt}
-        WHERE id = #{id} AND deleted = 0
     </update>
 
 </mapper>

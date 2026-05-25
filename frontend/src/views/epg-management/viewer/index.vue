@@ -42,7 +42,7 @@ const expandedRowKeys = ref([])
 
 // 树形数据的行键函数
 const rowKey = (row) => {
-  return row.type === 'channel' ? `channel-${row.channelName}` : `program-${row.id}`
+  return row.type === 'channel' ? `channel-${row.channelId}` : `program-${row.id}`
 }
 
 // 表格列定义
@@ -54,16 +54,19 @@ const columns = [
   {
     title: '频道/节目',
     key: 'name',
+    width: 240,
+    ellipsis: { tooltip: true },
     render: (row) => {
       if (row.type === 'channel') {
         return `${row.channelName} (${row.programCount}个节目)`
       }
-      return row.title
+      return row.title ? row.title.value : '-'
     },
   },
   {
     title: '开始时间',
     key: 'startTime',
+    width: 200,
     render: (row) => {
       if (row.type === 'channel') return '-'
       return formatTime(row.startTime)
@@ -72,6 +75,7 @@ const columns = [
   {
     title: '结束时间',
     key: 'stopTime',
+    width: 200,
     render: (row) => {
       if (row.type === 'channel') return '-'
       return formatTime(row.stopTime)
@@ -83,7 +87,7 @@ const columns = [
     ellipsis: { tooltip: true },
     render: (row) => {
       if (row.type === 'channel') return '-'
-      return row.description || '-'
+      return row.description ? row.description[0].value : '-'
     },
   },
 ]
@@ -140,6 +144,7 @@ async function handleSourceChange(sourceId) {
     // 将频道分组转换为树形数据的第一层
     tableData.value = res.data.map(channel => ({
       type: 'channel',
+      channelId: channel.channelId,
       channelName: channel.channelName,
       programCount: channel.programCount,
       children: null, // 懒加载，初始为 null
@@ -159,7 +164,7 @@ async function handleExpand(keys) {
   // 查找需要加载节目的频道
   const channelsToLoad = tableData.value
     .filter(row => row.type === 'channel' && !row._loaded && keys.includes(rowKey(row)))
-    .map(row => row.channelName)
+    .map(row => row.channelId)
 
   if (channelsToLoad.length === 0) return
 
@@ -167,9 +172,9 @@ async function handleExpand(keys) {
   try {
     // 并行加载所有需要加载的频道的节目
     await Promise.all(
-      channelsToLoad.map(async (channelName) => {
+      channelsToLoad.map(async (channelId) => {
         try {
-          const res = await api.getPrograms(selectedSourceId.value, channelName)
+          const res = await api.getPrograms(selectedSourceId.value, channelId)
           const programs = res.data.map(program => ({
             ...program,
             type: 'program',
@@ -177,14 +182,14 @@ async function handleExpand(keys) {
 
           // 更新对应频道的 children
           const channelIndex = tableData.value.findIndex(
-            row => row.type === 'channel' && row.channelName === channelName
+            row => row.type === 'channel' && row.channelId === channelId
           )
           if (channelIndex !== -1) {
             tableData.value[channelIndex].children = programs
             tableData.value[channelIndex]._loaded = true
           }
         } catch (error) {
-          console.error(`加载频道 ${channelName} 的节目失败:`, error)
+          console.error(`加载频道 ${channelId} 的节目失败:`, error)
         }
       })
     )

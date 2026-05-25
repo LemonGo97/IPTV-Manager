@@ -43,8 +43,8 @@ public class EpgProgramService {
     /**
      * 获取指定频道的节目列表
      */
-    public List<EpgProgram> findByChannel(Long sourceId, String channelName) {
-        return epgProgramMapper.findByChannelName(sourceId, channelName);
+    public List<EpgProgram> findByChannel(Long sourceId, String channelId) {
+        return epgProgramMapper.findByChannelName(sourceId, channelId);
     }
 
     /**

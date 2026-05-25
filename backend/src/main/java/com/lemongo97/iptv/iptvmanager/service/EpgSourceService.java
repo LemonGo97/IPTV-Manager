@@ -1,11 +1,9 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
-import com.lemongo97.iptv.iptvmanager.entity.EpgProgram;
 import com.lemongo97.iptv.iptvmanager.entity.EpgSource;
 import com.lemongo97.iptv.iptvmanager.entity.TaskProgress;
 import com.lemongo97.iptv.iptvmanager.mapper.EpgSourceMapper;
-import com.lemongo97.iptv.iptvmanager.parser.EpgParserService;
 import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +23,6 @@ public class EpgSourceService {
 
     private final EpgSourceMapper epgSourceMapper;
     private final EpgProgramService epgProgramService;
-    private final EpgParserService epgParserService;
     private final ScheduledTaskService scheduledTaskService;
     private final TaskProgressService taskProgressService;
 

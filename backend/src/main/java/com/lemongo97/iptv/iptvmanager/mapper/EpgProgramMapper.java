@@ -26,7 +26,7 @@ public interface EpgProgramMapper {
     /**
      * 根据频道名查询节目列表
      */
-    List<EpgProgram> findByChannelName(@Param("sourceId") Long sourceId, @Param("channelName") String channelName);
+    List<EpgProgram> findByChannelName(@Param("sourceId") Long sourceId, @Param("channelId") String channelId);
 
     /**
      * 获取指定源的所有频道（按频道名分组）
@@ -49,15 +49,12 @@ public interface EpgProgramMapper {
      */
     int deleteBySourceId(@Param("sourceId") Long sourceId);
 
-    /**
-     * 更新节目
-     */
-    int update(EpgProgram program);
 
     /**
      * 频道分组记录
      */
     record ChannelGroup(
+        String channelId,
         String channelName,
         Integer programCount
     ) {}

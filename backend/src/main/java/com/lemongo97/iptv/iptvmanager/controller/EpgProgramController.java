@@ -38,7 +38,7 @@ public class EpgProgramController {
     @GetMapping("/list")
     public ApiResponse<List<EpgProgram>> getPrograms(
             @RequestParam Long sourceId,
-            @RequestParam String channelName) {
-        return ApiResponse.ok(epgProgramService.findByChannel(sourceId, channelName));
+            @RequestParam String channelId) {
+        return ApiResponse.ok(epgProgramService.findByChannel(sourceId, channelId));
     }
 }

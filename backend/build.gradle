@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.spring.boot.starter.websocket)
     // jsoup for XML parsing
     implementation(libs.jsoup)
+    implementation(libs.commons.compress)
 
     // Liquibase for database migration
     implementation(libs.liquibase.core)

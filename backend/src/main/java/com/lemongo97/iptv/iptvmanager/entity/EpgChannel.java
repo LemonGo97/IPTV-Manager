@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,45 +18,38 @@ import java.util.List;
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class EpgProgram {
+public class EpgChannel {
     private Long id;
     private Long epgSourceId;
     private String channelId;
-    private String startTime;
-    private String stopTime;
-    private Title title;
-    private String subTitle;
-    private List<Desc> description;
+    private List<DisplayName> displayName;
+    private Icon icon;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean deleted;
 
-
-
     @Data
-    @Accessors(chain = true)
-    public static class Title {
+    public static class DisplayName {
         private String lang;
         private String value;
     }
 
     @Data
-    @Accessors(chain = true)
-    public static class Desc {
-        private String lang;
-        private String value;
+    public static class Icon {
+        private String src;
+        private String width;
+        private String height;
     }
 
-
-    public static class DescriptionTypeHandler extends JsonArrayTypeHandler<Desc> {
-        public DescriptionTypeHandler() {
-            super(Desc.class);
+    public static class DisplayNameTypeHandler extends JsonArrayTypeHandler<DisplayName> {
+        public DisplayNameTypeHandler() {
+            super(DisplayName.class);
         }
     }
 
-    public static class TitleTypeHandler extends JsonObjectTypeHandler<Title> {
-        public TitleTypeHandler() {
-            super(Title.class);
+    public static class IconTypeHandler extends JsonObjectTypeHandler<Icon> {
+        public IconTypeHandler() {
+            super(Icon.class);
         }
     }
 }

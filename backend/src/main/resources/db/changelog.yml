@@ -215,3 +215,21 @@ databaseChangeLog:
             path: db/sql/create-epg-programs-table.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: create-epg-tables
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-epg-tables.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+  - changeSet:
+      id: create-epg-tables1
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-epg-tables1.sql
+            relativeToChangelogFile: false
+            stripComments: true
