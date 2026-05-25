@@ -3,9 +3,9 @@ package com.lemongo97.iptv.iptvmanager.parser;
 import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
 import com.lemongo97.iptv.iptvmanager.m3u8.IPTVM3U8Parser;
+import com.lemongo97.iptv.iptvmanager.m3u8.IPTVTXTParser;
 import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import com.lemongo97.iptv.iptvmanager.service.M3U8RawDataService;
-import io.lindstrom.m3u8.parser.MultivariantPlaylistParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -30,8 +30,8 @@ public class M3U8ParserService {
     private final OriginalChannelMapper originalChannelMapper;
     private final RestTemplate restTemplate;
     private final M3U8RawDataService rawDataService;
-    private final MultivariantPlaylistParser multivariantPlaylistParser = new MultivariantPlaylistParser();
     private final IPTVM3U8Parser IPTVM3U8Parser;
+    private final IPTVTXTParser IPTVTXTParser;
 
     public int parse(M3U8Provider provider, Long taskId) {
         String content;
@@ -49,8 +49,10 @@ public class M3U8ParserService {
         // 保存原始数据到历史记录
         rawDataService.saveRawData(provider.getId(), content);
 
-        List<OriginalChannelMetadata> channels = this.parseFromContent(content, provider.getId());
+        List<OriginalChannelMetadata> channels = this.parseFromContent(content, provider.getId(), provider.getContentType());
         originalChannelMapper.deleteByProviderId(provider.getId());
+        if (channels.isEmpty()) return 0;
+
         originalChannelMapper.insert(channels, taskId);
         return channels.size();
     }
@@ -110,9 +112,21 @@ public class M3U8ParserService {
         }
     }
 
-    private List<OriginalChannelMetadata> parseFromContent(String content, Long providerId) {
+    private List<OriginalChannelMetadata> parseFromContent(String content, Long providerId, M3U8Provider.ContentType contentType) {
+        List<OriginalChannelMetadata> channels;
+        switch (contentType) {
+            case M3U8 -> {
+                channels = IPTVM3U8Parser.parseContent(content, OriginalChannelMetadata.class);
+            }
+            case TXT -> {
+                channels = IPTVTXTParser.parseContent(content, OriginalChannelMetadata.class);
+            }
+            default -> {
+                channels = Collections.emptyList();
+            }
+        }
+
         // 使用简单解析器解析内容
-        List<OriginalChannelMetadata> channels = IPTVM3U8Parser.parseContent(content, OriginalChannelMetadata.class);
         LocalDateTime now = LocalDateTime.now();
         channels.forEach(channel -> {
             channel.setProviderId(providerId);
