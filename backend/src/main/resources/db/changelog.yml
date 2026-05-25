@@ -233,3 +233,12 @@ databaseChangeLog:
             path: db/sql/create-epg-tables1.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: insert-cleanup-engine-table1
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/insert-cleanup-engine-table1.sql
+            relativeToChangelogFile: false
+            stripComments: true

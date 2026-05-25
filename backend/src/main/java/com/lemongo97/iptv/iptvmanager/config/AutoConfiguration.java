@@ -7,10 +7,7 @@ import com.lemongo97.iptv.iptvmanager.engine.delay.FFProbeCheckEngine;
 import com.lemongo97.iptv.iptvmanager.engine.delay.HttpCheckEngine;
 import com.lemongo97.iptv.iptvmanager.engine.filter.BlackListEngine;
 import com.lemongo97.iptv.iptvmanager.engine.group.GroupingEngine;
-import com.lemongo97.iptv.iptvmanager.engine.name.CaseConversionEngine;
-import com.lemongo97.iptv.iptvmanager.engine.name.OpenCCEngine;
-import com.lemongo97.iptv.iptvmanager.engine.name.RegexReplaceEngine;
-import com.lemongo97.iptv.iptvmanager.engine.name.StringReplaceEngine;
+import com.lemongo97.iptv.iptvmanager.engine.name.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,6 +29,7 @@ public class AutoConfiguration {
         cleaningEngineFactory.addEngine("OpenCCEngine", new OpenCCEngine());
         cleaningEngineFactory.addEngine("RegexReplaceEngine", new RegexReplaceEngine());
         cleaningEngineFactory.addEngine("StringReplaceEngine", new StringReplaceEngine());
+        cleaningEngineFactory.addEngine("StringRemoveEngine", new StringRemoveEngine());
         return cleaningEngineFactory;
     }
 
