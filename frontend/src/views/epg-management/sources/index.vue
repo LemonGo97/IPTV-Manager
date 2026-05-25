@@ -69,7 +69,8 @@
             v-model:value="modalForm.type"
             placeholder="请选择类型"
             :options="[
-              { label: 'XMLTV', value: 'xml' },
+              { label: 'XMLTV', value: 'XMLTV' },
+              { label: 'XMLTV（Gzip）', value: 'XMLTV_GZIP' },
             ]"
           />
         </n-form-item>
@@ -106,8 +107,28 @@ const queryItems = reactive({
 const columns = [
   { title: 'ID', key: 'id', width: 80 },
   { title: '名称', key: 'name', width: 200, ellipsis: { tooltip: true } },
-  { title: 'URL', key: 'url', ellipsis: { tooltip: true } },
-  { title: '类型', key: 'type', width: 100 },
+  { title: 'URL', key: 'url', width: 300, ellipsis: { tooltip: true } },
+  {
+    title: '类型',
+    key: 'type',
+    width: 150,
+    render: row => {
+      if (row.type === 'XMLTV') {
+        return h(
+          NTag,
+          { type: 'default' },
+          { default: () => "XMLTV" }
+        )
+      } else if (row.type === 'XMLTV_GZIP') {
+        return h(
+          NTag,
+          { type: 'default' },
+          { default: () => "XMLTV（Gzip）" }
+        )
+      }
+    }
+
+  },
   {
     title: '状态',
     key: 'enabled',

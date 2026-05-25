@@ -55,7 +55,7 @@ public class EpgSourceService {
                 null,
                 epgSource.getName(),
                 epgSource.getUrl(),
-                epgSource.getType() != null ? epgSource.getType() : "xml",
+                epgSource.getType() != null ? epgSource.getType() : EpgSource.Type.XMLTV,
                 epgSource.getEnabled() != null ? epgSource.getEnabled() : true,
                 epgSource.getDescription(),
                 now,

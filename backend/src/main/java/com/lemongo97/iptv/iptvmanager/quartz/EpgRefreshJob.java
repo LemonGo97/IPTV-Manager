@@ -20,6 +20,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -53,6 +54,11 @@ public class EpgRefreshJob implements Job {
             if (taskId != null) {
                 taskProgressService.failTask(taskId, "EPG source not found");
             }
+            return;
+        }
+
+        if (epgSource.getType() == null) {
+            taskProgressService.failTask(taskId, "EPG source type not found");
             return;
         }
 
@@ -98,8 +104,16 @@ public class EpgRefreshJob implements Job {
                 HttpMethod.GET,
                 null,
                 (response) -> {
-                    GzipCompressorInputStream gzipInputStream = new GzipCompressorInputStream(response.getBody());
-                    EPGParser.parse(gzipInputStream, StandardCharsets.UTF_8,
+                    InputStream inputStream;
+                    if (epgSource.getType() == EpgSource.Type.XMLTV_GZIP) {
+                        inputStream = new GzipCompressorInputStream(response.getBody());
+                    } else if (epgSource.getType() == EpgSource.Type.XMLTV) {
+                        inputStream = response.getBody();
+                    } else {
+                        return null;
+                    }
+
+                    EPGParser.parse(inputStream, StandardCharsets.UTF_8,
                             (EPGChannelHandler) channel -> {
                                 EpgChannel epgChannel = new EpgChannel()
                                         .setChannelId(channel.getId())

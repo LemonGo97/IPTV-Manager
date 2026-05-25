@@ -16,10 +16,15 @@ public class EpgSource {
     private Long id;
     private String name;
     private String url;
-    private String type;
+    private Type type;
     private Boolean enabled;
     private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean deleted;
+
+    public enum Type {
+        XMLTV,
+        XMLTV_GZIP
+    }
 }
