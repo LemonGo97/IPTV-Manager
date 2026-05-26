@@ -1,8 +1,8 @@
 package com.lemongo97.iptv.iptvmanager.controller;
 
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
-import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
-import com.lemongo97.iptv.iptvmanager.service.M3U8ProviderService;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
+import com.lemongo97.iptv.iptvmanager.service.IPTVProviderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,58 +10,58 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 /**
- * M3U8 源控制器
+ * IPTV 源控制器
  */
 @RestController
 @RequestMapping("/m3u8/provider")
 @RequiredArgsConstructor
-public class M3U8ProviderController {
+public class IPTVProviderController {
 
-    private final M3U8ProviderService providerService;
+    private final IPTVProviderService providerService;
 
     /**
-     * 获取所有 M3U8 源
+     * 获取所有 IPTV 源
      */
     @GetMapping
-    public ApiResponse<List<M3U8Provider>> findAll() {
+    public ApiResponse<List<IPTVProvider>> findAll() {
         return ApiResponse.ok(providerService.findAll());
     }
 
     /**
-     * 根据 ID 获取 M3U8 源
+     * 根据 ID 获取 IPTV 源
      */
     @GetMapping("/{id}")
-    public ApiResponse<M3U8Provider> findById(@PathVariable Long id) {
+    public ApiResponse<IPTVProvider> findById(@PathVariable Long id) {
         return ApiResponse.ok(providerService.findById(id));
     }
 
     /**
-     * 创建 M3U8 源
+     * 创建 IPTV 源
      */
     @PostMapping
-    public ApiResponse<M3U8Provider> create(@RequestBody M3U8Provider provider) {
-        return ApiResponse.ok(providerService.create(provider), "M3U8 provider created successfully");
+    public ApiResponse<IPTVProvider> create(@RequestBody IPTVProvider provider) {
+        return ApiResponse.ok(providerService.create(provider), "IPTV provider created successfully");
     }
 
     /**
-     * 更新 M3U8 源
+     * 更新 IPTV 源
      */
     @PutMapping("/{id}")
-    public ApiResponse<M3U8Provider> update(@PathVariable Long id, @RequestBody M3U8Provider provider) {
-        return ApiResponse.ok(providerService.update(id, provider), "M3U8 provider updated successfully");
+    public ApiResponse<IPTVProvider> update(@PathVariable Long id, @RequestBody IPTVProvider provider) {
+        return ApiResponse.ok(providerService.update(id, provider), "IPTV provider updated successfully");
     }
 
     /**
-     * 删除 M3U8 源
+     * 删除 IPTV 源
      */
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteById(@PathVariable Long id) {
         providerService.deleteById(id);
-        return ApiResponse.ok("M3U8 provider deleted successfully");
+        return ApiResponse.ok("IPTV provider deleted successfully");
     }
 
     /**
-     * 刷新 M3U8 源（异步）
+     * 刷新 IPTV 源（异步）
      * 提交刷新任务到队列，立即返回任务 ID
      */
     @PostMapping("/{id}/refresh")
@@ -69,7 +69,7 @@ public class M3U8ProviderController {
         Long taskId = providerService.refresh(id);
         return ApiResponse.ok(
             new TaskSubmissionResult(taskId, "Refresh task submitted successfully"),
-            "M3U8 provider refresh task submitted"
+            "IPTV provider refresh task submitted"
         );
     }
 
@@ -79,10 +79,10 @@ public class M3U8ProviderController {
     public record TaskSubmissionResult(Long taskId, String message) {}
 
     /**
-     * 上传本地 M3U8 文件
+     * 上传本地 IPTV 文件
      */
     @PostMapping("/upload")
-    public ApiResponse<M3U8Provider> upload(
+    public ApiResponse<IPTVProvider> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "description", required = false) String description

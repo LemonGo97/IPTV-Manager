@@ -8,12 +8,12 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
- * M3U8 源提供者
+ * IPTV 源提供者
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class M3U8Provider {
+public class IPTVProvider {
     private Long id;
     private String name;
     private Type type;

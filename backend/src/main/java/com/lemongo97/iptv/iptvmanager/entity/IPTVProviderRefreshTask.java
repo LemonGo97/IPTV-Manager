@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * M3U8 刷新任务历史
+ * IPTV 刷新任务历史
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class M3U8RefreshTask {
+public class IPTVProviderRefreshTask {
     private Long id;
     private Long providerId;
     private String providerName;
@@ -23,7 +23,7 @@ public class M3U8RefreshTask {
     private Long duration;              // 毫秒
     private Integer channelCount;       // 解析的频道数量
     private String errorMessage;
-    private String rawContent;          // 原始 M3U8 内容（用于调试）
+    private String rawContent;          // 原始 IPTV Provider 响应 内容（用于调试）
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

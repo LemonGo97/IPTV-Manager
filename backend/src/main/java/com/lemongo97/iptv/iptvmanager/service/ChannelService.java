@@ -28,7 +28,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ChannelService {
 
-    private final M3U8ProviderMapper m3U8ProviderMapper;
+    private final IPTVProviderMapper IPTVProviderMapper;
     private final ChannelMapper channelMapper;
     private final OriginalChannelMapper originalChannelMapper;
     private final ChannelGroupMapper channelGroupMapper;
@@ -164,7 +164,7 @@ public class ChannelService {
 
     public Map<String, ?> getOptions() {
         Map<String, Object> options = new HashMap<>();
-        options.put("provider", m3U8ProviderMapper.getProviderNames());
+        options.put("provider", IPTVProviderMapper.getProviderNames());
         options.put("group", channelGroupMapper.getGroupNames());
         return options;
     }

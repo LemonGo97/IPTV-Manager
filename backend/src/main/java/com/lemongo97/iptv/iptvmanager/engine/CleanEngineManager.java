@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * [原始 M3U8 数据]
+ * [原始 IPTV 数据]
  *        │
  *        ▼
  *  1. 过滤规则 (Filter)       ───► 移除政治、色情或无法解析的非法频道
@@ -26,7 +26,7 @@ import java.util.List;
  *  5. 分组规则 (Group)        ───► 根据名称或标签分类，如 "央视频道", "卫视频道"
  *        │
  *        ▼
- * [标准 M3U8 输出]
+ * [标准 IPTV 输出]
  */
 @Data
 @AllArgsConstructor

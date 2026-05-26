@@ -5,8 +5,6 @@ import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
-import com.lemongo97.iptv.iptvmanager.entity.ChannelGroup;
-import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
 import com.lemongo97.iptv.iptvmanager.service.ChannelService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;

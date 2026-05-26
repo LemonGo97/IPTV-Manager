@@ -70,7 +70,7 @@ public class Channel {
     private ChannelGroup channelGroup;
 
     private Long providerId;
-    private M3U8Provider provider;
+    private IPTVProvider provider;
 
     public enum Status {
         valid,

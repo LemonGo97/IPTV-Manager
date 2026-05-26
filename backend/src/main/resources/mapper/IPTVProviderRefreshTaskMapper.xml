@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.M3U8RefreshTaskMapper">
+<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderRefreshTaskMapper">
 
     <!-- 实体 ResultMap（不含 providerName） -->
-    <resultMap id="ResultMap" type="com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask">
+    <resultMap id="ResultMap" type="com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRefreshTask">
         <id property="id" column="id"/>
         <result property="providerId" column="provider_id"/>
         <result property="triggerType" column="trigger_type"/>
@@ -19,7 +19,7 @@
     </resultMap>
 
     <!-- DTO ResultMap（包含通过 JOIN 获取的 providerName） -->
-    <resultMap id="DTOResultMap" type="com.lemongo97.iptv.iptvmanager.dto.M3U8RefreshTaskDTO">
+    <resultMap id="DTOResultMap" type="com.lemongo97.iptv.iptvmanager.dto.IPTVRefreshTaskDTO">
         <id property="id" column="id"/>
         <result property="providerId" column="provider_id"/>
         <result property="providerName" column="provider_name"/>

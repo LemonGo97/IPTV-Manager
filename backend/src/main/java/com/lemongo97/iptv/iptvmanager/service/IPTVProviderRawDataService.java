@@ -1,7 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
-import com.lemongo97.iptv.iptvmanager.entity.M3U8RawData;
-import com.lemongo97.iptv.iptvmanager.mapper.M3U8RawDataMapper;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRawData;
+import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderRawDataMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,15 +11,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * M3U8 原始数据服务
- * 负责管理 M3U8 文件的原始内容历史，保留最近3次数据
+ * IPTV 原始数据服务
+ * 负责管理 IPTV 文件的原始内容历史，保留最近3次数据
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class M3U8RawDataService {
+public class IPTVProviderRawDataService {
 
-    private final M3U8RawDataMapper rawDataMapper;
+    private final IPTVProviderRawDataMapper rawDataMapper;
     private static final int MAX_HISTORY_COUNT = 3;
 
     /**
@@ -29,7 +29,7 @@ public class M3U8RawDataService {
     @Transactional
     public void saveRawData(Long providerId, String content) {
         var now = LocalDateTime.now();
-        var rawData = new M3U8RawData(null, providerId, content, now, false);
+        var rawData = new IPTVProviderRawData(null, providerId, content, now, false);
         rawDataMapper.insert(rawData);
         log.info("Saved raw data for provider: {}, size: {} bytes, starts with: {}",
             providerId, content.length(), content.substring(0, Math.min(50, content.length())));
@@ -41,14 +41,14 @@ public class M3U8RawDataService {
     /**
      * 获取指定提供者的原始数据历史（最近的记录在前）
      */
-    public List<M3U8RawData> getHistory(Long providerId) {
+    public List<IPTVProviderRawData> getHistory(Long providerId) {
         return rawDataMapper.findByProviderIdOrderByFetchedAtDesc(providerId);
     }
 
     /**
      * 获取最近的原始数据
      */
-    public M3U8RawData getLatest(Long providerId) {
+    public IPTVProviderRawData getLatest(Long providerId) {
         var history = getHistory(providerId);
         return history.isEmpty() ? null : history.get(0);
     }

@@ -1,6 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.dto;
 
-import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRefreshTask;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,12 +8,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * M3U8 刷新任务 DTO，包含通过关联查询获取的订阅源名称
+ * IPTV 刷新任务 DTO，包含通过关联查询获取的订阅源名称
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class M3U8RefreshTaskDTO {
+public class IPTVRefreshTaskDTO {
     private Long id;
     private Long providerId;
     private String providerName;        // 通过关联查询获取
@@ -31,8 +31,8 @@ public class M3U8RefreshTaskDTO {
     /**
      * 从实体转换为 DTO（不包含 providerName）
      */
-    public static M3U8RefreshTaskDTO fromEntity(M3U8RefreshTask task) {
-        return new M3U8RefreshTaskDTO(
+    public static IPTVRefreshTaskDTO fromEntity(IPTVProviderRefreshTask task) {
+        return new IPTVRefreshTaskDTO(
             task.getId(),
             task.getProviderId(),
             null, // providerName 需要通过数据库查询获取

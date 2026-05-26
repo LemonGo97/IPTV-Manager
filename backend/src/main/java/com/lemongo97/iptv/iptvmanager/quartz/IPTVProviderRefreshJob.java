@@ -1,10 +1,10 @@
 package com.lemongo97.iptv.iptvmanager.quartz;
 
-import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
-import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
-import com.lemongo97.iptv.iptvmanager.mapper.M3U8ProviderMapper;
-import com.lemongo97.iptv.iptvmanager.mapper.M3U8RefreshTaskMapper;
-import com.lemongo97.iptv.iptvmanager.service.M3U8ParserService;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRefreshTask;
+import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderRefreshTaskMapper;
+import com.lemongo97.iptv.iptvmanager.service.IPTVProviderContentParserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
@@ -14,19 +14,19 @@ import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
 
 /**
- * M3U8 刷新定时任务
- * 使用 Quartz 框架定期刷新 M3U8 提供者
+ * IPTV 刷新定时任务
+ * 使用 Quartz 框架定期刷新 IPTV 提供者
  * 支持记录任务执行状态和结果到数据库
  */
 @Slf4j
 @Component
 @DisallowConcurrentExecution
 @RequiredArgsConstructor
-public class M3U8RefreshJob implements Job {
+public class IPTVProviderRefreshJob implements Job {
 
-    private final M3U8ProviderMapper providerMapper;
-    private final M3U8ParserService parserService;
-    private final M3U8RefreshTaskMapper taskMapper;
+    private final IPTVProviderMapper providerMapper;
+    private final IPTVProviderContentParserService parserService;
+    private final IPTVProviderRefreshTaskMapper taskMapper;
 
     @Override
     public void execute(JobExecutionContext context) {
@@ -34,10 +34,10 @@ public class M3U8RefreshJob implements Job {
         Long taskId = getLongFromJobData(context.getJobDetail().getJobDataMap(), "taskId");
         String triggerType = context.getJobDetail().getJobDataMap().getString("triggerType");
 
-        log.debug("Executing M3U8 refresh job for provider: {}, task: {}, trigger: {}", providerId, taskId, triggerType);
+        log.debug("Executing IPTV refresh job for provider: {}, task: {}, trigger: {}", providerId, taskId, triggerType);
 
         // 获取 provider 信息
-        M3U8Provider provider = providerMapper.findById(providerId).orElse(null);
+        IPTVProvider provider = providerMapper.findById(providerId).orElse(null);
         if (provider == null) {
             log.error("Provider not found: {}", providerId);
             if (taskId != null && taskId > 0) {
@@ -48,7 +48,7 @@ public class M3U8RefreshJob implements Job {
 
         // 记录开始时间
         long startTime = System.currentTimeMillis();
-        // 任务记录已在 M3U8ProviderService 中创建，直接使用传入的 taskId
+        // 任务记录已在 IPTVProviderService 中创建，直接使用传入的 taskId
         Long actualTaskId = taskId;
 
         // 执行解析
@@ -56,7 +56,7 @@ public class M3U8RefreshJob implements Job {
             int channelCount = parserService.parse(provider, actualTaskId);
 
             long endTime = System.currentTimeMillis();
-            log.info("M3U8 provider refreshed successfully: provider={}, channels={}, duration={}ms",
+            log.info("IPTV provider refreshed successfully: provider={}, channels={}, duration={}ms",
                 providerId, channelCount, endTime - startTime);
 
             // 更新任务记录为成功
@@ -65,7 +65,7 @@ public class M3U8RefreshJob implements Job {
             }
 
         } catch (Exception e) {
-            log.error("M3U8 refresh job failed for provider: {}", providerId, e);
+            log.error("IPTV refresh job failed for provider: {}", providerId, e);
 
             // 更新任务记录为失败
             if (actualTaskId != null && actualTaskId > 0) {
@@ -79,7 +79,7 @@ public class M3U8RefreshJob implements Job {
      */
     private Long createTaskRecord(Long taskId, Long providerId, String providerName, String triggerType, long startTime) {
         try {
-            var task = new M3U8RefreshTask(
+            var task = new IPTVProviderRefreshTask(
                 taskId,
                 providerId,
                 null, // providerName 通过关联查询获取
@@ -109,7 +109,7 @@ public class M3U8RefreshJob implements Job {
         try {
             var existing = taskMapper.findById(taskId);
             if (existing != null) {
-                var updated = new M3U8RefreshTask(
+                var updated = new IPTVProviderRefreshTask(
                     taskId,
                     existing.getProviderId(),
                     null, // providerName 通过关联查询获取
@@ -145,7 +145,7 @@ public class M3U8RefreshJob implements Job {
 
             if (existing == null) {
                 // 任务不存在，创建失败记录
-                var newTask = new M3U8RefreshTask(
+                var newTask = new IPTVProviderRefreshTask(
                     taskId,
                     null,
                     null,
@@ -163,7 +163,7 @@ public class M3U8RefreshJob implements Job {
                 taskMapper.insert(newTask);
             } else {
                 // 更新现有任务为失败
-                var updated = new M3U8RefreshTask(
+                var updated = new IPTVProviderRefreshTask(
                     taskId,
                     existing.getProviderId(),
                     null, // providerName 通过关联查询获取

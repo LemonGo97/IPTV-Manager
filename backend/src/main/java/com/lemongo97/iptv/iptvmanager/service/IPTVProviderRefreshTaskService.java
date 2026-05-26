@@ -1,11 +1,9 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
-import com.lemongo97.iptv.iptvmanager.dto.M3U8RefreshTaskDTO;
-import com.lemongo97.iptv.iptvmanager.entity.Channel;
-import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
+import com.lemongo97.iptv.iptvmanager.dto.IPTVRefreshTaskDTO;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRefreshTask;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
-import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
-import com.lemongo97.iptv.iptvmanager.mapper.M3U8RefreshTaskMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderRefreshTaskMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,22 +13,22 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * M3U8 刷新任务服务
+ * IPTV 刷新任务服务
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class M3U8RefreshTaskService {
+public class IPTVProviderRefreshTaskService {
 
-    private final M3U8RefreshTaskMapper taskMapper;
+    private final IPTVProviderRefreshTaskMapper taskMapper;
     private final OriginalChannelMapper originalChannelMapper;
 
     /**
      * 分页查询任务历史 - 返回 DTO，包含订阅源名称
      */
-    public List<M3U8RefreshTaskDTO> findAll(String providerName, String triggerType, String status,
-                                           LocalDateTime startTime, LocalDateTime endTime,
-                                           Integer offset, Integer limit) {
+    public List<IPTVRefreshTaskDTO> findAll(String providerName, String triggerType, String status,
+                                            LocalDateTime startTime, LocalDateTime endTime,
+                                            Integer offset, Integer limit) {
         return taskMapper.findAll(providerName, triggerType, status, startTime, endTime, offset, limit);
     }
 
@@ -45,16 +43,16 @@ public class M3U8RefreshTaskService {
     /**
      * 根据 ID 查询 - 返回 DTO，包含订阅源名称
      */
-    public M3U8RefreshTaskDTO findById(Long id) {
+    public IPTVRefreshTaskDTO findById(Long id) {
         return taskMapper.findById(id);
     }
 
     /**
      * 创建新任务
      */
-    public M3U8RefreshTask create(M3U8RefreshTask task) {
+    public IPTVProviderRefreshTask create(IPTVProviderRefreshTask task) {
         var now = LocalDateTime.now();
-        var newTask = new M3U8RefreshTask(
+        var newTask = new IPTVProviderRefreshTask(
             null,
             task.getProviderId(),
             null, // providerName 通过关联查询获取，不再存储
@@ -76,9 +74,9 @@ public class M3U8RefreshTaskService {
     /**
      * 更新任务
      */
-    public M3U8RefreshTask update(Long id, M3U8RefreshTask task) {
+    public IPTVProviderRefreshTask update(Long id, IPTVProviderRefreshTask task) {
         var existing = findById(id);
-        var updated = new M3U8RefreshTask(
+        var updated = new IPTVProviderRefreshTask(
             id,
             task.getProviderId() != null ?   task.getProviderId() :   existing.getProviderId(),
             null, // providerName 通过关联查询获取，不再更新

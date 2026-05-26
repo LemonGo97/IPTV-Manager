@@ -31,7 +31,7 @@
             <result property="updatedAt" column="updated_at"/>
             <result property="deleted" column="deleted"/>
         </association>
-        <association property="provider" javaType="com.lemongo97.iptv.iptvmanager.entity.M3U8Provider"
+        <association property="provider" javaType="com.lemongo97.iptv.iptvmanager.entity.IPTVProvider"
                      columnPrefix="provider_">
             <id property="id" column="id"/>
             <result property="name" column="name"/>

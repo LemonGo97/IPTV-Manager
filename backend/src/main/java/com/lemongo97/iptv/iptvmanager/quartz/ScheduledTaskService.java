@@ -1,7 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.quartz;
 
 import com.lemongo97.iptv.iptvmanager.engine.RuleType;
-import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
@@ -39,14 +39,14 @@ public class ScheduledTaskService {
      *
      * @param provider M3U8 提供者
      */
-    public void scheduleOrUpdateJob(M3U8Provider provider) {
+    public void scheduleOrUpdateJob(IPTVProvider provider) {
         if (!provider.getEnabled() || provider.getRefreshRate() == null || provider.getRefreshRate() <= 0) {
             deleteJob(provider.getId());
             return;
         }
 
         try {
-            JobDetail jobDetail = JobBuilder.newJob(M3U8RefreshJob.class)
+            JobDetail jobDetail = JobBuilder.newJob(IPTVProviderRefreshJob.class)
                     .withIdentity(getJobKey(provider.getId()))
                     .usingJobData("providerId", provider.getId())
                     .usingJobData("triggerType", "scheduled")
@@ -80,7 +80,7 @@ public class ScheduledTaskService {
             String jobName = "m3u8-manual-" + providerId + "-" + System.currentTimeMillis();
             JobKey jobKey = JobKey.jobKey(jobName, MANUAL_JOB_GROUP);
 
-            JobDetail jobDetail = JobBuilder.newJob(M3U8RefreshJob.class)
+            JobDetail jobDetail = JobBuilder.newJob(IPTVProviderRefreshJob.class)
                     .withIdentity(jobKey)
                     .usingJobData("providerId", providerId)
                     .usingJobData("taskId", taskId)

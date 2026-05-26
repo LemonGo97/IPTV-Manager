@@ -1,6 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
-import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
 import com.lemongo97.iptv.iptvmanager.parser.m3u8.IPTVM3U8Parser;
 import com.lemongo97.iptv.iptvmanager.parser.txt.IPTVTXTParser;
@@ -19,20 +19,20 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * M3U8 解析服务
+ * IPTV 解析服务
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class M3U8ParserService {
+public class IPTVProviderContentParserService {
 
     private final OriginalChannelMapper originalChannelMapper;
     private final RestTemplate restTemplate;
-    private final M3U8RawDataService rawDataService;
+    private final IPTVProviderRawDataService rawDataService;
     private final IPTVM3U8Parser IPTVM3U8Parser;
     private final IPTVTXTParser IPTVTXTParser;
 
-    public int parse(M3U8Provider provider, Long taskId) {
+    public int parse(IPTVProvider provider, Long taskId) {
         String content;
         switch (provider.getType()) {
             case online -> {
@@ -57,12 +57,12 @@ public class M3U8ParserService {
     }
 
     /**
-     * 从 URL 解析 M3U8
+     * 从 URL 解析 IPTV
      *
      * @return 解析的频道数量
      */
-    public String getContentFromUrl(M3U8Provider provider) {
-        log.info("Parsing M3U8 from URL: {}", provider.getUrl());
+    public String getContentFromUrl(IPTVProvider provider) {
+        log.info("Parsing IPTV from URL: {}", provider.getUrl());
 
         try {
             // 构建请求头
@@ -81,23 +81,23 @@ public class M3U8ParserService {
             );
 
             if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
-                throw new RuntimeException("Failed to fetch M3U8: HTTP " + response.getStatusCode());
+                throw new RuntimeException("Failed to fetch IPTV: HTTP " + response.getStatusCode());
             }
 
             return new String(response.getBody(), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            log.error("Failed to parse M3U8 from URL: {}", provider.getUrl(), e);
-            throw new RuntimeException("Failed to parse M3U8 from URL: " + e.getMessage(), e);
+            log.error("Failed to parse IPTV from URL: {}", provider.getUrl(), e);
+            throw new RuntimeException("Failed to parse IPTV from URL: " + e.getMessage(), e);
         }
     }
 
     /**
-     * 从本地文件解析 M3U8
+     * 从本地文件解析 IPTV
      *
      * @return 解析的频道数量
      */
-    public String getContentFromFile(M3U8Provider provider) {
-        log.info("Parsing M3U8 from file: {}", provider.getFilePath());
+    public String getContentFromFile(IPTVProvider provider) {
+        log.info("Parsing IPTV from file: {}", provider.getFilePath());
 
         try {
             File file = new File(provider.getFilePath());
@@ -106,12 +106,12 @@ public class M3U8ParserService {
             }
             return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            log.error("Failed to parse M3U8 from file: {}", provider.getFilePath(), e);
-            throw new RuntimeException("Failed to parse M3U8 from file: " + e.getMessage(), e);
+            log.error("Failed to parse IPTV from file: {}", provider.getFilePath(), e);
+            throw new RuntimeException("Failed to parse IPTV from file: " + e.getMessage(), e);
         }
     }
 
-    private List<OriginalChannelMetadata> parseFromContent(String content, Long providerId, M3U8Provider.ContentType contentType) {
+    private List<OriginalChannelMetadata> parseFromContent(String content, Long providerId, IPTVProvider.ContentType contentType) {
         List<OriginalChannelMetadata> channels;
         switch (contentType) {
             case M3U8 -> {

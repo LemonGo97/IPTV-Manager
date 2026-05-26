@@ -1,10 +1,10 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
-import com.lemongo97.iptv.iptvmanager.entity.M3U8Provider;
-import com.lemongo97.iptv.iptvmanager.entity.M3U8RefreshTask;
-import com.lemongo97.iptv.iptvmanager.mapper.M3U8ProviderMapper;
-import com.lemongo97.iptv.iptvmanager.mapper.M3U8RefreshTaskMapper;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRefreshTask;
+import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderRefreshTaskMapper;
 import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,63 +23,62 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * M3U8 源服务
+ * IPTV 源服务
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class M3U8ProviderService {
+public class IPTVProviderService {
 
-    private final M3U8ProviderMapper providerMapper;
-    private final M3U8ParserService parserService;
-    private final M3U8RawDataService rawDataService;
+    private final IPTVProviderMapper providerMapper;
+    private final IPTVProviderRawDataService rawDataService;
     private final ScheduledTaskService scheduledTaskService;
-    private final M3U8RefreshTaskMapper taskMapper;
+    private final IPTVProviderRefreshTaskMapper taskMapper;
 
     @Value("${app.upload.m3u8-dir:tmp/uploads/m3u8}")
     private String uploadDir;
 
     /**
-     * 获取所有 M3U8 源
+     * 获取所有 IPTV 源
      */
-    public List<M3U8Provider> findAll() {
+    public List<IPTVProvider> findAll() {
         return providerMapper.findAll();
     }
 
     /**
-     * 根据 ID 获取 M3U8 源
+     * 根据 ID 获取 IPTV 源
      */
-    public M3U8Provider findById(Long id) {
+    public IPTVProvider findById(Long id) {
         return providerMapper.findById(id)
-                .orElseThrow(() -> new BusinessException("M3U8 provider not found: id=" + id));
+                .orElseThrow(() -> new BusinessException("IPTV provider not found: id=" + id));
     }
 
     /**
-     * 根据类型获取 M3U8 源
+     * 根据类型获取 IPTV 源
      */
-    public List<M3U8Provider> findByType(String type) {
+    public List<IPTVProvider> findByType(String type) {
         return providerMapper.findByType(type);
     }
 
     /**
-     * 获取启用的 M3U8 源
+     * 获取启用的 IPTV 源
      */
-    public List<M3U8Provider> findEnabled() {
+    public List<IPTVProvider> findEnabled() {
         return providerMapper.findEnabled();
     }
 
     /**
-     * 创建 M3U8 源
+     * 创建 IPTV 源
      */
     @Transactional
-    public M3U8Provider create(M3U8Provider provider) {
-        log.info("Creating M3U8 provider: {}", provider.getName());
+    public IPTVProvider create(IPTVProvider provider) {
+        log.info("Creating IPTV provider: {}", provider.getName());
 
         // 验证类型和字段
         validateProvider(provider);
 
         var now = LocalDateTime.now();
-        var newProvider = new M3U8Provider(
+        var newProvider = new IPTVProvider(
                 null,
                 provider.getName(),
                 provider.getType(),
@@ -101,22 +100,22 @@ public class M3U8ProviderService {
         } catch (Exception e) {
             log.warn("Failed to schedule job for provider: id={}", newProvider.getId(), e);
         }
-        log.info("M3U8 provider created: id={}", newProvider.getId());
+        log.info("IPTV provider created: id={}", newProvider.getId());
         return newProvider;
     }
 
     /**
-     * 更新 M3U8 源
+     * 更新 IPTV 源
      */
     @Transactional
-    public M3U8Provider update(Long id, M3U8Provider provider) {
+    public IPTVProvider update(Long id, IPTVProvider provider) {
         var existing = findById(id);
-        log.info("Updating M3U8 provider: id={}", id);
+        log.info("Updating IPTV provider: id={}", id);
 
         // 验证类型和字段
         validateProvider(provider);
 
-        var updated = new M3U8Provider(
+        var updated = new IPTVProvider(
                 id,
                 provider.getName() != null ? provider.getName() : existing.getName(),
                 provider.getType() != null ? provider.getType() : existing.getType(),
@@ -138,17 +137,17 @@ public class M3U8ProviderService {
         } catch (Exception e) {
             log.warn("Failed to schedule job for provider: id={}", id, e);
         }
-        log.info("M3U8 provider updated: id={}", id);
+        log.info("IPTV provider updated: id={}", id);
         return updated;
     }
 
     /**
-     * 删除 M3U8 源
+     * 删除 IPTV 源
      */
     @Transactional
     public void deleteById(Long id) {
         findById(id);
-        log.info("Deleting M3U8 provider: id={}", id);
+        log.info("Deleting IPTV provider: id={}", id);
         // 先删除关联的定时任务
         scheduledTaskService.deleteJob(id);
         // 先删除关联的原始数据
@@ -157,16 +156,16 @@ public class M3U8ProviderService {
     }
 
     /**
-     * 刷新 M3U8 源（异步）
+     * 刷新 IPTV 源（异步）
      * 创建任务记录并提交给 Quartz 执行，立即返回任务 ID
      *
-     * @param id M3U8 提供者 ID
+     * @param id IPTV 提供者 ID
      * @return 任务 ID
      */
     @Transactional
     public Long refresh(Long id) {
         var provider = findById(id);
-        log.info("Submitting M3U8 provider refresh task: id={}, type={}", id, provider.getType());
+        log.info("Submitting IPTV provider refresh task: id={}, type={}", id, provider.getType());
 
         if (!provider.getEnabled()) {
             throw new BusinessException("Cannot refresh disabled provider: id=" + id);
@@ -174,7 +173,7 @@ public class M3U8ProviderService {
 
         // 创建任务记录
         long startTime = System.currentTimeMillis();
-        var task = new M3U8RefreshTask(
+        var task = new IPTVProviderRefreshTask(
             null,
             provider.getId(),
             null, // providerName 通过关联查询获取
@@ -194,25 +193,25 @@ public class M3U8ProviderService {
 
         // 提交给 Quartz 执行
         scheduledTaskService.triggerManualJob(provider.getId(), task.getId());
-        log.info("Submitted M3U8 refresh to Quartz: taskId={}, providerId={}", task.getId(), provider.getId());
+        log.info("Submitted IPTV refresh to Quartz: taskId={}, providerId={}", task.getId(), provider.getId());
 
         return task.getId();
     }
 
     /**
-     * 验证 M3U8 源
+     * 验证 IPTV 源
      */
-    private void validateProvider(M3U8Provider provider) {
-        M3U8Provider.Type type = provider.getType();
+    private void validateProvider(IPTVProvider provider) {
+        IPTVProvider.Type type = provider.getType();
         if (type == null) {
             throw new BusinessException("Provider type is required");
         }
 
-        if (type == M3U8Provider.Type.online && provider.getUrl() == null) {
+        if (type == IPTVProvider.Type.online && provider.getUrl() == null) {
             throw new BusinessException("URL is required for online provider");
         }
 
-        if (type == M3U8Provider.Type.file && provider.getFilePath() == null) {
+        if (type == IPTVProvider.Type.file && provider.getFilePath() == null) {
             throw new BusinessException("File path is required for local provider");
         }
 
@@ -220,10 +219,10 @@ public class M3U8ProviderService {
     }
 
     /**
-     * 上传 M3U8 文件并创建本地类型的 Provider
+     * 上传 IPTV 文件并创建本地类型的 Provider
      */
     @Transactional
-    public M3U8Provider uploadFile(MultipartFile file, String name, String description) {
+    public IPTVProvider uploadFile(MultipartFile file, String name, String description) {
         if (file.isEmpty()) {
             throw new BusinessException("File is empty");
         }
@@ -255,11 +254,11 @@ public class M3U8ProviderService {
                 : originalFilename.substring(0, originalFilename.lastIndexOf("."));
 
             // 创建本地类型的 Provider
-            var provider = new M3U8Provider(
+            var provider = new IPTVProvider(
                 null,
                 providerName,
-                M3U8Provider.Type.online,
-                M3U8Provider.ContentType.M3U8,
+                IPTVProvider.Type.online,
+                IPTVProvider.ContentType.M3U8,
                 null,
                 targetPath.toString(),
                 null,

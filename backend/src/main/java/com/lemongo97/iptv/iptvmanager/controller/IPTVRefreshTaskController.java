@@ -1,10 +1,9 @@
 package com.lemongo97.iptv.iptvmanager.controller;
 
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
-import com.lemongo97.iptv.iptvmanager.dto.M3U8RefreshTaskDTO;
-import com.lemongo97.iptv.iptvmanager.entity.Channel;
+import com.lemongo97.iptv.iptvmanager.dto.IPTVRefreshTaskDTO;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
-import com.lemongo97.iptv.iptvmanager.service.M3U8RefreshTaskService;
+import com.lemongo97.iptv.iptvmanager.service.IPTVProviderRefreshTaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,20 +11,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * M3U8 刷新任务控制器
+ * IPTV 刷新任务控制器
  */
 @RestController
 @RequestMapping("/m3u8/task/history")
 @RequiredArgsConstructor
-public class M3U8RefreshTaskController {
+public class IPTVRefreshTaskController {
 
-    private final M3U8RefreshTaskService taskService;
+    private final IPTVProviderRefreshTaskService taskService;
 
     /**
      * 分页查询任务历史
      */
     @GetMapping
-    public ApiResponse<List<M3U8RefreshTaskDTO>> findAll(
+    public ApiResponse<List<IPTVRefreshTaskDTO>> findAll(
             @RequestParam(required = false) String providerName,
             @RequestParam(required = false) String triggerType,
             @RequestParam(required = false) String status,
@@ -57,7 +56,7 @@ public class M3U8RefreshTaskController {
      * 根据 ID 获取任务详情
      */
     @GetMapping("/{id}")
-    public ApiResponse<M3U8RefreshTaskDTO> findById(@PathVariable Long id) {
+    public ApiResponse<IPTVRefreshTaskDTO> findById(@PathVariable Long id) {
         return ApiResponse.ok(taskService.findById(id));
     }
 
