@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.engine;
+package com.lemongo97.iptv.iptvmanager.cleanup.rule;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

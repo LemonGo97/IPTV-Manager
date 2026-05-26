@@ -1,6 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
-import com.lemongo97.iptv.iptvmanager.engine.RuleType;
+import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
 import com.lemongo97.iptv.iptvmanager.quartz.job.DataCleanupJob;
 import com.lemongo97.iptv.iptvmanager.quartz.job.EpgRefreshJob;

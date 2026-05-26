@@ -2,11 +2,11 @@ package com.lemongo97.iptv.iptvmanager.service;
 
 import com.github.houbb.opencc4j.util.ZhConverterUtil;
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
-import com.lemongo97.iptv.iptvmanager.engine.CleanEngineManager;
-import com.lemongo97.iptv.iptvmanager.engine.CleanUpRuleParam;
-import com.lemongo97.iptv.iptvmanager.engine.EngineConfig;
-import com.lemongo97.iptv.iptvmanager.engine.RuleType;
-import com.lemongo97.iptv.iptvmanager.engine.group.GroupingEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.CleanEngineManager;
+import com.lemongo97.iptv.iptvmanager.cleanup.rule.CleanUpRuleParam;
+import com.lemongo97.iptv.iptvmanager.cleanup.config.CleanupEngineConfig;
+import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.group.GroupingEngine;
 import com.lemongo97.iptv.iptvmanager.entity.*;
 import com.lemongo97.iptv.iptvmanager.mapper.*;
 import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
@@ -177,7 +177,7 @@ public class CleanupRuleService {
     /**
      * 获取所有启用的清洗规则配置
      */
-    public List<EngineConfig> getEnabledEngineConfigs() {
+    public List<CleanupEngineConfig> getEnabledEngineConfigs() {
         List<CleanupRule> rules = cleanupRuleMapper.findAll();
         return rules.stream()
                 .filter(rule -> rule.getEnabled() != null && rule.getEnabled())
@@ -205,7 +205,7 @@ public class CleanupRuleService {
             taskProgressService.updateProgress(taskId, 0, 5d, "已清空临时表");
 
             // 3. 获取所有启用的清洗规则
-            List<EngineConfig> configs = getEnabledEngineConfigs();
+            List<CleanupEngineConfig> configs = getEnabledEngineConfigs();
             log.debug("Found {} enabled cleanup rules", configs.size());
             taskProgressService.updateProgress(taskId, 0, 10d, "加载清洗规则完成");
 
@@ -329,7 +329,7 @@ public class CleanupRuleService {
     /**
      * 将 CleanupRule 转换为 EngineConfig
      */
-    private EngineConfig toEngineConfig(CleanupRule rule) {
+    private CleanupEngineConfig toEngineConfig(CleanupRule rule) {
         RuleType ruleType;
         try {
             ruleType = RuleType.valueOf(rule.getRuleType().toUpperCase());
@@ -338,7 +338,7 @@ public class CleanupRuleService {
             ruleType = RuleType.FILTER;
         }
 
-        EngineConfig config = new EngineConfig();
+        CleanupEngineConfig config = new CleanupEngineConfig();
         config.setId(rule.getId());
         config.setRuleType(ruleType);
         config.setEngine(rule.getEngine());

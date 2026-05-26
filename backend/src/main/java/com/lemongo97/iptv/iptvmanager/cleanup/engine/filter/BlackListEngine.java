@@ -1,10 +1,9 @@
-package com.lemongo97.iptv.iptvmanager.engine.filter;
+package com.lemongo97.iptv.iptvmanager.cleanup.engine.filter;
 
-import com.lemongo97.iptv.iptvmanager.engine.CleaningEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.CleaningEngine;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
 import java.util.List;

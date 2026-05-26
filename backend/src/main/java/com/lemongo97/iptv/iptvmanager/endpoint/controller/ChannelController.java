@@ -3,7 +3,7 @@ package com.lemongo97.iptv.iptvmanager.endpoint.controller;
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
 import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.endpoint.controller.request.ChannelQuery;
-import com.lemongo97.iptv.iptvmanager.engine.RuleType;
+import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.service.ChannelService;
 import lombok.AllArgsConstructor;

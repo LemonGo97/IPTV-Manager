@@ -1,13 +1,13 @@
 package com.lemongo97.iptv.iptvmanager.config;
 
-import com.lemongo97.iptv.iptvmanager.engine.CleanEngineManager;
-import com.lemongo97.iptv.iptvmanager.engine.CleaningEngineFactory;
-import com.lemongo97.iptv.iptvmanager.engine.delay.FFMpegCheckEngine;
-import com.lemongo97.iptv.iptvmanager.engine.delay.FFProbeCheckEngine;
-import com.lemongo97.iptv.iptvmanager.engine.delay.HttpCheckEngine;
-import com.lemongo97.iptv.iptvmanager.engine.filter.BlackListEngine;
-import com.lemongo97.iptv.iptvmanager.engine.group.GroupingEngine;
-import com.lemongo97.iptv.iptvmanager.engine.name.*;
+import com.lemongo97.iptv.iptvmanager.cleanup.CleanEngineManager;
+import com.lemongo97.iptv.iptvmanager.cleanup.CleaningEngineFactory;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.FFMpegCheckEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.FFProbeCheckEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.HttpCheckEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.filter.BlackListEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.group.GroupingEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.name.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

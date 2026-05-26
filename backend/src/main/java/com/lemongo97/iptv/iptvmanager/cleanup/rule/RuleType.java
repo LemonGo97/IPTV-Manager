@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.engine;
+package com.lemongo97.iptv.iptvmanager.cleanup.rule;
 
 public enum RuleType {
     FILTER,

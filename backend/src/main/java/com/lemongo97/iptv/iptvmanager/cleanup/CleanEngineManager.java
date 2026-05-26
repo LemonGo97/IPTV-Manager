@@ -1,10 +1,12 @@
-package com.lemongo97.iptv.iptvmanager.engine;
+package com.lemongo97.iptv.iptvmanager.cleanup;
 
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.CleaningEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.config.CleanupEngineConfig;
+import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,12 +36,12 @@ public class CleanEngineManager {
 
     private final CleaningEngineFactory factory;
 
-    public List<Channel> process(List<Channel> channels, List<EngineConfig> configList, RuleType step){
-        List<EngineConfig> filterConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.FILTER).toList();
-        List<EngineConfig> nameConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.NAME).toList();
-        List<EngineConfig> mergeConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.MERGE).toList();
-        List<EngineConfig> delayConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.DELAY).toList();
-        List<EngineConfig> groupConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.GROUP).toList();
+    public List<Channel> process(List<Channel> channels, List<CleanupEngineConfig> configList, RuleType step){
+        List<CleanupEngineConfig> filterConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.FILTER).toList();
+        List<CleanupEngineConfig> nameConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.NAME).toList();
+        List<CleanupEngineConfig> mergeConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.MERGE).toList();
+        List<CleanupEngineConfig> delayConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.DELAY).toList();
+        List<CleanupEngineConfig> groupConfig = configList.stream().filter(config -> config.getRuleType() == RuleType.GROUP).toList();
 
         switch(step){
             case FILTER -> {
@@ -76,9 +78,9 @@ public class CleanEngineManager {
         }
     }
 
-    private List<Channel> doProcess(List<Channel> channels, List<EngineConfig> filterConfig) {
+    private List<Channel> doProcess(List<Channel> channels, List<CleanupEngineConfig> filterConfig) {
         List<Channel> processingChannels = null;
-        for (EngineConfig config : filterConfig) {
+        for (CleanupEngineConfig config : filterConfig) {
             CleaningEngine engine = factory.getEngine(config.getEngine());
             if (engine == null) continue;
 

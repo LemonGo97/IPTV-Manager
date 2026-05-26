@@ -1,6 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.quartz.job;
 
-import com.lemongo97.iptv.iptvmanager.engine.RuleType;
+import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
 import com.lemongo97.iptv.iptvmanager.service.CleanupRuleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

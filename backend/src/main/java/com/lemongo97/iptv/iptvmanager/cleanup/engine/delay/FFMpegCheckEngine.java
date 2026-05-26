@@ -1,6 +1,6 @@
-package com.lemongo97.iptv.iptvmanager.engine.delay;
+package com.lemongo97.iptv.iptvmanager.cleanup.engine.delay;
 
-import com.lemongo97.iptv.iptvmanager.engine.CleaningEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.CleaningEngine;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 
 import java.util.List;

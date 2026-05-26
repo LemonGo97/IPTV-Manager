@@ -1,6 +1,6 @@
-package com.lemongo97.iptv.iptvmanager.engine.delay;
+package com.lemongo97.iptv.iptvmanager.cleanup.engine.delay;
 
-import com.lemongo97.iptv.iptvmanager.engine.CleaningEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.CleaningEngine;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
 import lombok.Data;
@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
 import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
