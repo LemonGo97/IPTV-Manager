@@ -17,27 +17,27 @@
 
     <select id="findAll" resultMap="EpgSourceResultMap">
         SELECT id, name, url, type, enabled, description, created_at, updated_at, deleted
-        FROM epg_sources
+        FROM epg_providers
         WHERE deleted = 0
         ORDER BY id DESC
     </select>
 
     <select id="findById" resultMap="EpgSourceResultMap">
         SELECT id, name, url, type, enabled, description, created_at, updated_at, deleted
-        FROM epg_sources
+        FROM epg_providers
         WHERE id = #{id} AND deleted = 0
     </select>
 
     <select id="findEnabled" resultMap="EpgSourceResultMap">
         SELECT id, name, url, type, enabled, description, created_at, updated_at, deleted
-        FROM epg_sources
+        FROM epg_providers
         WHERE enabled = 1 AND deleted = 0
         ORDER BY id DESC
     </select>
 
     <select id="findByCondition" resultMap="EpgSourceResultMap">
         SELECT id, name, url, type, enabled, description, created_at, updated_at, deleted
-        FROM epg_sources
+        FROM epg_providers
         WHERE deleted = 0
         <if test="name != null and name != ''">
             AND name LIKE '%' || #{name} || '%'
@@ -46,12 +46,12 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO epg_sources (name, url, type, enabled, description, created_at, updated_at, deleted)
+        INSERT INTO epg_providers (name, url, type, enabled, description, created_at, updated_at, deleted)
         VALUES (#{name}, #{url}, #{type}, #{enabled}, #{description}, #{createdAt}, #{updatedAt}, 0)
     </insert>
 
     <update id="update">
-        UPDATE epg_sources
+        UPDATE epg_providers
         SET name = #{name},
             url = #{url},
             type = #{type},
@@ -62,7 +62,7 @@
     </update>
 
     <update id="deleteById">
-        UPDATE epg_sources
+        UPDATE epg_providers
         SET deleted = 1
         WHERE id = #{id}
     </update>

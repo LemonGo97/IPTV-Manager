@@ -14,7 +14,7 @@
     </resultMap>
 
     <select id="findAll" resultMap="CleanupEngineResultMap">
-        select id, name, engine, rule_type, params, description, full_class_name from clean_up_engine
+        select id, name, engine, rule_type, params, description, full_class_name from cleanup_engine
     </select>
 
 </mapper>

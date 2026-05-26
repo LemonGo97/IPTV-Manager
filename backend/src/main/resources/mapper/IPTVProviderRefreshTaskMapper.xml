@@ -39,8 +39,8 @@
         SELECT t.id, t.provider_id, p.name as provider_name, t.trigger_type, t.status,
                t.start_time, t.end_time, t.duration, t.channel_count,
                t.error_message, t.raw_content, t.created_at, t.updated_at
-        FROM m3u8_refresh_task t
-        LEFT JOIN m3u8_providers p ON t.provider_id = p.id
+        FROM iptv_refresh_task t
+        LEFT JOIN iptv_providers p ON t.provider_id = p.id
         WHERE t.deleted = 0
         <if test="providerName != null and providerName != ''">
             AND p.name LIKE '%' || #{providerName} || '%'
@@ -63,8 +63,8 @@
 
     <select id="count" resultType="long">
         SELECT COUNT(*)
-        FROM m3u8_refresh_task t
-        LEFT JOIN m3u8_providers p ON t.provider_id = p.id
+        FROM iptv_refresh_task t
+        LEFT JOIN iptv_providers p ON t.provider_id = p.id
         WHERE t.deleted = 0
         <if test="providerName != null and providerName != ''">
             AND p.name LIKE '%' || #{providerName} || '%'
@@ -87,13 +87,13 @@
         SELECT t.id, t.provider_id, p.name as provider_name, t.trigger_type, t.status,
                t.start_time, t.end_time, t.duration, t.channel_count,
                t.error_message, t.raw_content, t.created_at, t.updated_at
-        FROM m3u8_refresh_task t
-        LEFT JOIN m3u8_providers p ON t.provider_id = p.id
+        FROM iptv_refresh_task t
+        LEFT JOIN iptv_providers p ON t.provider_id = p.id
         WHERE t.id = #{id} AND t.deleted = 0
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO m3u8_refresh_task (
+        INSERT INTO iptv_refresh_task (
             provider_id, trigger_type, status,
             start_time, end_time, duration, channel_count,
             error_message, raw_content, created_at, updated_at, deleted
@@ -105,7 +105,7 @@
     </insert>
 
     <update id="update">
-        UPDATE m3u8_refresh_task
+        UPDATE iptv_refresh_task
         SET provider_id = #{providerId},
             trigger_type = #{triggerType},
             status = #{status},

@@ -22,45 +22,45 @@
 
     <select id="findAll" resultMap="M3U8ProviderResultMap">
         SELECT id, name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
-        FROM m3u8_providers
+        FROM iptv_providers
         WHERE deleted = 0
         ORDER BY id DESC
     </select>
 
     <select id="findById" resultMap="M3U8ProviderResultMap">
         SELECT id, name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
-        FROM m3u8_providers
+        FROM iptv_providers
         WHERE id = #{id} AND deleted = 0
     </select>
 
     <select id="findByType" resultMap="M3U8ProviderResultMap">
         SELECT id, name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
-        FROM m3u8_providers
+        FROM iptv_providers
         WHERE type = #{type} AND deleted = 0
         ORDER BY id DESC
     </select>
 
     <select id="findEnabled" resultMap="M3U8ProviderResultMap">
         SELECT id, name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
-        FROM m3u8_providers
+        FROM iptv_providers
         WHERE enabled = 1 AND deleted = 0
         ORDER BY id DESC
     </select>
 
     <select id="getProviderNames" resultMap="M3U8ProviderResultMap">
         SELECT id, name
-        FROM m3u8_providers
+        FROM iptv_providers
         WHERE deleted = 0
         ORDER BY id DESC
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO m3u8_providers (name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted)
+        INSERT INTO iptv_providers (name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted)
         VALUES (#{name}, #{type}, #{contentType}, #{url}, #{filePath}, #{headers}, #{refreshRate}, #{enabled}, #{description}, #{createdAt}, #{updatedAt}, 0)
     </insert>
 
     <update id="update">
-        UPDATE m3u8_providers
+        UPDATE iptv_providers
         SET name = #{name},
             type = #{type},
             content_type = #{contentType},
@@ -75,7 +75,7 @@
     </update>
 
     <update id="deleteById">
-        UPDATE m3u8_providers
+        UPDATE iptv_providers
         SET deleted = 1
         WHERE id = #{id}
     </update>

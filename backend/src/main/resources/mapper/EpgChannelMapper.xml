@@ -41,7 +41,7 @@
             ec.deleted
         FROM
             epg_channels ec
-                LEFT JOIN epg_sources es ON ec.epg_source_id = es.id
+                LEFT JOIN epg_providers es ON ec.epg_source_id = es.id
                 AND es.deleted = 0
                 AND es.enabled = 1
         WHERE

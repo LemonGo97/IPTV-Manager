@@ -140,7 +140,7 @@
         channels c
         LEFT JOIN channel_groups cg
         ON c.group_id = cg.id AND cg.deleted = 0
-        LEFT JOIN m3u8_providers p
+        LEFT JOIN iptv_providers p
         ON c.provider_id = p.id AND p.deleted = 0
         <where>
             c.deleted = 0

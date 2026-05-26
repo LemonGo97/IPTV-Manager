@@ -1,7 +1,7 @@
-DROP TABLE IF EXISTS m3u8_providers;
+DROP TABLE IF EXISTS iptv_providers;
 
 -- 创建 M3U8 源提供者表
-CREATE TABLE IF NOT EXISTS m3u8_providers
+CREATE TABLE IF NOT EXISTS iptv_providers
 (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     name         TEXT    NOT NULL UNIQUE,
@@ -19,9 +19,9 @@ CREATE TABLE IF NOT EXISTS m3u8_providers
 );
 
 -- 创建索引
-CREATE INDEX IF NOT EXISTS idx_m3u8_providers_enabled ON m3u8_providers (enabled);
-CREATE INDEX IF NOT EXISTS idx_m3u8_providers_type ON m3u8_providers (type);
-CREATE INDEX IF NOT EXISTS idx_m3u8_providers_deleted ON m3u8_providers (deleted);
+CREATE INDEX IF NOT EXISTS idx_iptv_providers_enabled ON iptv_providers (enabled);
+CREATE INDEX IF NOT EXISTS idx_iptv_providers_type ON iptv_providers (type);
+CREATE INDEX IF NOT EXISTS idx_iptv_providers_deleted ON iptv_providers (deleted);
 
 -- 创建频道组表
 CREATE TABLE IF NOT EXISTS channel_groups
@@ -39,9 +39,9 @@ CREATE TABLE IF NOT EXISTS channel_groups
 CREATE INDEX IF NOT EXISTS idx_channel_groups_deleted ON channel_groups (deleted);
 CREATE INDEX IF NOT EXISTS idx_channel_groups_sort_order ON channel_groups (sort_order);
 
-DROP TABLE IF EXISTS epg_sources;
+DROP TABLE IF EXISTS epg_providers;
 -- 创建 EPG 源表
-CREATE TABLE IF NOT EXISTS epg_sources
+CREATE TABLE IF NOT EXISTS epg_providers
 (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     name        TEXT    NOT NULL UNIQUE,
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS epg_sources
 );
 
 -- 创建索引
-CREATE INDEX IF NOT EXISTS idx_epg_sources_enabled ON epg_sources (enabled);
-CREATE INDEX IF NOT EXISTS idx_epg_sources_deleted ON epg_sources (deleted);
+CREATE INDEX IF NOT EXISTS idx_epg_providers_enabled ON epg_providers (enabled);
+CREATE INDEX IF NOT EXISTS idx_epg_providers_deleted ON epg_providers (deleted);
 
 -- 删除旧表并创建新的频道表
 DROP TABLE IF EXISTS channels;
@@ -86,33 +86,33 @@ CREATE TABLE IF NOT EXISTS channels
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_channels_provider_id ON channels (provider_id);
 CREATE INDEX IF NOT EXISTS idx_channels_group_id ON channels (group_id);
-CREATE INDEX IF NOT EXISTS idx_channels_epg_source_id ON channels (epg_source_id);
+CREATE INDEX IF NOT EXISTS idx_channels_epg_provider_id ON channels (epg_source_id);
 
 -- M3U8 原始数据历史表
 -- 用于存储每次获取的 M3U8 原始内容，保留最近3次数据用于备份和调试
 
-CREATE TABLE IF NOT EXISTS m3u8_raw_data
+CREATE TABLE IF NOT EXISTS iptv_provider_raw_data
 (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     provider_id INTEGER   NOT NULL,
     content     TEXT      NOT NULL,
     fetched_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted     INTEGER       DEFAULT 0,
-    FOREIGN KEY (provider_id) REFERENCES m3u8_providers (id) ON DELETE CASCADE
+    FOREIGN KEY (provider_id) REFERENCES iptv_providers (id) ON DELETE CASCADE
 );
 
 -- 索引：按 provider_id 和时间降序查询，便于快速获取最近的数据
-CREATE INDEX IF NOT EXISTS idx_m3u8_raw_data_provider_fetched
-    ON m3u8_raw_data (provider_id, fetched_at DESC);
+CREATE INDEX IF NOT EXISTS idx_iptv_provider_raw_data_provider_fetched
+    ON iptv_provider_raw_data (provider_id, fetched_at DESC);
 
 -- 索引：用于清理旧数据
-CREATE INDEX IF NOT EXISTS idx_m3u8_raw_data_fetched_at
-    ON m3u8_raw_data (fetched_at DESC);
+CREATE INDEX IF NOT EXISTS idx_iptv_provider_raw_data_fetched_at
+    ON iptv_provider_raw_data (fetched_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_m3u8_raw_data_deleted ON m3u8_raw_data (deleted);
+CREATE INDEX IF NOT EXISTS idx_iptv_provider_raw_data_deleted ON iptv_provider_raw_data (deleted);
 
 -- M3U8 刷新任务历史表
-CREATE TABLE m3u8_refresh_task
+CREATE TABLE iptv_refresh_task
 (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     provider_id   INTEGER     NOT NULL,
@@ -130,9 +130,9 @@ CREATE TABLE m3u8_refresh_task
 );
 
 -- 创建索引
-CREATE INDEX IF NOT EXISTS idx_m3u8_refresh_task_provider ON m3u8_refresh_task (provider_id);
-CREATE INDEX IF NOT EXISTS idx_m3u8_refresh_task_status ON m3u8_refresh_task (status);
-CREATE INDEX IF NOT EXISTS idx_m3u8_refresh_task_created ON m3u8_refresh_task (created_at);
+CREATE INDEX IF NOT EXISTS idx_iptv_refresh_task_provider ON iptv_refresh_task (provider_id);
+CREATE INDEX IF NOT EXISTS idx_iptv_refresh_task_status ON iptv_refresh_task (status);
+CREATE INDEX IF NOT EXISTS idx_iptv_refresh_task_created ON iptv_refresh_task (created_at);
 
 -- M3U8 原始频道表
 CREATE TABLE IF NOT EXISTS original_channels
@@ -158,12 +158,12 @@ CREATE INDEX IF NOT EXISTS idx_original_channels_provider ON original_channels (
 CREATE INDEX IF NOT EXISTS idx_original_channels_created ON original_channels (created_at);
 
 -- 删除旧表并创建新的表
-DROP TABLE IF EXISTS clean_up_engine;
+DROP TABLE IF EXISTS cleanup_engine;
 
-create table clean_up_engine
+create table cleanup_engine
 (
     id              INTEGER
-        constraint clean_up_engine_pk
+        constraint cleanup_engine_pk
             primary key AUTOINCREMENT,
     name            TEXT,
     engine          TEXT,
@@ -173,15 +173,15 @@ create table clean_up_engine
     full_class_name TEXT
 );
 
-INSERT INTO "clean_up_engine" ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (1, '黑名单', 'BlackListEngine', 'FILTER', '[{"field":"keyword","label":"关键字","placeholder":null,"required":false,"type":"DYNAMIC_INPUT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.engine.filter.BlackListEngine');
-INSERT INTO "clean_up_engine" ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (2, 'FFProbe 检测', 'FFProbeCheckEngine', 'DELAY', '[{"field":"delayMillisecond","label":"最高延迟时间(ms)","placeholder":null,"required":false,"type":"NUMBER"},{"field":"discardNoVideo","label":"丢弃无视频","placeholder":null,"required":false,"type":"SWITCH"},{"field":"discardNoAudio","label":"丢弃无音频","placeholder":null,"required":false,"type":"SWITCH"},{"field":"minVideoFrameWidth","label":"最小视频帧宽度","placeholder":null,"required":false,"type":"NUMBER"},{"field":"minVideoFrameHeight","label":"最小视频帧高度","placeholder":null,"required":false,"type":"NUMBER"}]', NULL, 'com.lemongo97.iptv.iptvmanager.engine.delay.FFProbeCheckEngine');
-INSERT INTO "clean_up_engine" ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (3, '简繁转换', 'OpenCCEngine', 'NAME', '[{"field":"input","label":"输入语言","options":[{"value":"simple","label":"简体"},{"value":"traditional","label":"繁体"}],"placeholder":null,"required":false,"type":"SELECT"},{"field":"output","label":"输出语言","options":[{"value":"simple","label":"简体"},{"value":"traditional","label":"繁体"}],"placeholder":null,"required":false,"type":"SELECT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.engine.name.OpenCCEngine');
-INSERT INTO "clean_up_engine" ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (4, '大小写转换', 'CaseConversionEngine', 'NAME', '[{"field":"input","label":"输入","options":[{"value":"uppercase","label":"大写"},{"value":"lowercase","label":"小写"}],"placeholder":null,"required":false,"type":"SELECT"},{"field":"output","label":"输出","options":[{"value":"uppercase","label":"大写"},{"value":"lowercase","label":"小写"}],"placeholder":null,"required":false,"type":"SELECT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.engine.name.CaseConversionEngine');
-INSERT INTO "clean_up_engine" ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (5, '正则替换', 'RegexReplaceEngine', 'NAME', '[{"field":"regex","label":"正则表达式","placeholder":null,"required":false,"type":"INPUT"},{"field":"groups","label":"分组替换设置","keyField":"groupId","keyPlaceholder":"分组ID","placeholder":null,"required":false,"type":"DYNAMIC_PAIR_INPUT","valueField":"text","valuePlaceholder":"替换值"}]', NULL, 'com.lemongo97.iptv.iptvmanager.engine.name.RegexReplaceEngine');
-INSERT INTO "clean_up_engine" ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (6, '字符串替换', 'StringReplaceEngine', 'NAME', '[{"field":"target","label":"匹配值","placeholder":null,"required":false,"type":"INPUT"},{"field":"text","label":"替换文字","placeholder":null,"required":false,"type":"INPUT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.engine.name.StringReplaceEngine');
-INSERT INTO "clean_up_engine" ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (7, 'HTTP 检测', 'HttpCheckEngine', 'DELAY', '[{"field":"type","label":"检测方式","options":[{"value":"GET","label":"GET"},{"value":"HEAD","label":"HEAD"}],"placeholder":null,"required":false,"type":"SELECT"},{"field":"delayMillisecond","label":"最大延迟时间(ms)","placeholder":null,"required":false,"type":"NUMBER"}]', NULL, 'com.lemongo97.iptv.iptvmanager.engine.delay.HttpCheckEngine');
-INSERT INTO "clean_up_engine" ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (8, '分组（关键字）', 'GroupingEngine', 'GROUP', '[{"field":"keyword","label":"匹配值","placeholder":null,"required":false,"type":"INPUT"},{"field":"groupId","label":"分组","options":[],"placeholder":null,"required":false,"type":"SELECT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.engine.group.GroupingEngine');
-INSERT INTO "clean_up_engine" ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (9, '字符串移除', 'StringRemoveEngine', 'NAME', '[{"field":"ignoreCase","label":"忽略大小写","placeholder":null,"required":false,"type":"SWITCH"},{"field":"removeSpaces","label":"移除空格","placeholder":null,"required":false,"type":"SWITCH"},{"field":"target","label":"将被移除的字符串","placeholder":null,"required":false,"type":"DYNAMIC_INPUT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.engine.name.StringRemoveEngine');
+INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (1, '黑名单', 'BlackListEngine', 'FILTER', '[{"field":"keyword","label":"关键字","placeholder":null,"required":false,"type":"DYNAMIC_INPUT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.filter.BlackListEngine');
+INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (2, 'FFProbe 检测', 'FFProbeCheckEngine', 'DELAY', '[{"field":"delayMillisecond","label":"最高延迟时间(ms)","placeholder":null,"required":false,"type":"NUMBER"},{"field":"discardNoVideo","label":"丢弃无视频","placeholder":null,"required":false,"type":"SWITCH"},{"field":"discardNoAudio","label":"丢弃无音频","placeholder":null,"required":false,"type":"SWITCH"},{"field":"minVideoFrameWidth","label":"最小视频帧宽度","placeholder":null,"required":false,"type":"NUMBER"},{"field":"minVideoFrameHeight","label":"最小视频帧高度","placeholder":null,"required":false,"type":"NUMBER"}]', NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.FFProbeCheckEngine');
+INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (3, '简繁转换', 'OpenCCEngine', 'NAME', '[{"field":"input","label":"输入语言","options":[{"value":"simple","label":"简体"},{"value":"traditional","label":"繁体"}],"placeholder":null,"required":false,"type":"SELECT"},{"field":"output","label":"输出语言","options":[{"value":"simple","label":"简体"},{"value":"traditional","label":"繁体"}],"placeholder":null,"required":false,"type":"SELECT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.name.OpenCCEngine');
+INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (4, '大小写转换', 'CaseConversionEngine', 'NAME', '[{"field":"input","label":"输入","options":[{"value":"uppercase","label":"大写"},{"value":"lowercase","label":"小写"}],"placeholder":null,"required":false,"type":"SELECT"},{"field":"output","label":"输出","options":[{"value":"uppercase","label":"大写"},{"value":"lowercase","label":"小写"}],"placeholder":null,"required":false,"type":"SELECT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.name.CaseConversionEngine');
+INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (5, '正则替换', 'RegexReplaceEngine', 'NAME', '[{"field":"regex","label":"正则表达式","placeholder":null,"required":false,"type":"INPUT"},{"field":"groups","label":"分组替换设置","keyField":"groupId","keyPlaceholder":"分组ID","placeholder":null,"required":false,"type":"DYNAMIC_PAIR_INPUT","valueField":"text","valuePlaceholder":"替换值"}]', NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.name.RegexReplaceEngine');
+INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (6, '字符串替换', 'StringReplaceEngine', 'NAME', '[{"field":"target","label":"匹配值","placeholder":null,"required":false,"type":"INPUT"},{"field":"text","label":"替换文字","placeholder":null,"required":false,"type":"INPUT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.name.StringReplaceEngine');
+INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (7, 'HTTP 检测', 'HttpCheckEngine', 'DELAY', '[{"field":"type","label":"检测方式","options":[{"value":"GET","label":"GET"},{"value":"HEAD","label":"HEAD"}],"placeholder":null,"required":false,"type":"SELECT"},{"field":"delayMillisecond","label":"最大延迟时间(ms)","placeholder":null,"required":false,"type":"NUMBER"}]', NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.HttpCheckEngine');
+INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (8, '分组（关键字）', 'GroupingEngine', 'GROUP', '[{"field":"keyword","label":"匹配值","placeholder":null,"required":false,"type":"INPUT"},{"field":"groupId","label":"分组","options":[],"placeholder":null,"required":false,"type":"SELECT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.group.GroupingEngine');
+INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "description", "full_class_name") VALUES (9, '字符串移除', 'StringRemoveEngine', 'NAME', '[{"field":"ignoreCase","label":"忽略大小写","placeholder":null,"required":false,"type":"SWITCH"},{"field":"removeSpaces","label":"移除空格","placeholder":null,"required":false,"type":"SWITCH"},{"field":"target","label":"将被移除的字符串","placeholder":null,"required":false,"type":"DYNAMIC_INPUT"}]', NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.name.StringRemoveEngine');
 
 -- 创建数据清洗规则表
 CREATE TABLE IF NOT EXISTS cleanup_rules
@@ -280,7 +280,7 @@ CREATE TABLE IF NOT EXISTS epg_programs
     created_at    TEXT    DEFAULT (datetime('now', 'localtime')),
     updated_at    TEXT    DEFAULT (datetime('now', 'localtime')),
     deleted       BOOLEAN DEFAULT 0,
-    FOREIGN KEY (epg_source_id) REFERENCES epg_sources (id) ON DELETE CASCADE
+    FOREIGN KEY (epg_source_id) REFERENCES epg_providers (id) ON DELETE CASCADE
 );
 
 -- 创建索引
@@ -299,7 +299,7 @@ CREATE TABLE IF NOT EXISTS epg_channels
     created_at    TEXT    DEFAULT (datetime('now', 'localtime')),
     updated_at    TEXT    DEFAULT (datetime('now', 'localtime')),
     deleted       BOOLEAN DEFAULT 0,
-    FOREIGN KEY (epg_source_id) REFERENCES epg_sources (id) ON DELETE CASCADE
+    FOREIGN KEY (epg_source_id) REFERENCES epg_providers (id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_epg_channels_source_id ON epg_channels (epg_source_id);
