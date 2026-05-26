@@ -4,7 +4,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.common.PageResult;
-import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
+import com.lemongo97.iptv.iptvmanager.endpoint.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.engine.CleanEngineManager;
 import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.*;

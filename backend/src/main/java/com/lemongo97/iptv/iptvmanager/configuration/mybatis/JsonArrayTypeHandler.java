@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.config.mybatis;
+package com.lemongo97.iptv.iptvmanager.configuration.mybatis;
 
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;

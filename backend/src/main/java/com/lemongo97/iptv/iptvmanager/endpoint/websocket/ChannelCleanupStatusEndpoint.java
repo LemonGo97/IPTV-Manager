@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.endpoint;
+package com.lemongo97.iptv.iptvmanager.endpoint.websocket;
 
 import com.lemongo97.iptv.iptvmanager.configuration.websocket.AbstractWebSocketEndpoint;
 import com.lemongo97.iptv.iptvmanager.configuration.websocket.WebSocketEndpoint;

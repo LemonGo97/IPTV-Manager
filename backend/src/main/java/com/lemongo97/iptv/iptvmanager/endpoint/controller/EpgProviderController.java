@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.controller;
+package com.lemongo97.iptv.iptvmanager.endpoint.controller;
 
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
 import com.lemongo97.iptv.iptvmanager.entity.EpgProvider;

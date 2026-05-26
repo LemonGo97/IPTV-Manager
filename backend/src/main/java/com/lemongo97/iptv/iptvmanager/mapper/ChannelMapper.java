@@ -1,6 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.mapper;
 
-import com.lemongo97.iptv.iptvmanager.controller.request.ChannelQuery;
+import com.lemongo97.iptv.iptvmanager.endpoint.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

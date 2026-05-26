@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.controller.request;
+package com.lemongo97.iptv.iptvmanager.endpoint.controller.request;
 
 import com.lemongo97.iptv.iptvmanager.common.PageQuery;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
