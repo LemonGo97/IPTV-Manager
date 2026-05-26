@@ -4,7 +4,6 @@ import com.lemongo97.iptv.iptvmanager.common.BusinessException;
 import com.lemongo97.iptv.iptvmanager.entity.EpgProvider;
 import com.lemongo97.iptv.iptvmanager.entity.TaskProgress;
 import com.lemongo97.iptv.iptvmanager.mapper.EpgProviderMapper;
-import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,7 @@ import java.util.List;
 public class EpgProviderService {
 
     private final EpgProviderMapper epgProviderMapper;
-    private final ScheduledTaskService scheduledTaskService;
+    private final QuartzScheduledTaskService quartzScheduledTaskService;
     private final TaskProgressService taskProgressService;
 
     public List<EpgProvider> findAll() {
@@ -116,7 +115,7 @@ public class EpgProviderService {
         TaskProgress task = taskProgressService.createTask("EPG_REFRESH", null, "EPG 刷新任务已创建");
 
         // 提交给 Quartz 执行
-        scheduledTaskService.triggerManualEpgRefreshJob(epgProvider.getId(), task.getTaskId());
+        quartzScheduledTaskService.triggerManualEpgRefreshJob(epgProvider.getId(), task.getTaskId());
         log.info("Submitted EPG refresh to Quartz: taskId={}, providerId={}", task.getTaskId(), epgProvider.getId());
 
         return task;

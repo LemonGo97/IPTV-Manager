@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.quartz;
+package com.lemongo97.iptv.iptvmanager.quartz.job;
 
 import com.lemongo97.iptv.iptvmanager.entity.EpgChannel;
 import com.lemongo97.iptv.iptvmanager.entity.EpgProgram;

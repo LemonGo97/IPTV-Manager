@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.quartz;
+package com.lemongo97.iptv.iptvmanager.quartz.job;
 
 import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.service.CleanupRuleService;

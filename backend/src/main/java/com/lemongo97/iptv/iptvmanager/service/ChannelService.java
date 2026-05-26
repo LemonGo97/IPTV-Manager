@@ -9,7 +9,6 @@ import com.lemongo97.iptv.iptvmanager.engine.CleanEngineManager;
 import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.*;
 import com.lemongo97.iptv.iptvmanager.mapper.*;
-import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
@@ -33,7 +32,7 @@ public class ChannelService {
     private final OriginalChannelMapper originalChannelMapper;
     private final ChannelGroupMapper channelGroupMapper;
     private final CleanEngineManager cleanEngineManager;
-    private final ScheduledTaskService scheduledTaskService;
+    private final QuartzScheduledTaskService quartzScheduledTaskService;
     private final TaskProgressService taskProgressService;
     private final EpgChannelMapper epgChannelMapper;
     private final EpgProviderMapper epgProviderMapper;
@@ -152,7 +151,7 @@ public class ChannelService {
      */
     public void dataClean(RuleType step) {
         log.info("Cleaning data... ==> {}", step);
-        scheduledTaskService.triggerManualDataCleanupJob(step);
+        quartzScheduledTaskService.triggerManualDataCleanupJob(step);
     }
 
     public PageResult<Channel> findByQuery(ChannelQuery query) {

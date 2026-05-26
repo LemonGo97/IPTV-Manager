@@ -5,7 +5,6 @@ import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRefreshTask;
 import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderRefreshTaskMapper;
-import com.lemongo97.iptv.iptvmanager.quartz.ScheduledTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +31,7 @@ public class IPTVProviderService {
 
     private final IPTVProviderMapper providerMapper;
     private final IPTVProviderRawDataService rawDataService;
-    private final ScheduledTaskService scheduledTaskService;
+    private final QuartzScheduledTaskService quartzScheduledTaskService;
     private final IPTVProviderRefreshTaskMapper taskMapper;
 
     @Value("${app.upload.m3u8-dir:tmp/uploads/m3u8}")
@@ -133,7 +132,7 @@ public class IPTVProviderService {
 
         providerMapper.update(updated);
         try {
-            scheduledTaskService.scheduleOrUpdateJob(updated);
+            quartzScheduledTaskService.scheduleOrUpdateJob(updated);
         } catch (Exception e) {
             log.warn("Failed to schedule job for provider: id={}", id, e);
         }
@@ -149,7 +148,7 @@ public class IPTVProviderService {
         findById(id);
         log.info("Deleting IPTV provider: id={}", id);
         // 先删除关联的定时任务
-        scheduledTaskService.deleteJob(id);
+        quartzScheduledTaskService.deleteJob(id);
         // 先删除关联的原始数据
         rawDataService.deleteByProviderId(id);
         providerMapper.deleteById(id);
@@ -192,7 +191,7 @@ public class IPTVProviderService {
         log.info("Created refresh task: taskId={}, providerId={}", task.getId(), provider.getId());
 
         // 提交给 Quartz 执行
-        scheduledTaskService.triggerManualJob(provider.getId(), task.getId());
+        quartzScheduledTaskService.triggerManualJob(provider.getId(), task.getId());
         log.info("Submitted IPTV refresh to Quartz: taskId={}, providerId={}", task.getId(), provider.getId());
 
         return task.getId();

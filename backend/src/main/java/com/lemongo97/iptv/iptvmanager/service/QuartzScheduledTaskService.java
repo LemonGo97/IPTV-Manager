@@ -1,7 +1,10 @@
-package com.lemongo97.iptv.iptvmanager.quartz;
+package com.lemongo97.iptv.iptvmanager.service;
 
 import com.lemongo97.iptv.iptvmanager.engine.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
+import com.lemongo97.iptv.iptvmanager.quartz.job.DataCleanupJob;
+import com.lemongo97.iptv.iptvmanager.quartz.job.EpgRefreshJob;
+import com.lemongo97.iptv.iptvmanager.quartz.job.IPTVProviderRefreshJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
@@ -17,7 +20,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ScheduledTaskService {
+public class QuartzScheduledTaskService {
 
     private final Scheduler scheduler;
 

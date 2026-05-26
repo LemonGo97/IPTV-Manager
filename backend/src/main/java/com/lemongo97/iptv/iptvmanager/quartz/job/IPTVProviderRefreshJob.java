@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.quartz;
+package com.lemongo97.iptv.iptvmanager.quartz.job;
 
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRefreshTask;
