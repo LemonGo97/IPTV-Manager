@@ -13,7 +13,7 @@ import java.util.List;
  * IPTV 源控制器
  */
 @RestController
-@RequestMapping("/m3u8/provider")
+@RequestMapping("/iptv/provider")
 @RequiredArgsConstructor
 public class IPTVProviderController {
 

@@ -14,7 +14,7 @@ import java.util.List;
  * IPTV 刷新任务控制器
  */
 @RestController
-@RequestMapping("/m3u8/task/history")
+@RequestMapping("/iptv/task/history")
 @RequiredArgsConstructor
 public class IPTVRefreshTaskController {
 

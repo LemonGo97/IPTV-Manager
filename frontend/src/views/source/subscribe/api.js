@@ -2,24 +2,24 @@ import { request } from '@/utils'
 
 export default {
   // 获取订阅源列表
-  getAll: (params) => request.get('/m3u8/provider', { params }),
+  getAll: (params) => request.get('/iptv/provider', { params }),
   // 获取单个订阅源
-  getById: (id) => request.get(`/m3u8/provider/${id}`),
+  getById: (id) => request.get(`/iptv/provider/${id}`),
   // 创建订阅源
-  create: (data) => request.post('/m3u8/provider', data),
+  create: (data) => request.post('/iptv/provider', data),
   // 更新订阅源
-  update: (id, data) => request.put(`/m3u8/provider/${id}`, data),
+  update: (id, data) => request.put(`/iptv/provider/${id}`, data),
   // 删除订阅源
-  delete: (id) => request.delete(`/m3u8/provider/${id}`),
+  delete: (id) => request.delete(`/iptv/provider/${id}`),
   // 手动刷新订阅源
-  refresh: (id) => request.post(`/m3u8/provider/${id}/refresh`),
+  refresh: (id) => request.post(`/iptv/provider/${id}/refresh`),
   // 上传本地文件
   upload: (file, name, description) => {
     const formData = new FormData()
     formData.append('file', file)
     if (name) formData.append('name', name)
     if (description) formData.append('description', description)
-    return request.post('/m3u8/provider/upload', formData, {
+    return request.post('/iptv/provider/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
