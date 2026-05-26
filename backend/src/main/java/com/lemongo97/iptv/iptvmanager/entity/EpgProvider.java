@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EpgSource {
+public class EpgProvider {
     private Long id;
     private String name;
     private String url;

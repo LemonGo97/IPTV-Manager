@@ -36,7 +36,7 @@ public class ChannelService {
     private final ScheduledTaskService scheduledTaskService;
     private final TaskProgressService taskProgressService;
     private final EpgChannelMapper epgChannelMapper;
-    private final EpgSourceMapper epgSourceMapper;
+    private final EpgProviderMapper epgProviderMapper;
     private final EpgProgramMapper epgProgramMapper;
 
     /**

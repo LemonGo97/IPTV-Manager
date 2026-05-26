@@ -2,10 +2,10 @@ package com.lemongo97.iptv.iptvmanager.quartz;
 
 import com.lemongo97.iptv.iptvmanager.entity.EpgChannel;
 import com.lemongo97.iptv.iptvmanager.entity.EpgProgram;
-import com.lemongo97.iptv.iptvmanager.entity.EpgSource;
+import com.lemongo97.iptv.iptvmanager.entity.EpgProvider;
 import com.lemongo97.iptv.iptvmanager.mapper.EpgChannelMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.EpgProgramMapper;
-import com.lemongo97.iptv.iptvmanager.mapper.EpgSourceMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.EpgProviderMapper;
 import com.lemongo97.iptv.iptvmanager.parser.epg.EPGParser;
 import com.lemongo97.iptv.iptvmanager.parser.epg.handler.EPGChannelHandler;
 import com.lemongo97.iptv.iptvmanager.parser.epg.handler.EPGProgrammeHandler;
@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class EpgRefreshJob implements Job {
 
-    private final EpgSourceMapper epgSourceMapper;
+    private final EpgProviderMapper epgProviderMapper;
     private final EpgChannelMapper epgChannelMapper;
     private final EpgProgramMapper epgProgramMapper;
     private final TaskProgressService taskProgressService;
@@ -48,8 +48,8 @@ public class EpgRefreshJob implements Job {
         log.debug("Executing EPG refresh job for source: {}, task: {}", sourceId, taskId);
 
         // 获取 EPG 源信息
-        EpgSource epgSource = epgSourceMapper.findById(sourceId).orElse(null);
-        if (epgSource == null) {
+        EpgProvider epgProvider = epgProviderMapper.findById(sourceId).orElse(null);
+        if (epgProvider == null) {
             log.error("EPG source not found: {}", sourceId);
             if (taskId != null) {
                 taskProgressService.failTask(taskId, "EPG source not found");
@@ -57,7 +57,7 @@ public class EpgRefreshJob implements Job {
             return;
         }
 
-        if (epgSource.getType() == null) {
+        if (epgProvider.getType() == null) {
             taskProgressService.failTask(taskId, "EPG source type not found");
             return;
         }
@@ -69,7 +69,7 @@ public class EpgRefreshJob implements Job {
 
         // 执行刷新
         try {
-            refreshEpgSource(epgSource, taskId);
+            refreshEpgSource(epgProvider, taskId);
 
             log.info("EPG source refreshed successfully");
 
@@ -91,13 +91,13 @@ public class EpgRefreshJob implements Job {
     /**
      * 刷新 EPG 源
      */
-    private void refreshEpgSource(EpgSource epgSource, String taskId) throws Exception {
+    private void refreshEpgSource(EpgProvider epgProvider, String taskId) throws Exception {
         // 更新进度：开始获取数据
         if (taskId != null) {
             taskProgressService.updateProgress(taskId, 0, 10.0, "正在获取 EPG 数据...");
         }
 
-        String url = epgSource.getUrl();
+        String url = epgProvider.getUrl();
         log.info("Fetching EPG data from: {}", url);
         restTemplate.execute(
                 url,
@@ -105,9 +105,9 @@ public class EpgRefreshJob implements Job {
                 null,
                 (response) -> {
                     InputStream inputStream;
-                    if (epgSource.getType() == EpgSource.Type.XMLTV_GZIP) {
+                    if (epgProvider.getType() == EpgProvider.Type.XMLTV_GZIP) {
                         inputStream = new GzipCompressorInputStream(response.getBody());
-                    } else if (epgSource.getType() == EpgSource.Type.XMLTV) {
+                    } else if (epgProvider.getType() == EpgProvider.Type.XMLTV) {
                         inputStream = response.getBody();
                     } else {
                         return null;
@@ -118,7 +118,7 @@ public class EpgRefreshJob implements Job {
                                 EpgChannel epgChannel = new EpgChannel()
                                         .setChannelId(channel.getId())
                                         .setDeleted(false)
-                                        .setEpgSourceId(epgSource.getId())
+                                        .setEpgSourceId(epgProvider.getId())
                                         .setIcon(channel.getIcon() == null ? null : new EpgChannel.Icon()
                                                 .setSrc(channel.getIcon().getSrc())
                                                 .setWidth(channel.getIcon().getWidth())
@@ -131,7 +131,7 @@ public class EpgRefreshJob implements Job {
                             },
                             (EPGProgrammeHandler) programme -> {
                                 EpgProgram epgProgram = new EpgProgram()
-                                        .setEpgSourceId(epgSource.getId())
+                                        .setEpgSourceId(epgProvider.getId())
                                         .setChannelId(programme.getChannel())
                                         .setStartTime(programme.getStart())
                                         .setStopTime(programme.getStop())

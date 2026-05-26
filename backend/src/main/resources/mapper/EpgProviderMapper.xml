@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.EpgSourceMapper">
+<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.EpgProviderMapper">
 
-    <resultMap id="EpgSourceResultMap" type="com.lemongo97.iptv.iptvmanager.entity.EpgSource">
+    <resultMap id="EpgSourceResultMap" type="com.lemongo97.iptv.iptvmanager.entity.EpgProvider">
         <id property="id" column="id"/>
         <result property="name" column="name"/>
         <result property="url" column="url"/>
