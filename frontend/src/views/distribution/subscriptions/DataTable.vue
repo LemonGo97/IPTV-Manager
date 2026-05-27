@@ -179,7 +179,7 @@ const columns = computed(() => [
     title: '过期时间',
     key: 'endTime',
     width: 160,
-    render: row => row.endTime ? formatDateTime(row.endTime) : '永久',
+    render: row => row.endTime ? formatDateTime(row.endTime) : '-',
   },
   {
     title: '状态',
