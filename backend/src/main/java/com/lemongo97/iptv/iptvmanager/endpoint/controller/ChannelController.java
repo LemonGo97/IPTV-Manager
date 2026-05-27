@@ -48,22 +48,6 @@ public class ChannelController {
         return ApiResponse.ok(channelService.findByQuery(query));
     }
 
-    /**
-     * 根据 ID 获取频道
-     */
-    @GetMapping("/{id:\\d+}")
-    public ApiResponse<Channel> findById(@PathVariable Long id) {
-        return ApiResponse.ok(channelService.findById(id));
-    }
-
-    /**
-     * 根据分组获取频道
-     */
-    @GetMapping("/group/{group}")
-    public ApiResponse<List<Channel>> findByGroup(@PathVariable String group) {
-        return ApiResponse.ok(channelService.findByGroup(group));
-    }
-
     @GetMapping("/options")
     public ApiResponse<Map<String, ?>> options() {
         return ApiResponse.ok(channelService.getOptions());

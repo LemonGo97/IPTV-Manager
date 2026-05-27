@@ -31,15 +31,7 @@ public class ChannelGroupController {
         }
         return ApiResponse.ok(groupService.findAll());
     }
-
-    /**
-     * 根据 ID 获取频道组
-     */
-    @GetMapping("/{id}")
-    public ApiResponse<ChannelGroup> findById(@PathVariable Long id) {
-        return ApiResponse.ok(groupService.findById(id));
-    }
-
+    
     /**
      * 创建频道组
      */

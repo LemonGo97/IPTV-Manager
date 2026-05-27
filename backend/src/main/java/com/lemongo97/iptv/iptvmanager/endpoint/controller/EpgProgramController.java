@@ -12,7 +12,7 @@ import java.util.List;
  * EPG 节目控制器
  */
 @RestController
-@RequestMapping("/epg/program")
+@RequestMapping("/epg")
 public class EpgProgramController {
 
     private final EpgProgramService epgProgramService;
@@ -35,7 +35,7 @@ public class EpgProgramController {
      * 获取指定频道的节目列表
      * 用于前端树形数据的第二层展示（懒加载）
      */
-    @GetMapping("/list")
+    @GetMapping("/programs")
     public ApiResponse<List<EpgProgram>> getPrograms(
             @RequestParam Long sourceId,
             @RequestParam String channelId) {
