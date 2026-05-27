@@ -105,7 +105,7 @@ import { MeCrud, MeModal, MeQueryItem } from '@/components'
 import { useCrud } from '@/composables'
 import api from './api'
 import { formatDateTime } from '@/utils'
-import {ref} from "vue";
+import {h, ref} from "vue";
 
 const $table = ref(null)
 
@@ -195,9 +195,8 @@ const columns = [
   { title: '分发名称', key: 'name', ellipsis: { tooltip: true } },
   {
     title: '订阅用户',
-    key: 'userId',
+    key: 'distributionUser.username',
     width: 120,
-    render: row => row.username || '-',
   },
   {
     title: '生效时间',
@@ -220,7 +219,7 @@ const columns = [
   {
     title: '有效期',
     key: 'validity',
-    width: 200,
+    width: 80,
     render: row => formatValidity(row),
   },
   {
@@ -241,21 +240,21 @@ const columns = [
     width: 200,
     fixed: 'right',
     render: row =>
-      h('div', { class: 'flex gap-8' }, [
+      h('div', { class: 'flex items-center gap-8' }, [
         h(
           NButton,
           { size: 'small', onClick: () => handleCopyUrl(row) },
-          { default: () => '复制链接', icon: h('i', { class: 'i-material-symbols:link' }) },
+          { default: () => '复制链接'},
         ),
         h(NButton, { size: 'small', onClick: () => handleOpenWrapper(row) }, { default: () => '编辑' }),
         h(
-          NPopconfirm,
-          { onPositiveClick: () => handleDelete(row.id) },
+          NButton,
           {
-            default: () => '确认删除该分发？',
-            trigger: () =>
-              h(NButton, { size: 'small', type: 'error' }, { default: () => '删除' }),
+            size: 'small',
+            type: 'error',
+            onClick: () => handleDelete(row.id),
           },
+          { default: () => '删除' }
         ),
       ]),
   },

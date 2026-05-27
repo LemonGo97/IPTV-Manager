@@ -22,6 +22,7 @@ public class DistributionSubscription {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean deleted;
+    private DistributionUser distributionUser;
 
     public enum DateType {
         /**

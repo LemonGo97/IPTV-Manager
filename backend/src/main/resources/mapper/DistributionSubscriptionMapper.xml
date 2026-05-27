@@ -13,23 +13,35 @@
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="deleted" column="deleted"/>
+        <association property="distributionUser" javaType="com.lemongo97.iptv.iptvmanager.entity.DistributionUser"
+                     columnPrefix="distributionUser_">
+            <id property="id" column="id"/>
+            <result property="username" column="username"/>
+            <result property="userId" column="user_id"/>
+            <result property="accessKey" column="access_key"/>
+            <result property="createdAt" column="created_at"/>
+            <result property="updatedAt" column="updated_at"/>
+            <result property="deleted" column="deleted"/>
+        </association>
     </resultMap>
 
     <select id="findAll" resultMap="DistributionSubscriptionResultMap">
-        SELECT id, name, user_id, date_type, start_time, end_time, created_at, updated_at, deleted
-        FROM distribution_subscriptions
-        WHERE deleted = 0
-        ORDER BY id DESC
+        SELECT ds.id, ds.name, ds.user_id, ds.date_type, ds.start_time, ds.end_time, ds.created_at, ds.updated_at,
+               du.username as distributionUser_username
+        FROM distribution_subscriptions ds left join distribution_users du on ds.user_id = du.id and du.deleted = 0
+        WHERE ds.deleted = 0
+        ORDER BY ds.id DESC
     </select>
 
     <select id="findByCondition" resultMap="DistributionSubscriptionResultMap">
-        SELECT id, name, user_id, date_type, start_time, end_time, created_at, updated_at, deleted
-        FROM distribution_subscriptions
-        WHERE deleted = 0
+        SELECT ds.id, ds.name, ds.user_id, ds.date_type, ds.start_time, ds.end_time, ds.created_at, ds.updated_at,
+               du.username as distributionUser_username
+        FROM distribution_subscriptions ds left join distribution_users du on ds.user_id = du.id and du.deleted = 0
+        WHERE ds.deleted = 0
         <if test="name != null and name != ''">
-            AND name LIKE '%' || #{name} || '%'
+            AND ds.name LIKE '%' || #{name} || '%'
         </if>
-        ORDER BY id DESC
+        ORDER BY ds.id DESC
     </select>
 
     <select id="findById" resultMap="DistributionSubscriptionResultMap">

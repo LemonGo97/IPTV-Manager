@@ -86,7 +86,8 @@ public class DistributionSubscriptionService {
                 endTime,
                 now,
                 now,
-                false
+                false,
+                null
         );
 
         subscriptionMapper.insert(newSubscription);
@@ -116,7 +117,8 @@ public class DistributionSubscriptionService {
                 endTime,
                 existing.getCreatedAt(),
                 LocalDateTime.now(),
-                existing.getDeleted()
+                existing.getDeleted(),
+                null
         );
 
         subscriptionMapper.update(updated);
