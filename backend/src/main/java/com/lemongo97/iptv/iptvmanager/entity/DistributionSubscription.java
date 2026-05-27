@@ -16,6 +16,7 @@ public class DistributionSubscription {
     private Long id;
     private String name;
     private Long userId;
+    private DateType dateType;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private LocalDateTime createdAt;
