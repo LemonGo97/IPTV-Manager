@@ -43,52 +43,45 @@ public class DistributionSubscriptionService {
 
     /**
      * 计算订阅结束时间
-     * @param validityType 有效期类型：1month, 3month, 6month, 1year, custom, forever
-     * @param customStartTime 自定义开始时间（仅当 validityType=custom 时使用）
-     * @param customEndTime 自定义结束时间（仅当 validityType=custom 时使用）
-     * @return 结束时间，null 表示永久
      */
-    private LocalDateTime calculateEndTime(String validityType, LocalDateTime customStartTime, LocalDateTime customEndTime) {
-        return switch (validityType) {
-            case "1month" -> LocalDateTime.now().plus(1, ChronoUnit.MONTHS);
-            case "3month" -> LocalDateTime.now().plus(3, ChronoUnit.MONTHS);
-            case "6month" -> LocalDateTime.now().plus(6, ChronoUnit.MONTHS);
-            case "1year" -> LocalDateTime.now().plus(1, ChronoUnit.YEARS);
-            case "forever" -> null;
-            case "custom" -> customEndTime;
-            default -> throw new BusinessException("Invalid validity type: " + validityType);
+    private LocalDateTime calculateEndTime(DistributionSubscription.DateType dateType, LocalDateTime customEndTime) {
+        return switch (dateType) {
+            case MONTH -> LocalDateTime.now().plus(1, ChronoUnit.MONTHS);
+            case QUARTER -> LocalDateTime.now().plus(3, ChronoUnit.MONTHS);
+            case HALF_YEAR -> LocalDateTime.now().plus(6, ChronoUnit.MONTHS);
+            case YEAR -> LocalDateTime.now().plus(1, ChronoUnit.YEARS);
+            case FOREVER -> null;
+            case CUSTOM -> customEndTime;
         };
     }
 
     /**
      * 计算订阅开始时间
-     * @param validityType 有效期类型
-     * @param customStartTime 自定义开始时间
-     * @return 开始时间
      */
-    private LocalDateTime calculateStartTime(String validityType, LocalDateTime customStartTime) {
-        if ("custom".equals(validityType)) {
+    private LocalDateTime calculateStartTime(DistributionSubscription.DateType dateType, LocalDateTime customStartTime) {
+        if (dateType == DistributionSubscription.DateType.CUSTOM) {
             return customStartTime != null ? customStartTime : LocalDateTime.now();
         }
         return LocalDateTime.now();
     }
 
     @Transactional
-    public DistributionSubscription create(DistributionSubscription subscription, String validityType,
+    public DistributionSubscription create(DistributionSubscription subscription, DistributionSubscription.DateType dateType,
                                           LocalDateTime customStartTime, LocalDateTime customEndTime) {
         log.info("Creating distribution subscription: {}", subscription.getName());
 
         // 验证用户是否存在
         DistributionUser user = userService.findById(subscription.getUserId());
 
-        var startTime = calculateStartTime(validityType, customStartTime);
-        var endTime = calculateEndTime(validityType, customStartTime, customEndTime);
+        var startTime = calculateStartTime(dateType, customStartTime);
+        var endTime = calculateEndTime(dateType, customEndTime);
 
         var now = LocalDateTime.now();
         var newSubscription = new DistributionSubscription(
                 null,
                 subscription.getName(),
                 user.getId(),
+                dateType,
                 startTime,
                 endTime,
                 now,
@@ -102,7 +95,7 @@ public class DistributionSubscriptionService {
     }
 
     @Transactional
-    public DistributionSubscription update(Long id, DistributionSubscription subscription, String validityType,
+    public DistributionSubscription update(Long id, DistributionSubscription subscription, DistributionSubscription.DateType dateType,
                                           LocalDateTime customStartTime, LocalDateTime customEndTime) {
         var existing = findById(id);
         log.info("Updating distribution subscription: id={}", id);
@@ -111,13 +104,14 @@ public class DistributionSubscriptionService {
         Long userId = subscription.getUserId() != null ? subscription.getUserId() : existing.getUserId();
         userService.findById(userId);
 
-        var startTime = calculateStartTime(validityType, customStartTime);
-        var endTime = calculateEndTime(validityType, customStartTime, customEndTime);
+        var startTime = calculateStartTime(dateType, customStartTime);
+        var endTime = calculateEndTime(dateType, customEndTime);
 
         var updated = new DistributionSubscription(
                 id,
                 subscription.getName() != null ? subscription.getName() : existing.getName(),
                 userId,
+                dateType,
                 startTime,
                 endTime,
                 existing.getCreatedAt(),
@@ -150,17 +144,17 @@ public class DistributionSubscriptionService {
     public boolean isValidSubscription(Long subscriptionId) {
         var subscription = findById(subscriptionId);
         var now = LocalDateTime.now();
-        
+
         // 检查开始时间
         if (subscription.getStartTime().isAfter(now)) {
             return false;
         }
-        
+
         // 检查结束时间（null 表示永久）
         if (subscription.getEndTime() != null && subscription.getEndTime().isBefore(now)) {
             return false;
         }
-        
+
         return true;
     }
 }

@@ -47,11 +47,11 @@
 
         <n-form-item
           label="有效期"
-          path="validityType"
+          path="dateType"
           :rule="{ required: true, message: '请选择有效期', trigger: ['change', 'blur'] }"
         >
           <n-select
-            v-model:value="modalForm.validityType"
+            v-model:value="modalForm.dateType"
             placeholder="请选择有效期"
             :options="validityOptions"
             @update:value="handleValidityTypeChange"
@@ -59,7 +59,7 @@
         </n-form-item>
 
         <!-- 自定义日期范围 -->
-        <template v-if="modalForm.validityType === 'custom'">
+        <template v-if="modalForm.dateType === 'CUSTOM'">
           <n-form-item
             label="开始时间"
             path="customStartTime"
@@ -119,24 +119,37 @@ const queryItems = reactive({
   name: '',
 })
 
-// 有效期选项
+// 有效期选项（枚举值）
 const validityOptions = [
-  { label: '1个月', value: '1month' },
-  { label: '3个月', value: '3month' },
-  { label: '半年', value: '6month' },
-  { label: '一年', value: '1year' },
-  { label: '永久', value: 'forever' },
-  { label: '自定义', value: 'custom' },
+  { label: '1个月', value: 'MONTH' },
+  { label: '3个月', value: 'QUARTER' },
+  { label: '半年', value: 'HALF_YEAR' },
+  { label: '一年', value: 'YEAR' },
+  { label: '永久', value: 'FOREVER' },
+  { label: '自定义', value: 'CUSTOM' },
 ]
 
 const userOptions = ref([])
 
+// 枚举值到显示名称的映射
+const dateTypeMap = {
+  'MONTH': '1个月',
+  'QUARTER': '3个月',
+  'HALF_YEAR': '半年',
+  'YEAR': '一年',
+  'FOREVER': '永久',
+  'CUSTOM': '自定义',
+}
+
 // 格式化有效期显示
 function formatValidity(row) {
   if (!row.endTime) return '永久'
-  const start = new Date(row.startTime)
-  const end = new Date(row.endTime)
-  return `${formatDate(start)} ~ ${formatDate(end)}`
+  if (row.dateType === 'CUSTOM') {
+    const start = new Date(row.startTime)
+    const end = new Date(row.endTime)
+    return `${formatDate(start)} ~ ${formatDate(end)}`
+  }
+  return dateTypeMap[row.dateType] || row.dateType
 }
 
 function formatDate(date) {
@@ -211,7 +224,7 @@ const {
   initForm: {
     name: '',
     userId: null,
-    validityType: '1year',
+    dateType: 'YEAR',
     customStartTime: null,
     customEndTime: null,
   },
@@ -219,7 +232,7 @@ const {
     const payload = {
       name: data.name,
       userId: data.userId,
-      validityType: data.validityType,
+      dateType: data.dateType,
       customStartTime: data.customStartTime ? new Date(data.customStartTime).toISOString() : null,
       customEndTime: data.customEndTime ? new Date(data.customEndTime).toISOString() : null,
     }
@@ -230,7 +243,7 @@ const {
     const payload = {
       name: data.name,
       userId: data.userId,
-      validityType: data.validityType,
+      dateType: data.dateType,
       customStartTime: data.customStartTime ? new Date(data.customStartTime).toISOString() : null,
       customEndTime: data.customEndTime ? new Date(data.customEndTime).toISOString() : null,
     }
@@ -242,70 +255,34 @@ const {
 // 包装 handleOpen 以处理编辑时的数据转换
 async function handleOpenWrapper(row) {
   const rowData = row ?? {}
-  
-  // 后端只返回 startTime 和 endTime，需要推断 validityType
-  let validityType = '1year'
+
+  // 后端返回的是枚举名称，直接使用
+  const dateType = rowData.dateType || 'YEAR'
+
+  // 自定义类型需要设置日期时间戳
   let customStartTime = null
   let customEndTime = null
-  
-  if (rowData.startTime) {
-    const startTime = new Date(rowData.startTime)
-    const endTime = rowData.endTime ? new Date(rowData.endTime) : null
-    
-    // 计算时间差推断有效期类型
-    if (!endTime) {
-      validityType = 'forever'
-    } else if (isApproxOneMonth(startTime, endTime)) {
-      validityType = '1month'
-    } else if (isApproxThreeMonths(startTime, endTime)) {
-      validityType = '3month'
-    } else if (isApproxSixMonths(startTime, endTime)) {
-      validityType = '6month'
-    } else if (isApproxOneYear(startTime, endTime)) {
-      validityType = '1year'
-    } else {
-      validityType = 'custom'
-      customStartTime = startTime.getTime()
-      customEndTime = endTime.getTime()
-    }
+
+  if (rowData.dateType === 'CUSTOM' && rowData.startTime && rowData.endTime) {
+    customStartTime = new Date(rowData.startTime).getTime()
+    customEndTime = new Date(rowData.endTime).getTime()
   }
-  
+
   // 调用原始的 handleOpen 并传递处理后的数据
   handleOpen({
     action: 'edit',
     row: {
       ...rowData,
-      validityType,
+      dateType,
       customStartTime,
       customEndTime,
     }
   })
 }
 
-// 判断是否约等于一个月
-function isApproxOneMonth(start, end) {
-  const diffDays = (end - start) / (1000 * 60 * 60 * 24)
-  return diffDays >= 28 && diffDays <= 35
-}
-
-function isApproxThreeMonths(start, end) {
-  const diffDays = (end - start) / (1000 * 60 * 60 * 24)
-  return diffDays >= 85 && diffDays <= 95
-}
-
-function isApproxSixMonths(start, end) {
-  const diffDays = (end - start) / (1000 * 60 * 60 * 24)
-  return diffDays >= 175 && diffDays <= 190
-}
-
-function isApproxOneYear(start, end) {
-  const diffDays = (end - start) / (1000 * 60 * 60 * 24)
-  return diffDays >= 355 && diffDays <= 380
-}
-
 // 有效期类型变化时处理
 function handleValidityTypeChange(value) {
-  if (value !== 'custom') {
+  if (value !== 'CUSTOM') {
     modalForm.customStartTime = null
     modalForm.customEndTime = null
   }

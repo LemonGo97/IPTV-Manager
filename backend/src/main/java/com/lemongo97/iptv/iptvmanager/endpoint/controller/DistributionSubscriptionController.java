@@ -61,7 +61,7 @@ public class DistributionSubscriptionController {
 
         var created = subscriptionService.create(
                 subscription,
-                request.validityType(),
+                request.dateType(),
                 request.customStartTime(),
                 request.customEndTime()
         );
@@ -82,7 +82,7 @@ public class DistributionSubscriptionController {
         var updated = subscriptionService.update(
                 id,
                 subscription,
-                request.validityType(),
+                request.dateType(),
                 request.customStartTime(),
                 request.customEndTime()
         );
@@ -114,7 +114,7 @@ public class DistributionSubscriptionController {
     public record CreateSubscriptionRequest(
             String name,
             Long userId,
-            String validityType,
+            DistributionSubscription.DateType dateType,
             LocalDateTime customStartTime,
             LocalDateTime customEndTime
     ) {}
@@ -125,7 +125,7 @@ public class DistributionSubscriptionController {
     public record UpdateSubscriptionRequest(
             String name,
             Long userId,
-            String validityType,
+            DistributionSubscription.DateType dateType,
             LocalDateTime customStartTime,
             LocalDateTime customEndTime
     ) {}
