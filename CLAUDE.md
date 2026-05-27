@@ -978,6 +978,45 @@ export const basePermissions = [
 4. API 接口
 5. 其他工具函数
 
+**Naive UI 全局工具**：
+- `$message` - 全局消息提示（success, error, warning, info, loading）
+- `$dialog` - 全局对话框
+- `$notification` - 全局通知
+- `$loadingBar` - 全局加载进度条
+
+这些工具已在 `naiveTools.js` 中配置为全局变量，直接使用即可，无需导入：
+```javascript
+// ✅ 正确 - 直接使用全局 $message
+$message.success('操作成功')
+$message.error('操作失败')
+
+// ❌ 错误 - 不需要导入 useMessage
+import { useMessage } from 'naive-ui'
+const message = useMessage()
+```
+
+**VueUse 工具**：
+- `useClipboard` - 剪贴板操作
+
+复制到剪贴板应使用 `@vueuse/core` 的 `useClipboard`：
+```javascript
+// ✅ 正确 - 使用 useClipboard
+import { useClipboard } from '@vueuse/core'
+
+const { copy, copied } = useClipboard()
+
+// 监听复制状态
+watch(copied, (val) => {
+  if (val) $message.success('已复制到剪贴板')
+})
+
+// 调用复制
+copy(text)
+
+// ❌ 错误 - 不要使用 navigator.clipboard
+await navigator.clipboard.writeText(text)
+```
+
 **表格列定义**：
 - 使用 `render` 函数渲染复杂内容（标签、按钮等）
 - 固定操作列在右侧：`fixed: 'right'`
