@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.DistributionSubscriptionMapper">
+
+    <resultMap id="DistributionSubscriptionResultMap" type="com.lemongo97.iptv.iptvmanager.entity.DistributionSubscription">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="userId" column="user_id"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="DistributionSubscriptionResultMap">
+        SELECT id, name, user_id, start_time, end_time, created_at, updated_at, deleted
+        FROM distribution_subscriptions
+        WHERE deleted = 0
+        ORDER BY id DESC
+    </select>
+
+    <select id="findByCondition" resultMap="DistributionSubscriptionResultMap">
+        SELECT id, name, user_id, start_time, end_time, created_at, updated_at, deleted
+        FROM distribution_subscriptions
+        WHERE deleted = 0
+        <if test="name != null and name != ''">
+            AND name LIKE '%' || #{name} || '%'
+        </if>
+        ORDER BY id DESC
+    </select>
+
+    <select id="findById" resultMap="DistributionSubscriptionResultMap">
+        SELECT id, name, user_id, start_time, end_time, created_at, updated_at, deleted
+        FROM distribution_subscriptions
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="findByUserId" resultMap="DistributionSubscriptionResultMap">
+        SELECT id, name, user_id, start_time, end_time, created_at, updated_at, deleted
+        FROM distribution_subscriptions
+        WHERE user_id = #{userId} AND deleted = 0
+    </select>
+
+    <select id="count" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM distribution_subscriptions
+        WHERE deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO distribution_subscriptions (name, user_id, start_time, end_time, created_at, updated_at, deleted)
+        VALUES (#{name}, #{userId}, #{startTime}, #{endTime}, #{createdAt}, #{updatedAt}, 0)
+    </insert>
+
+    <update id="update">
+        UPDATE distribution_subscriptions
+        SET name = #{name},
+            user_id = #{userId},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            updated_at = #{updatedAt}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE distribution_subscriptions
+        SET deleted = 1
+        WHERE id = #{id}
+    </update>
+
+</mapper>

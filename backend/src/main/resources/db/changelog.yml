@@ -251,3 +251,22 @@ databaseChangeLog:
             path: db/sql/create-m3u8-providers-table1.sql
             relativeToChangelogFile: false
             stripComments: true
+
+  - changeSet:
+      id: create-distribution-subscriptions-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-distribution-subscriptions-table.sql
+            relativeToChangelogFile: false
+            stripComments: true
+
+
+  - changeSet:
+      id: create-distribution-users-table
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/create-distribution-users-table.sql
+            relativeToChangelogFile: false
+            stripComments: true

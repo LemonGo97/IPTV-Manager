@@ -3,6 +3,8 @@ import { request } from '@/utils'
 export default {
   // 获取订阅用户列表
   getAll: (params) => request.get('/distribution/users', { params }),
+  // 获取订阅用户总数
+  count: () => request.get('/distribution/users/count'),
   // 获取订阅用户详情
   getById: (id) => request.get(`/distribution/users/${id}`),
   // 创建订阅用户
@@ -13,6 +15,6 @@ export default {
   delete: (id) => request.delete(`/distribution/users/${id}`),
   // 重置访问密钥
   resetAccessKey: (id) => request.post(`/distribution/users/${id}/reset-key`),
-  // 复制订阅链接
-  copySubscriptionUrl: (id) => request.get(`/distribution/users/${id}/subscription-url`),
+  // 获取订阅链接
+  getSubscriptionUrl: (id) => request.get(`/distribution/users/${id}/subscription-url`),
 }

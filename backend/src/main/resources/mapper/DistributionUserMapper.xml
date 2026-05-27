@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lemongo97.iptv.iptvmanager.mapper.DistributionUserMapper">
+
+    <resultMap id="DistributionUserResultMap" type="com.lemongo97.iptv.iptvmanager.entity.DistributionUser">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="userId" column="user_id"/>
+        <result property="accessKey" column="access_key"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="DistributionUserResultMap">
+        SELECT id, username, user_id, access_key, created_at, updated_at, deleted
+        FROM distribution_users
+        WHERE deleted = 0
+        ORDER BY id DESC
+    </select>
+
+    <select id="findByCondition" resultMap="DistributionUserResultMap">
+        SELECT id, username, user_id, access_key, created_at, updated_at, deleted
+        FROM distribution_users
+        WHERE deleted = 0
+        <if test="username != null and username != ''">
+            AND username LIKE '%' || #{username} || '%'
+        </if>
+        ORDER BY id DESC
+    </select>
+
+    <select id="findById" resultMap="DistributionUserResultMap">
+        SELECT id, username, user_id, access_key, created_at, updated_at, deleted
+        FROM distribution_users
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="findByUserId" resultMap="DistributionUserResultMap">
+        SELECT id, username, user_id, access_key, created_at, updated_at, deleted
+        FROM distribution_users
+        WHERE user_id = #{userId} AND deleted = 0
+    </select>
+
+    <select id="count" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM distribution_users
+        WHERE deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO distribution_users (username, user_id, access_key, created_at, updated_at, deleted)
+        VALUES (#{username}, #{userId}, #{accessKey}, #{createdAt}, #{updatedAt}, 0)
+    </insert>
+
+    <update id="update">
+        UPDATE distribution_users
+        SET username = #{username},
+            access_key = #{accessKey},
+            updated_at = #{updatedAt}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE distribution_users
+        SET deleted = 1
+        WHERE id = #{id}
+    </update>
+
+</mapper>
