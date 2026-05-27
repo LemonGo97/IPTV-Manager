@@ -1,168 +1,64 @@
 <template>
   <CommonPage>
     <!-- 统计数据区域 -->
-    <div class="statistics-area">
-      <n-grid x-gap="12" y-gap="12" :cols="5">
-        <n-gi>
-          <n-statistic label="频道总数" :value="statistics.totalChannels">
-            <template #prefix>
-              <i class="i-mdi:television mr-5"/>
-            </template>
-          </n-statistic>
-        </n-gi>
-        <n-gi>
-          <n-statistic label="有效频道" :value="statistics.validChannels">
-            <template #prefix>
-              <i class="i-mdi:check-circle mr-5"/>
-            </template>
-          </n-statistic>
-        </n-gi>
-        <n-gi>
-          <n-statistic label="无效频道" :value="statistics.invalidChannels">
-            <template #prefix>
-              <i class="i-mdi:close-circle mr-5"/>
-            </template>
-          </n-statistic>
-        </n-gi>
-        <n-gi>
-          <n-statistic label="频道组数量" :value="statistics.groupCount">
-            <template #prefix>
-              <i class="i-mdi:folder-multiple mr-5"/>
-            </template>
-          </n-statistic>
-        </n-gi>
-        <n-gi>
-          <n-statistic label="状态" :value="statusText">
-            <template #prefix>
-              <i :class="statusIcon" class="status-icon mr-5 mt-5"/>
-            </template>
-          </n-statistic>
-        </n-gi>
-      </n-grid>
-    </div>
+    <StatisticsArea :statistics="statistics" />
 
     <!-- 处理步骤区域 -->
-    <div class="steps-area">
-      <n-steps :current="currentStep" :status="stepStatus">
-        <n-step title="频道过滤" description="根据规则过滤无效和测试频道"/>
-        <n-step title="名称规范化" description="统一频道名称格式和标识"/>
-        <n-step title="延迟检测" description="检测各源的延迟情况"/>
-        <n-step title="频道分组" description="按类别整理归类频道"/>
-        <n-step title="信号评分" description="评估源信号质量并打分"/>
-      </n-steps>
-    </div>
+    <StepsArea :current-step="currentStep" :step-status="stepStatus" />
 
-    <n-divider/>
+    <n-divider />
 
-    <!-- 操作按钮区域 -->
-    <div class="action-area">
-      <n-space>
-        <n-input v-model:value="queryItems.name" placeholder="搜索频道名称" clearable style="width: 200px" @keyup.enter="handleSearch"/>
-        <n-button type="primary" @click="handleSearch">
-          <i class="i-material-symbols:search mr-4 text-18"/>
-          搜索
-        </n-button>
-        <n-button type="primary" @click="handleRefresh">
-          <i class="i-material-symbols:refresh mr-4 text-18"/>
-          刷新
-        </n-button>
-        <n-spin :show="stepsAreaLoadingStatus">
-          <n-button type="success" @click="handleStartProcessing">
-            <i class="i-material-symbols:play-arrow mr-4 text-18"/>
-            开始处理
-          </n-button>
-        </n-spin>
-        <n-spin :show="stepsAreaLoadingStatus">
-          <n-dropdown trigger="click" :options="stepPressOptions" @select="handleStepPressSelect">
-            <n-button type="success">
-              <i class="i-material-symbols:keyboard-arrow-down-rounded text-18"/>
-              分步处理
-            </n-button>
-          </n-dropdown>
-        </n-spin>
-      </n-space>
-    </div>
+    <!-- 搜索和操作栏 -->
+    <SearchBar
+      :steps-area-loading-status="stepsAreaLoadingStatus"
+      @search="handleSearch"
+      @refresh="handleRefresh"
+      @start-processing="handleStartProcessing"
+      @step-press-select="handleStepPressSelect"
+    />
 
     <!-- 数据表格 -->
-    <n-data-table
-      :columns="columns"
-      :data="tableData"
-      :pagination="pagination"
-      :remote="true"
-      :loading="loading"
-      :scroll-x="1400"
-      :row-key="(row) => row.id"
-      :filters="filters"
-      @update:filters="handleFiltersChange"
-      size="small"
+    <DataTable
+      ref="tableRef"
+      :search-params="queryItems"
+      @view-epg="handleViewEpg"
+      @update-filters="handleFiltersChange"
+      @preview="handlePreview"
     />
 
     <!-- EPG弹窗 -->
-    <n-modal
-      v-model:show="epgModalVisible"
-      preset="card"
-      :title="`EPG节目单 - ${epgChannelName}`"
-      :style="{ width: '600px', maxHeight: '70vh' }"
-    >
-      <div class="epg-container" ref="epgContainerRef">
-        <n-timeline>
-          <n-timeline-item
-            v-for="item in epgTimelineData"
-            :key="item.index"
-            :type="item.type === 'date' ? 'success' : item.isCurrent ? 'success' : item.played ? 'info' : 'default'"
-            :title="item.type === 'date' ? item.title : null"
-            :time="item.time"
-            :content="item.type === 'program' ? item.title : null"
-            :class="{ 'current-program-item': item.isCurrent }"
-          />
-        </n-timeline>
-      </div>
-    </n-modal>
+    <EpgModal
+      v-model:visible="epgModalVisible"
+      :channel-name="epgChannelName"
+      :timeline-data="epgTimelineData"
+    />
 
     <!-- 预览弹窗 -->
-    <n-modal
-      v-model:show="previewModalVisible"
-      preset="card"
-      :title="`确认使用 ${previewPlayerName} 预览`"
-      :style="{ width: '500px' }"
-    >
-      <div v-if="previewChannel" class="preview-modal-content">
-        <n-p class="text-16 mb-4">确定使用 {{ previewPlayerName }} 预览「{{ previewChannel.name }}」吗？</n-p>
-        <n-p class="text-14 opacity-70 url-text">{{ previewChannel.url }}</n-p>
-      </div>
-      <template #action>
-        <n-space class="mt-4 flex justify-end" :size="16">
-          <n-button @click="previewModalVisible = false">
-            关闭
-          </n-button>
-          <n-button @click="handleCopyUrl">
-            复制链接
-          </n-button>
-          <n-button type="primary" @click="handleOpenPlayer">
-            打开 {{ previewPlayerName }}
-          </n-button>
-        </n-space>
-      </template>
-    </n-modal>
+    <PreviewModal
+      v-model:visible="previewModalVisible"
+      :channel="previewChannel"
+      :player-name="previewPlayerName"
+      @copy-url="handleCopyUrl"
+      @open-player="handleOpenPlayer"
+    />
   </CommonPage>
 </template>
 
 <script setup>
-import {NButton, NTag, NStatistic, NGrid, NGi, NDivider, NDataTable, NSteps, NStep, NModal, NTimeline, NTimelineItem, NImage, NDropdown, NP, NSpace} from 'naive-ui'
-import {h, nextTick, onMounted, reactive, ref, watch, computed, onBeforeUnmount} from 'vue'
+import { NDivider } from 'naive-ui'
+import { computed, onMounted, onBeforeUnmount, reactive, ref } from 'vue'
 import { useClipboard } from '@vueuse/core'
+import StatisticsArea from './StatisticsArea.vue'
+import StepsArea from './StepsArea.vue'
+import SearchBar from './SearchBar.vue'
+import DataTable from './DataTable.vue'
+import EpgModal from './EpgModal.vue'
+import PreviewModal from './PreviewModal.vue'
 import api from './api'
-import {createWebSocket} from "@/utils/index.js";
+import { createWebSocket } from '@/utils'
 
 // 使用剪贴板
-const { copy, copied } = useClipboard()
-
-// 监听复制状态
-watch(copied, (val) => {
-  if (val) {
-    $message.success('已复制到剪贴板')
-  }
-})
+const { copy } = useClipboard()
 
 // 统计数据
 const statistics = ref({
@@ -170,14 +66,53 @@ const statistics = ref({
   validChannels: 0,
   invalidChannels: 0,
   groupCount: 0,
-  status: '加载中',
+  status: 'NOT_RUNNING',
 })
+
+// 当前步骤（模拟）
+const currentStep = ref(3)
+const stepStatus = ref('process') // process, finish, error, wait
+const stepsAreaLoadingStatus = ref(false)
+
+// EPG弹窗相关
+const epgModalVisible = ref(false)
+const epgChannelName = ref('')
+const epgTimelineData = ref([])
+
+// 预览弹窗相关
+const previewModalVisible = ref(false)
+const previewChannel = ref(null)
+const previewPlayerKey = ref('')
+
+// Websocket
+const websocket = ref(null)
+
+// 表格引用
+const tableRef = ref(null)
+
+// 搜索参数
+const queryItems = reactive({
+  name: '',
+  providerId: null,
+  groupId: null,
+  status: null,
+})
+
+// 播放器名称映射
+const playerNames = {
+  iina: 'IINA',
+  potplayer: 'PotPlayer',
+  vlc: 'VLC',
+}
+
+// 当前选中的播放器名称
+const previewPlayerName = computed(() => playerNames[previewPlayerKey.value] || '')
 
 // 获取统计数据
 async function fetchStatistics() {
   try {
     const res = await api.getStatistic()
-    stepsAreaLoadingStatus.value = res.data.status === 'RUNNING';
+    stepsAreaLoadingStatus.value = res.data.status === 'RUNNING'
     statistics.value = {
       totalChannels: res.data.totalChannels || 0,
       validChannels: res.data.validChannels || 0,
@@ -191,107 +126,25 @@ async function fetchStatistics() {
   }
 }
 
-// 页面加载时获取统计数据、表格数据和过滤器选项
-onMounted(() => {
-  fetchStatistics()
-  fetchFilterOptions()
-  fetchTableData()
-  setupWebsocket()
-})
-
-onBeforeUnmount(() => {
-  if (websocket.value) {
-    websocket.value.close()
-  }
-})
-
-const stepPressOptions = [
-  {
-    label: '频道过滤',
-    key: 'FILTER',
-  },
-  {
-    label: '名称规范化',
-    key: 'NAME'
-  },
-  {
-    label: '相同频道合并',
-    key: 'MERGE'
-  },
-  {
-    label: '延迟检测',
-    key: 'DELAY'
-  },
-  {
-    label: '频道分组',
-    key: 'GROUP'
-  }
-]
-
-// 状态图标
-const statusIcon = computed(() => {
-  if (statistics.value.status === '进行中') {
-    return 'i-mdi:human-scooter'
-  }
-  return 'i-mdi:walk'
-})
-
-// 状态图标
-const statusText = computed(() => {
-  if (statistics.value.status === 'RUNNING') {
-    return '清洗中'
-  }
-  return '未运行'
-})
-
-// 当前步骤（模拟）
-const currentStep = ref(3)
-const stepStatus = ref('process') // process, finish, error, wait
-
-// EPG弹窗相关
-const epgModalVisible = ref(false)
-const epgChannelName = ref('')
-const epgContainerRef = ref(null)
-const stepsAreaLoadingStatus = ref(false)
-
-// 预览弹窗相关
-const previewModalVisible = ref(false)
-const previewChannel = ref(null)
-const previewPlayerKey = ref('')
-
-// EPG时间轴数据（扁平结构）
-const epgTimelineData = ref([])
-
-// Websocket
-const websocket = ref(null)
-
-function setupWebsocket(){
-
-  let ws = createWebSocket("/channel/cleanup/status")
+// 设置 WebSocket
+function setupWebsocket() {
+  let ws = createWebSocket('/channel/cleanup/status')
 
   ws.onmessage = (e) => {
     let task = JSON.parse(e.data)
     statistics.value.status = task.status
-    stepsAreaLoadingStatus.value = task.status === 'RUNNING';
+    stepsAreaLoadingStatus.value = task.status === 'RUNNING'
   }
+
   ws.onclose = async (e) => {
-    console.debug("websocket closed")
+    console.debug('websocket closed')
     websocket.value = null
     await new Promise(resolve => setTimeout(resolve, 3000))
     setupWebsocket()
   }
-  console.debug("setupWebsocket")
+
+  console.debug('setupWebsocket')
   websocket.value = ws
-}
-
-
-// 判断是否同一天
-function isSameDay(date1, date2) {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  )
 }
 
 // 格式化时间显示
@@ -299,298 +152,24 @@ function formatTime(date) {
   return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
 }
 
-// 格式化日期显示
-function formatDate(date) {
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  const weekDay = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()]
-  return `${month}月${day}日 星期${weekDay}`
-}
-
-// 表格数据
-const tableData = ref([])
-const loading = ref(false)
-
-// 表格过滤值
-const filters = ref({
-  'provider.name': null,
-  'channelGroup.name': null,
-  'status': null,
-})
-
-// 搜索参数
-const queryItems = reactive({
-  name: '',
-  providerId: null,
-  groupId: null,
-  status: null,
-})
-
-// 过滤器选项
-const providerOptions = ref([])
-const channelGroupOptions = ref([])
-
 // 处理过滤器变化
 function handleFiltersChange(filters) {
-  // filter value 现在直接是 ID
   queryItems.providerId = filters['provider.name'] || null
   queryItems.groupId = filters['channelGroup.name'] || null
   queryItems.status = filters['status'] || null
-
-  fetchTableData()
-}
-
-// 分页配置
-const pagination = reactive({
-  page: 1,
-  pageSize: 10,
-  showSizePicker: true,
-  pageSizes: [10, 20, 50, 100],
-  showQuickJumper: true,
-  prefix: ({itemCount}) => `共 ${itemCount} 条`,
-  itemCount: 0,
-  onChange: (page) => {
-    pagination.page = page
-    fetchTableData()
-  },
-  onUpdatePageSize: (pageSize) => {
-    pagination.pageSize = pageSize
-    pagination.page = 1
-    fetchTableData()
-  },
-})
-
-// 获取表格数据
-async function fetchTableData() {
-  loading.value = true
-  try {
-    const res = await api.getList({
-      pageNum: pagination.page,
-      pageSize: pagination.pageSize,
-      name: queryItems.name || undefined,
-      providerId: queryItems.providerId || undefined,
-      groupId: queryItems.groupId || undefined,
-      status: queryItems.status || undefined,
-    })
-    tableData.value = res.data.list || []
-    pagination.itemCount = res.data.total || 0
-  } catch (error) {
-    $message.error('获取数据失败')
-    console.error(error)
-  } finally {
-    loading.value = false
-  }
-}
-
-// 获取过滤器选项
-async function fetchFilterOptions() {
-  try {
-    const res = await api.getOptions()
-    providerOptions.value = (res.data.provider || []).map(item => ({
-      label: item.name,
-      value: item.id,
-    }))
-    channelGroupOptions.value = (res.data.group || []).map(item => ({
-      label: item.name,
-      value: item.id,
-    }))
-  } catch (error) {
-    $message.error('获取过滤器选项失败')
-    console.error(error)
-  }
 }
 
 // 搜索
-function handleSearch() {
-  pagination.page = 1
-  fetchTableData()
-}
-
-// 分页配置
-
-// 表格列定义
-const columns = computed(() => [
-  {title: 'ID', key: 'id', width: 80},
-  // {
-  //   title: '频道LOGO',
-  //   key: 'logo',
-  //   width: 120,
-  //   render: row =>
-  //     h(NImage, {
-  //       key: row.id,
-  //       src: row.logo || '/placeholder-logo.png',
-  //       alt: row.name,
-  //       width: 80,
-  //       height: 50,
-  //       previewDisabled: true,
-  //       objectFit: 'contain',
-  //       style: {
-  //         borderRadius: '4px',
-  //         backgroundColor: 'rgba(0, 0, 0, 0.06)',
-  //         padding: '4px',
-  //         boxSizing: 'content-box',
-  //       },
-  //     }),
-  // },
-  {
-    title: '频道名称',
-    key: 'name',
-    width: 120,
-    ellipsis: {tooltip: true},
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 80,
-    render: row =>
-      h(
-        NTag,
-        {type: row.status === 'valid' ? 'success' : row.status === 'invalid' ? 'error' : 'info'},
-        {default: () => {
-            switch (row.status) {
-              case 'valid': return '有效'
-              case 'invalid': return '无效'
-              case 'unknown': return '未知'
-            }
-          }}
-      ),
-    filter: true,
-    filterOptions: [
-      {
-        label: "有效",
-        value: 'valid'
-      },
-      {
-        label: "无效",
-        value: 'invalid'
-      },
-      {
-        label: "未知",
-        value: 'unknown'
-      }
-    ]
-  },
-  {
-    title: '订阅源',
-    key: 'provider.name',
-    width: 120,
-    filter: true,
-    filterOptions: providerOptions.value,
-  },
-  {
-    title: '频道组',
-    key: 'channelGroup.name',
-    width: 120,
-    filter: true,
-    filterOptions: channelGroupOptions.value,
-  },
-  {
-    title: '延迟（ms）',
-    key: 'httpDetectDelayMilliseconds',
-    width: 200,
-    render(row) {
-      return h(NSpace, {
-        vertical: true
-      },{
-        default: () => {
-          return [
-            h('span', `HTTP 检测：${row.httpDetectDelayMilliseconds || '超时' }`),
-            h('span', `ffmpeg 检测：${row.ffmpegDetectDelayMilliseconds || '超时' }`)
-          ];
-        }
-      })
-    }
-  },
-  {
-    title: '音视频信息',
-    key: 'mediaInfo',
-    width: 240,
-    render(row) {
-      return h(NSpace, {
-        vertical: true
-      },{
-        default: () => {
-          console.log(row.videoInfo)
-          let res = []
-          if(row.videoInfo) {
-            let vinfo = JSON.parse(row.videoInfo)
-            res.push(h('span', `视频流信息：${vinfo.width} x ${vinfo.height} ${vinfo.codec}`))
-          }
-          if(row.audioInfo) {
-            let ainfo = JSON.parse(row.audioInfo)
-            res.push(h('span', `音频流信息：${ainfo.codec} ${ainfo.rate}`))
-          }
-          return res;
-        }
-      })
-    }
-  },
-  {
-    title: '播放地址',
-    key: 'url',
-    width: 300,
-    ellipsis: {tooltip: true},
-    render: row =>
-      h(
-        'a',
-        {
-          href: row.url,
-          target: '_blank',
-          class: 'text-primary',
-          onClick: e => {
-            e.preventDefault()
-            copyToClipboard(row.url)
-          },
-        },
-        row.url
-      ),
-  },
-  {
-    title: '国家',
-    key: 'country',
-    width: 100,
-  },
-  {title: '语言', key: 'language', width: 100},
-  {
-    title: '操作',
-    key: 'actions',
-    width: 180,
-    fixed: 'right',
-    render: row =>
-      h('div', {class: 'flex gap-8'}, [
-        h(NDropdown, {
-          options: [
-            {label: 'IINA', key: 'iina'},
-            {label: 'PotPlayer', key: 'potplayer'},
-            {label: 'VLC', key: 'vlc'},
-          ],
-          onSelect: (key) => handlePreview(key, row),
-        }, {
-          default: () =>
-            h(
-              NButton,
-              {size: 'small'},
-              {default: () => '预览'}
-            ),
-        }),
-        h(
-          NButton,
-          {size: 'small', type: 'info', onClick: () => handleViewEpg(row)},
-          {default: () => '查看EPG'}
-        ),
-      ]),
-  },
-])
-
-// 复制到剪贴板
-function copyToClipboard(text) {
-  copy(text)
+function handleSearch(searchParams) {
+  if (searchParams) {
+    Object.assign(queryItems, searchParams)
+  }
 }
 
 // 刷新
 function handleRefresh() {
   fetchStatistics()
-  fetchTableData()
+  tableRef.value?.refresh()
 }
 
 // 开始处理
@@ -600,26 +179,16 @@ async function handleStartProcessing() {
   $message.info('频道列表开始数据清洗并生成新的频道列表中...')
 }
 
-// 开始处理
+// 分步处理
 async function handleStepPressSelect(key) {
   stepsAreaLoadingStatus.value = true
   await api.dataClean(key)
   $message.info('频道列表开始数据清洗并生成新的频道列表中...')
 }
 
-// 播放器名称映射
-const playerNames = {
-  iina: 'IINA',
-  potplayer: 'PotPlayer',
-  vlc: 'VLC',
-}
-
-// 当前选中的播放器名称
-const previewPlayerName = computed(() => playerNames[previewPlayerKey.value] || '')
-
 // 预览
-function handlePreview(player, row) {
-  previewPlayerKey.value = player
+function handlePreview({ key, row }) {
+  previewPlayerKey.value = key
   previewChannel.value = row
   previewModalVisible.value = true
 }
@@ -663,9 +232,7 @@ async function handleViewEpg(row) {
     const timelineData = res.data
 
     const now = new Date()
-    // const timelineItems = []
     let currentIndex = -1
-    // let lastDate = null
 
     for (let i = 0; i < timelineData.length; i++) {
       let item = timelineData[i]
@@ -686,124 +253,24 @@ async function handleViewEpg(row) {
 
     epgTimelineData.value = timelineData
     epgModalVisible.value = true
-
-    // 弹窗打开后滚动到当前节目
-    await nextTick(() => {
-      if (currentIndex >= 0 && epgContainerRef.value) {
-        const items = epgContainerRef.value.querySelectorAll('.n-timeline-item')
-        const currentItem = items[currentIndex]
-        if (currentItem) {
-          currentItem.scrollIntoView({behavior: 'smooth', block: 'center'})
-        }
-      }
-    })
   } catch (error) {
     $message.error('获取EPG数据失败')
     console.error(error)
   }
 }
 
+onMounted(() => {
+  fetchStatistics()
+  setupWebsocket()
+})
+
+onBeforeUnmount(() => {
+  if (websocket.value) {
+    websocket.value.close()
+  }
+})
+
 defineOptions({
   name: 'ChannelList',
 })
 </script>
-
-<style scoped>
-.statistics-area {
-  margin-bottom: 16px;
-  padding: 16px;
-  background-color: var(--n-color-modal);
-  border-radius: 4px;
-}
-
-.steps-area {
-  margin-bottom: 16px;
-  padding: 16px;
-  background-color: var(--n-color-modal);
-  border-radius: 4px;
-}
-
-.action-area {
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.channel-logo {
-  border-radius: 4px;
-  background-color: rgba(0, 0, 0, 0.06);
-  padding: 4px;
-  box-sizing: content-box;
-}
-
-.statistic-value {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
-}
-
-.statistic-icon {
-  font-size: 18px;
-}
-
-.status-display {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
-}
-
-.status-processing .status-icon {
-  color: #18a058;
-  animation: scoot 0.5s ease-in-out infinite;
-}
-
-@keyframes scoot {
-  0%, 100% {
-    transform: translate(0, 0);
-  }
-  25% {
-    transform: translate(-2px, -1px);
-  }
-  50% {
-    transform: translate(2px, 1px);
-  }
-  75% {
-    transform: translate(-1px, 2px);
-  }
-}
-
-.epg-container {
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.current-program-item :deep(.n-timeline-item-timeline__line) {
-  background-color: #18a058;
-}
-
-.epg-time {
-  font-size: 12px;
-  color: var(--n-text-color-2);
-  margin-top: 4px;
-}
-
-.epg-program {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.epg-current {
-  font-weight: 500;
-}
-
-.program-current-tag {
-  font-size: 12px;
-  padding: 2px 8px;
-  background-color: #18a058;
-  color: white;
-  border-radius: 4px;
-}
-</style>
