@@ -7,16 +7,40 @@
       </NButton>
     </template>
 
-    <MeCrud
-      ref="$table"
-      v-model:query-items="queryItems"
+<!--    <MeCrud-->
+<!--      ref="$table"-->
+<!--      v-model:query-items="queryItems"-->
+<!--      :columns="columns"-->
+<!--      :get-data="api.getAll"-->
+<!--    >-->
+<!--      <MeQueryItem label="名称" :label-width="50">-->
+<!--        <n-input v-model:value="queryItems.name" placeholder="请输入名称" clearable />-->
+<!--      </MeQueryItem>-->
+<!--    </MeCrud>-->
+
+    <div class="action-area">
+      <n-space>
+        <n-input v-model:value="queryItems.name" placeholder="搜索订阅名称" clearable style="width: 200px" @keyup.enter="handleSearch"/>
+        <n-button type="primary" @click="handleSearch">
+          <i class="i-material-symbols:search mr-4 text-18"/>
+          搜索
+        </n-button>
+        <n-button type="primary" @click="fetchTableData">
+          <i class="i-material-symbols:refresh mr-4 text-18"/>
+          刷新
+        </n-button>
+      </n-space>
+    </div>
+    <n-data-table
       :columns="columns"
-      :get-data="api.getAll"
-    >
-      <MeQueryItem label="名称" :label-width="50">
-        <n-input v-model:value="queryItems.name" placeholder="请输入名称" clearable />
-      </MeQueryItem>
-    </MeCrud>
+      :data="tableData"
+      :pagination="pagination"
+      :remote="true"
+      :loading="loading"
+      :scroll-x="1400"
+      :row-key="(row) => row.id"
+      size="small"
+    />
 
     <!-- 表单弹窗 -->
     <MeModal ref="modalRef" width="600px">
@@ -98,14 +122,14 @@
 </template>
 
 <script setup>
-import { NButton, NTag, NPopconfirm, NSelect } from 'naive-ui'
+import {NButton, NTag, NPopconfirm, NSelect, NDataTable, NDropdown, NSpace} from 'naive-ui'
 import { useClipboard } from '@vueuse/core'
 import { isBefore, isAfter, isWithinInterval } from 'date-fns'
 import { MeCrud, MeModal, MeQueryItem } from '@/components'
 import { useCrud } from '@/composables'
 import api from './api'
 import { formatDateTime } from '@/utils'
-import {h, ref} from "vue";
+import {h, onMounted, ref} from "vue";
 
 const $table = ref(null)
 
@@ -359,8 +383,54 @@ async function handleCopyUrl(row) {
   }
 }
 
+const loading = ref(false)
+const tableData = ref([])
+// 分页配置
+const pagination = reactive({
+  page: 1,
+  pageSize: 10,
+  showSizePicker: true,
+  pageSizes: [10, 20, 50, 100],
+  showQuickJumper: true,
+  prefix: ({itemCount}) => `共 ${itemCount} 条`,
+  itemCount: 0,
+  onChange: (page) => {
+    pagination.page = page
+    fetchTableData()
+  },
+  onUpdatePageSize: (pageSize) => {
+    pagination.pageSize = pageSize
+    pagination.page = 1
+    fetchTableData()
+  },
+})
+
+async function fetchTableData() {
+  loading.value = true
+  try {
+    const res = await api.getList({
+      pageNum: pagination.page,
+      pageSize: pagination.pageSize,
+      name: queryItems.name || undefined,
+    })
+    tableData.value = res.data.list || []
+    pagination.itemCount = res.data.total || 0
+  } catch (error) {
+    $message.error('获取数据失败')
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 搜索
+function handleSearch() {
+  pagination.page = 1
+  fetchTableData()
+}
+
 onMounted(() => {
-  $table.value?.handleSearch()
+  fetchTableData()
   loadUserOptions()
 })
 
@@ -368,3 +438,10 @@ defineOptions({
   name: 'DistributionSubscriptions',
 })
 </script>
+<style scoped>
+.action-area {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+</style>

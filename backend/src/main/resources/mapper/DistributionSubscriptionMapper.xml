@@ -25,21 +25,13 @@
         </association>
     </resultMap>
 
-    <select id="findAll" resultMap="DistributionSubscriptionResultMap">
-        SELECT ds.id, ds.name, ds.user_id, ds.date_type, ds.start_time, ds.end_time, ds.created_at, ds.updated_at,
-               du.username as distributionUser_username
-        FROM distribution_subscriptions ds left join distribution_users du on ds.user_id = du.id and du.deleted = 0
-        WHERE ds.deleted = 0
-        ORDER BY ds.id DESC
-    </select>
-
     <select id="findByCondition" resultMap="DistributionSubscriptionResultMap">
         SELECT ds.id, ds.name, ds.user_id, ds.date_type, ds.start_time, ds.end_time, ds.created_at, ds.updated_at,
                du.username as distributionUser_username
         FROM distribution_subscriptions ds left join distribution_users du on ds.user_id = du.id and du.deleted = 0
         WHERE ds.deleted = 0
-        <if test="name != null and name != ''">
-            AND ds.name LIKE '%' || #{name} || '%'
+        <if test="query.name != null and query.name != ''">
+            AND ds.name LIKE '%' || #{query.name} || '%'
         </if>
         ORDER BY ds.id DESC
     </select>

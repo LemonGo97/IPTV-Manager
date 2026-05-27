@@ -2,7 +2,7 @@ import { request } from '@/utils'
 
 export default {
   // 获取分发订阅列表
-  getAll: (params) => request.get('/distribution/subscriptions', { params }),
+  getList: (params) => request.get('/distribution/subscriptions', { params }),
   // 获取分发订阅总数
   count: () => request.get('/distribution/subscriptions/count'),
   // 获取分发订阅详情

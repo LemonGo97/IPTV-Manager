@@ -1,6 +1,8 @@
 package com.lemongo97.iptv.iptvmanager.endpoint.controller;
 
 import com.lemongo97.iptv.iptvmanager.common.ApiResponse;
+import com.lemongo97.iptv.iptvmanager.common.PageResult;
+import com.lemongo97.iptv.iptvmanager.endpoint.controller.request.DistributionSubscriptionQuery;
 import com.lemongo97.iptv.iptvmanager.entity.DistributionSubscription;
 import com.lemongo97.iptv.iptvmanager.service.DistributionSubscriptionService;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +27,8 @@ public class DistributionSubscriptionController {
      * 获取所有分发订阅
      */
     @GetMapping
-    public ApiResponse<List<DistributionSubscription>> findAll(
-            @RequestParam(required = false) String name) {
-        if (name != null && !name.isEmpty()) {
-            return ApiResponse.ok(subscriptionService.findByCondition(name));
-        }
-        return ApiResponse.ok(subscriptionService.findAll());
+    public ApiResponse<PageResult<DistributionSubscription>> findAll(DistributionSubscriptionQuery query) {
+        return ApiResponse.ok(subscriptionService.findByCondition(query));
     }
 
     /**

@@ -1,6 +1,11 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.lemongo97.iptv.iptvmanager.common.BusinessException;
+import com.lemongo97.iptv.iptvmanager.common.PageResult;
+import com.lemongo97.iptv.iptvmanager.endpoint.controller.request.DistributionSubscriptionQuery;
+import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.entity.DistributionSubscription;
 import com.lemongo97.iptv.iptvmanager.entity.DistributionUser;
 import com.lemongo97.iptv.iptvmanager.mapper.DistributionSubscriptionMapper;
@@ -24,12 +29,11 @@ public class DistributionSubscriptionService {
     private final DistributionSubscriptionMapper subscriptionMapper;
     private final DistributionUserService userService;
 
-    public List<DistributionSubscription> findAll() {
-        return subscriptionMapper.findAll();
-    }
-
-    public List<DistributionSubscription> findByCondition(String name) {
-        return subscriptionMapper.findByCondition(name);
+    public PageResult<DistributionSubscription> findByCondition(DistributionSubscriptionQuery query) {
+        Page<DistributionSubscription> page = PageHelper.startPage(query.getPageNum(), query.getPageSize())
+                .doSelectPage(() ->
+                        subscriptionMapper.findByCondition(query));
+        return PageResult.of(page.getTotal(), page.getResult());
     }
 
     public int count() {

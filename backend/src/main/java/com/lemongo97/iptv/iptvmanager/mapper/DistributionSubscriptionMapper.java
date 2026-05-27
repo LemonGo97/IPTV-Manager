@@ -1,5 +1,6 @@
 package com.lemongo97.iptv.iptvmanager.mapper;
 
+import com.lemongo97.iptv.iptvmanager.endpoint.controller.request.DistributionSubscriptionQuery;
 import com.lemongo97.iptv.iptvmanager.entity.DistributionSubscription;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -13,9 +14,7 @@ import java.util.Optional;
 @Mapper
 public interface DistributionSubscriptionMapper {
 
-    List<DistributionSubscription> findAll();
-
-    List<DistributionSubscription> findByCondition(@Param("name") String name);
+    List<DistributionSubscription> findByCondition(@Param("query") DistributionSubscriptionQuery query);
 
     Optional<DistributionSubscription> findById(@Param("id") Long id);
 
