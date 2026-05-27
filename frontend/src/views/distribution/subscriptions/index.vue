@@ -7,20 +7,20 @@
       </NButton>
     </template>
 
-<!--    <MeCrud-->
-<!--      ref="$table"-->
-<!--      v-model:query-items="queryItems"-->
-<!--      :columns="columns"-->
-<!--      :get-data="api.getAll"-->
-<!--    >-->
-<!--      <MeQueryItem label="名称" :label-width="50">-->
-<!--        <n-input v-model:value="queryItems.name" placeholder="请输入名称" clearable />-->
-<!--      </MeQueryItem>-->
-<!--    </MeCrud>-->
-
     <div class="action-area">
       <n-space>
         <n-input v-model:value="queryItems.name" placeholder="搜索订阅名称" clearable style="width: 200px" @keyup.enter="handleSearch"/>
+        <n-select
+          v-model:value="queryItems.userId"
+          filterable
+          placeholder="根据用户搜索"
+          :options="queryForm.userId.optionsRef"
+          :loading="queryForm.userId.loadingRef"
+          clearable
+          remote
+          @search="queryForm.userId.search"
+          @@scroll="queryForm.userId.scroll"
+        />
         <n-button type="primary" @click="handleSearch">
           <i class="i-material-symbols:search mr-4 text-18"/>
           搜索
@@ -122,17 +122,38 @@
 </template>
 
 <script setup>
-import {NButton, NTag, NPopconfirm, NSelect, NDataTable, NDropdown, NSpace} from 'naive-ui'
+import {NButton, NTag, NSelect, NDataTable, NSpace} from 'naive-ui'
 import { useClipboard } from '@vueuse/core'
-import { isBefore, isAfter, isWithinInterval } from 'date-fns'
-import { MeCrud, MeModal, MeQueryItem } from '@/components'
+import { isBefore, isAfter } from 'date-fns'
+import { MeModal } from '@/components'
 import { useCrud } from '@/composables'
 import api from './api'
-import { formatDateTime } from '@/utils'
-import {h, onMounted, ref} from "vue";
+import distributionUserApi from '../users/api'
+import { formatDateTime, debounce } from '@/utils'
+import {h, onMounted, reactive, ref, watch} from "vue";
 
 const $table = ref(null)
 
+
+const queryForm = reactive({
+  userId : {
+    optionsRef: [],
+    loadingRef: false,
+    debounceSearch: debounce((query=null) => {
+      fetchQueryFormOptions({username: query}, () => {
+        queryForm.userId.loadingRef = false;
+      })
+    }, 1e3, false),
+    search: (query) => {
+      if (!query.length) {
+        queryForm.userId.optionsRef = [];
+        return;
+      }
+      queryForm.userId.loadingRef = true;
+      queryForm.userId.debounceSearch(query)
+    }
+  }
+})
 // 使用剪贴板
 const { copy, copied } = useClipboard()
 
@@ -412,6 +433,7 @@ async function fetchTableData() {
       pageNum: pagination.page,
       pageSize: pagination.pageSize,
       name: queryItems.name || undefined,
+      userId: queryItems.userId || undefined,
     })
     tableData.value = res.data.list || []
     pagination.itemCount = res.data.total || 0
@@ -429,8 +451,16 @@ function handleSearch() {
   fetchTableData()
 }
 
+function fetchQueryFormOptions(params, func){
+  distributionUserApi.getAll(params).then((res) => {
+    queryForm.userId.optionsRef = res.data.map(u => { return {"label" : u.username, "value": u.id}})
+    if (func) func(res)
+  })
+}
+
 onMounted(() => {
   fetchTableData()
+  fetchQueryFormOptions()
   loadUserOptions()
 })
 

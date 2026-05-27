@@ -33,6 +33,9 @@
         <if test="query.name != null and query.name != ''">
             AND ds.name LIKE '%' || #{query.name} || '%'
         </if>
+        <if test="query.userId != null">
+            AND ds.user_id = #{query.userId}
+        </if>
         ORDER BY ds.id DESC
     </select>
 
