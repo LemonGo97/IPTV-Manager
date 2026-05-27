@@ -7,165 +7,65 @@
       </NButton>
     </template>
 
-    <MeCrud
-      ref="$table"
-      v-model:query-items="queryItems"
-      :columns="columns"
-      :get-data="api.getAll"
-    >
-      <MeQueryItem label="用户名" :label-width="60">
-        <n-input v-model:value="queryItems.username" placeholder="请输入用户名" clearable />
-      </MeQueryItem>
-    </MeCrud>
+    <SearchBar
+      @search="handleSearch"
+      @refresh="fetchTableData"
+    />
 
-    <MeModal ref="modalRef" width="500px">
-      <n-form ref="modalFormRef" :model="modalForm" label-width="100">
-        <n-form-item
-          label="用户名"
-          path="username"
-          :rule="{
-            required: true,
-            message: '请输入用户名',
-            trigger: ['input', 'blur'],
-          }"
-        >
-          <n-input v-model:value="modalForm.username" placeholder="请输入用户名" />
-        </n-form-item>
+    <DataTable
+      ref="tableRef"
+      :search-params="queryItems"
+      @edit="handleEdit"
+    />
 
-        <n-form-item
-          label="访问密钥"
-          path="accessKey"
-        >
-          <n-input
-            v-model:value="modalForm.accessKey"
-            placeholder="留空则自动生成"
-            clearable
-            show-password-on="click"
-            type="password"
-          />
-          <template #feedback>
-            留空则由系统自动生成32位随机密钥
-          </template>
-        </n-form-item>
-      </n-form>
-    </MeModal>
+    <!-- 表单弹窗 -->
+    <FormModal
+      ref="modalRef"
+      v-model:visible="modalVisible"
+      @refresh="fetchTableData"
+    />
   </CommonPage>
 </template>
 
 <script setup>
-import { NButton, NPopconfirm } from 'naive-ui'
-import { useClipboard } from '@vueuse/core'
-import { MeCrud, MeModal, MeQueryItem } from '@/components'
-import { useCrud } from '@/composables'
-import api from './api'
-import { formatDateTime } from '@/utils'
+import { NButton } from 'naive-ui'
+import { reactive, ref } from 'vue'
+import SearchBar from './SearchBar.vue'
+import DataTable from './DataTable.vue'
+import FormModal from './FormModal.vue'
+import {CommonPage} from "@/components/index.js"
 
-const $table = ref(null)
+// 弹窗显示状态和引用
+const modalVisible = ref(false)
+const modalRef = ref(null)
+const tableRef = ref(null)
 
-// 使用剪贴板
-const { copy, copied } = useClipboard()
-
-// 监听复制状态
-watch(copied, (val) => {
-  if (val) $message.success('已复制到剪贴板')
-})
-
+// 搜索条件
 const queryItems = reactive({
   username: '',
 })
 
-const columns = [
-  { title: 'ID', key: 'id', width: 80 },
-  { title: '用户名', key: 'username', width: 150 },
-  {
-    title: '用户ID',
-    key: 'userId',
-    width: 280,
-    render: row => h('span', { }, row.userId)
-  },
-  {
-    title: '创建时间',
-    key: 'createdAt',
-    width: 160,
-    render: row => formatDateTime(row.createdAt)
-  },
-  {
-    title: '更新时间',
-    key: 'updatedAt',
-    width: 160,
-    render: row => formatDateTime(row.updatedAt)
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 240,
-    fixed: 'right',
-    render: row =>
-      h('div', { class: 'flex gap-8' }, [
-        h(
-          NButton,
-          { size: 'small', onClick: () => handleCopyUserId(row.userId) },
-          { default: () => '复制ID', icon: h('i', { class: 'i-material-symbols:content-copy' }) },
-        ),
-        h(
-          NButton,
-          { size: 'small', onClick: () => handleResetKey(row) },
-          { default: () => '重置密钥', icon: h('i', { class: 'i-material-symbols:refresh' }) },
-        ),
-        h(NButton, { size: 'small', onClick: () => handleOpen(row) }, { default: () => '编辑' }),
-        h(
-          NPopconfirm,
-          { onPositiveClick: () => handleDelete(row.id) },
-          {
-            default: () => '确认删除该用户？',
-            trigger: () =>
-              h(NButton, { size: 'small', type: 'error' }, { default: () => '删除' }),
-          },
-        ),
-      ]),
-  },
-]
-
-const {
-  modalRef,
-  modalFormRef,
-  modalForm,
-  modalAction,
-  handleAdd,
-  handleDelete,
-  handleOpen,
-  handleSave,
-} = useCrud({
-  name: '订阅用户',
-  initForm: {
-    username: '',
-    accessKey: '',
-  },
-  doCreate: api.create,
-  doDelete: api.delete,
-  doUpdate: (data) => api.update(data.id, data),
-  refresh: () => $table.value?.handleSearch(),
-})
-
-// 复制用户ID
-function handleCopyUserId(userId) {
-  copy(userId)
+// 新增
+function handleAdd() {
+  modalRef.value?.openAdd()
 }
 
-// 重置访问密钥
-async function handleResetKey(row) {
-  try {
-    await api.resetAccessKey(row.id)
-    $message.success('访问密钥已重置')
-    $table.value?.handleSearch()
-  } catch (error) {
-    $message.error('重置失败')
+// 编辑
+function handleEdit(row) {
+  modalRef.value?.openEdit(row)
+}
+
+// 刷新表格
+function fetchTableData() {
+  tableRef.value?.refresh()
+}
+
+// 搜索
+function handleSearch(searchParams) {
+  if (searchParams) {
+    queryItems.username = searchParams.username
   }
 }
-
-onMounted(() => {
-  $table.value?.handleSearch()
-})
 
 defineOptions({
   name: 'DistributionUsers',
