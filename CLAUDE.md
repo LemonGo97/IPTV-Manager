@@ -1037,6 +1037,142 @@ await navigator.clipboard.writeText(text)
 </n-form-item>
 ```
 
+#### 组件拆分原则
+
+**核心理念**：每个组件只做自己的事情，通过 index.vue 协调通信
+
+**标准目录结构**：
+```
+frontend/src/views/功能模块/
+├── index.vue        # 容器和协调者（~70行）
+├── SearchBar.vue    # 搜索栏
+├── DataTable.vue    # 数据表格
+├── FormModal.vue    # 新增/编辑弹窗
+└── api.js           # API接口
+```
+
+**各组件职责**：
+
+##### 1. index.vue - 容器和协调者
+- 管理组件引用（`modalRef`, `tableRef`）
+- 管理共享状态（`queryItems`, `modalVisible`）
+- 协调子组件通信（事件转发）
+- 不包含业务逻辑
+
+```vue
+<template>
+  <CommonPage>
+    <template #action>
+      <NButton type="primary" @click="handleAdd()">新增</NButton>
+    </template>
+
+    <SearchBar @search="handleSearch" @refresh="fetchTableData" />
+    <DataTable ref="tableRef" :search-params="queryItems" @edit="handleEdit" />
+    <FormModal ref="modalRef" v-model:visible="modalVisible" @refresh="fetchTableData" />
+  </CommonPage>
+</template>
+
+<script setup>
+// 仅包含协调逻辑，无业务代码
+const modalVisible = ref(false)
+const modalRef = ref(null)
+const tableRef = ref(null)
+const queryItems = reactive({ username: '' })
+
+function handleAdd() { modalRef.value?.openAdd() }
+function handleEdit(row) { modalRef.value?.openEdit(row) }
+function fetchTableData() { tableRef.value?.refresh() }
+function handleSearch(params) { Object.assign(queryItems, params) }
+</script>
+```
+
+##### 2. SearchBar.vue - 搜索栏
+- 管理搜索条件内部状态
+- 处理搜索输入和远程搜索
+- 通过 emit 通知父组件
+
+```javascript
+// 内部状态
+const queryItems = reactive({ username: '' })
+
+// emit 事件
+emit('search', { username: queryItems.username })
+emit('refresh')
+```
+
+##### 3. DataTable.vue - 数据表格
+- 管理表格数据、分页、加载状态
+- 包含表格列定义和渲染逻辑
+- 处理行内操作（复制、删除等）
+- 暴露 `refresh()` 方法给父组件
+
+```javascript
+// 内部状态
+const loading = ref(false)
+const tableData = ref([])
+const pagination = reactive({ page: 1, pageSize: 10, ... })
+
+// 暴露方法
+defineExpose({ refresh: fetchTableData })
+
+// emit 事件
+emit('edit', row)  // 编辑
+emit('reset-key', row)  // 其他自定义操作
+```
+
+##### 4. FormModal.vue - 新增/编辑弹窗
+- 管理表单数据和验证
+- 处理提交逻辑（创建/更新 API 调用）
+- 暴露 `openAdd()` 和 `openEdit(row)` 方法
+- 处理 v-model 双向绑定
+
+```javascript
+// 内部状态
+const modalForm = reactive({ id: null, name: '' })
+const internalAction = ref('add')
+
+// 暴露方法
+defineExpose({ openAdd, openEdit })
+
+// emit 事件
+emit('update:visible', false)
+emit('refresh')
+```
+
+**组件通信模式**：
+
+| 场景 | 通信方式 | 示例 |
+|------|---------|------|
+| 子 → 父（状态变化） | emit | `emit('search', params)` |
+| 父 → 子（调用方法） | ref + defineExpose | `modalRef.value?.openAdd()` |
+| 父 ↔ 子（双向绑定） | v-model | `v-model:visible="modalVisible"` |
+
+**Naive UI 插槽注意事项**：
+
+1. **icon 插槽必须是函数**：
+```javascript
+// ❌ 错误
+{ icon: h('i', { class: 'i-material-symbols:add' }) }
+
+// ✅ 正确
+{ icon: () => h('i', { class: 'i-material-symbols:add' }) }
+```
+
+2. **NModal 关闭处理**：
+```vue
+<n-modal
+  :show="props.visible"
+  @update:show="(val) => emit('update:visible', val)"
+  @after-leave="handleClose"
+>
+```
+
+**拆分收益**：
+- 代码行数：从 ~350 行减少到各组件 ~50-150 行
+- 职责清晰：每个组件只做一件事
+- 易于维护：修改某个功能只需关注对应组件
+- 可复用性：SearchBar/DataTable/FormModal 可在其他页面复用
+
 #### 数据处理规范
 
 **API 响应处理**：
