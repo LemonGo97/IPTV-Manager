@@ -53,6 +53,10 @@
         SET deleted = 1
     </update>
 
+    <delete id="deleteByProviderId">
+        UPDATE channels SET deleted = 1 where provider_id = #{providerId}
+    </delete>
+
     <select id="findAll" resultMap="ChannelResultMap">
         SELECT id,
                name,

@@ -22,6 +22,7 @@ import tools.jackson.databind.node.ObjectNode;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -239,6 +240,12 @@ public class CleanupRuleService {
                 List<Channel> input = List.of(channel);
                 List<Channel> cleaned = cleanEngineManager.process(input, configs, step);
 
+                if (step == null || step == RuleType.undefined || step == RuleType.DELAY){
+                    cleaned.forEach(c -> {
+                        if (c.getStatus() == Channel.Status.unknown) c.setStatus(Channel.Status.valid);
+                    });
+                }
+
                 // 如果未被过滤，插入中间表
                 if (!cleaned.isEmpty()) {
                     channelCleaningTempMapper.insert(cleaned.getFirst());
@@ -269,7 +276,7 @@ public class CleanupRuleService {
             taskProgressService.updateProgress(taskId, processedCount, 90d, "正在保存到正式表");
             List<Channel> tempChannels = channelCleaningTempMapper.findAll();
             channelMapper.truncate();
-            channelMapper.insert(tempChannels);
+            channelMapper.insert(tempChannels, 100);
 
             taskProgressService.completeTask(taskId, "数据清洗完成，成功处理 " + tempChannels.size() + " 个频道");
             log.info("Data cleanup completed successfully, {} channels saved to main table", tempChannels.size());
@@ -286,11 +293,8 @@ public class CleanupRuleService {
         return channelMapper.findAll().stream().map(ch -> ch.setId(null)).toList();
     }
 
-    /**
-     * 将原始频道元数据转换为频道对象
-     */
-    private List<Channel> convertOriginalChannelsToChannels() {
-        return originalChannelMapper.findAll().stream()
+    public List<Channel> convertOriginalChannelsToChannels(Collection<OriginalChannelMetadata> originalChannels) {
+        return originalChannels.stream()
                 .map(o -> {
 
                     boolean tvgNameZh = ZhConverterUtil.containsChinese(o.getTvGuideName());
@@ -315,7 +319,7 @@ public class CleanupRuleService {
                             .setProviderId(o.getProviderId())
                             .setGroupId(0L)
                             .setEpgSourceId(o.getTvGuideId())
-                            .setStatus(Channel.Status.valid)
+                            .setStatus(Channel.Status.unknown)
                             .setCountry(o.getTvGuideCountry())
                             .setLanguage(o.getTvGuideLanguage())
                             .setScore(100L)
@@ -324,6 +328,12 @@ public class CleanupRuleService {
                     return channel;
                 })
                 .toList();
+    }
+    /**
+     * 将原始频道元数据转换为频道对象
+     */
+    public List<Channel> convertOriginalChannelsToChannels() {
+        return convertOriginalChannelsToChannels(originalChannelMapper.findAll());
     }
 
     /**

@@ -74,7 +74,8 @@ public class Channel {
 
     public enum Status {
         valid,
-        invalid
+        invalid,
+        unknown
     }
 
     public static class ChannelEPGTimeline extends ArrayList<ChannelEPGTimelineItem> {

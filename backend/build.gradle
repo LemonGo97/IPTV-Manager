@@ -36,6 +36,8 @@ dependencies {
     implementation 'org.bytedeco:ffmpeg:8.0.1-1.5.13'
     // Source: https://mvnrepository.com/artifact/org.bytedeco/ffmpeg-platform
     implementation 'org.bytedeco:ffmpeg-platform:8.0.1-1.5.13'
+    // Source: https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
+    implementation 'org.apache.commons:commons-collections4:4.5.0'
     // Quartz for scheduled tasks
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.websocket)

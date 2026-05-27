@@ -1,8 +1,10 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
+import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRawData;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
+import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
 import com.lemongo97.iptv.iptvmanager.parser.m3u8.IPTVM3U8Parser;
 import com.lemongo97.iptv.iptvmanager.parser.txt.IPTVTXTParser;
 import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
@@ -29,10 +31,12 @@ import java.util.List;
 public class IPTVProviderContentParserService {
 
     private final OriginalChannelMapper originalChannelMapper;
+    private final ChannelMapper channelMapper;
     private final RestTemplate restTemplate;
     private final IPTVProviderRawDataService rawDataService;
     private final IPTVM3U8Parser IPTVM3U8Parser;
     private final IPTVTXTParser IPTVTXTParser;
+    private final CleanupRuleService cleanupRuleService;
 
     public int parse(IPTVProvider provider, Long taskId) {
         String content;
@@ -55,6 +59,11 @@ public class IPTVProviderContentParserService {
         if (channels.isEmpty()) return 0;
 
         originalChannelMapper.insert(channels, taskId);
+
+        // 直接更新到频道表中
+        List<Channel> converted = cleanupRuleService.convertOriginalChannelsToChannels(channels);
+        channelMapper.deleteByProviderId(provider.getId());
+        channelMapper.insert(converted, 100);
         return channels.size();
     }
 

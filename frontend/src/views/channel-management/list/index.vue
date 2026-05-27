@@ -445,8 +445,14 @@ const columns = computed(() => [
     render: row =>
       h(
         NTag,
-        {type: row.status === 'valid' ? 'success' : 'error'},
-        {default: () => (row.status === 'valid' ? '有效' : '无效')}
+        {type: row.status === 'valid' ? 'success' : row.status === 'invalid' ? 'error' : 'info'},
+        {default: () => {
+            switch (row.status) {
+              case 'valid': return '有效'
+              case 'invalid': return '无效'
+              case 'unknown': return '未知'
+            }
+          }}
       ),
     filter: true,
     filterOptions: [
@@ -457,6 +463,10 @@ const columns = computed(() => [
       {
         label: "无效",
         value: 'invalid'
+      },
+      {
+        label: "未知",
+        value: 'unknown'
       }
     ]
   },
