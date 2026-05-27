@@ -7,19 +7,16 @@ import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.IPTVProviderRefreshTaskMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * IPTV 源服务
@@ -70,11 +67,11 @@ public class IPTVProviderService {
      * 创建 IPTV 源
      */
     @Transactional
-    public IPTVProvider create(IPTVProvider provider) {
+    public IPTVProvider create(IPTVProvider provider, MultipartFile file) {
         log.info("Creating IPTV provider: {}", provider.getName());
 
         // 验证类型和字段
-        validateProvider(provider);
+        validateProvider(provider, file);
 
         var now = LocalDateTime.now();
         var newProvider = new IPTVProvider(
@@ -83,7 +80,7 @@ public class IPTVProviderService {
                 provider.getType(),
                 provider.getContentType(),
                 provider.getUrl(),
-                provider.getFilePath(),
+                file == null ? null : file.getOriginalFilename(),
                 provider.getHeaders(),
                 provider.getRefreshRate() != null ? provider.getRefreshRate() : 3600,
                 provider.getEnabled() != null ? provider.getEnabled() : true,
@@ -94,6 +91,17 @@ public class IPTVProviderService {
         );
 
         providerMapper.insert(newProvider);
+        if (provider.getType() == IPTVProvider.Type.file && file != null) {
+            String content;
+            try{
+                content = IOUtils.toString(file.getInputStream(), StandardCharsets.UTF_8);
+            }catch (IOException e){
+                log.error("Error reading file content", e);
+                throw new RuntimeException(e);
+            }
+            rawDataService.saveRawData(newProvider.getId(), content);
+        }
+
         try {
 //            scheduledTaskService.scheduleOrUpdateJob(newProvider);
         } catch (Exception e) {
@@ -107,12 +115,12 @@ public class IPTVProviderService {
      * 更新 IPTV 源
      */
     @Transactional
-    public IPTVProvider update(Long id, IPTVProvider provider) {
+    public IPTVProvider update(Long id, IPTVProvider provider, MultipartFile file) {
         var existing = findById(id);
         log.info("Updating IPTV provider: id={}", id);
 
         // 验证类型和字段
-        validateProvider(provider);
+        validateProvider(provider, file);
 
         var updated = new IPTVProvider(
                 id,
@@ -120,7 +128,7 @@ public class IPTVProviderService {
                 provider.getType() != null ? provider.getType() : existing.getType(),
                 provider.getContentType() != null ? provider.getContentType() : existing.getContentType(),
                 provider.getUrl(),
-                provider.getFilePath(),
+                file == null ? null : file.getOriginalFilename(),
                 provider.getHeaders(),
                 provider.getRefreshRate() != null ? provider.getRefreshRate() : existing.getRefreshRate(),
                 provider.getEnabled() != null ? provider.getEnabled() : existing.getEnabled(),
@@ -131,6 +139,17 @@ public class IPTVProviderService {
         );
 
         providerMapper.update(updated);
+        if (provider.getType() == IPTVProvider.Type.file && file != null) {
+            String content;
+            try{
+                content = IOUtils.toString(file.getInputStream(), StandardCharsets.UTF_8);
+            }catch (IOException e){
+                log.error("Error reading file content", e);
+                throw new RuntimeException(e);
+            }
+            rawDataService.deleteByProviderId(id);
+            rawDataService.saveRawData(id, content);
+        }
         try {
             quartzScheduledTaskService.scheduleOrUpdateJob(updated);
         } catch (Exception e) {
@@ -200,7 +219,7 @@ public class IPTVProviderService {
     /**
      * 验证 IPTV 源
      */
-    private void validateProvider(IPTVProvider provider) {
+    private void validateProvider(IPTVProvider provider, MultipartFile file) {
         IPTVProvider.Type type = provider.getType();
         if (type == null) {
             throw new BusinessException("Provider type is required");
@@ -210,70 +229,10 @@ public class IPTVProviderService {
             throw new BusinessException("URL is required for online provider");
         }
 
-        if (type == IPTVProvider.Type.file && provider.getFilePath() == null) {
-            throw new BusinessException("File path is required for local provider");
+        if (type == IPTVProvider.Type.file && file == null) {
+            throw new BusinessException("File is required for local provider");
         }
 
         // Headers 验证暂时跳过，后续可以添加 JSON 格式验证
-    }
-
-    /**
-     * 上传 IPTV 文件并创建本地类型的 Provider
-     */
-    @Transactional
-    public IPTVProvider uploadFile(MultipartFile file, String name, String description) {
-        if (file.isEmpty()) {
-            throw new BusinessException("File is empty");
-        }
-
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || (!originalFilename.endsWith(".m3u") && !originalFilename.endsWith(".m3u8"))) {
-            throw new BusinessException("Invalid file format. Only .m3u and .m3u8 files are allowed");
-        }
-
-        try {
-            // 创建上传目录
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            // 生成唯一文件名
-            String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            String uniqueFilename = UUID.randomUUID() + fileExtension;
-            Path targetPath = uploadPath.resolve(uniqueFilename);
-
-            // 保存文件
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-            log.info("File uploaded: {}", targetPath);
-
-            // 使用文件名作为默认名称（如果未提供）
-            String providerName = name != null && !name.isBlank()
-                ? name
-                : originalFilename.substring(0, originalFilename.lastIndexOf("."));
-
-            // 创建本地类型的 Provider
-            var provider = new IPTVProvider(
-                null,
-                providerName,
-                IPTVProvider.Type.online,
-                IPTVProvider.ContentType.M3U8,
-                null,
-                targetPath.toString(),
-                null,
-                null,
-                true,
-                description,
-                null,
-                null,
-                false
-            );
-
-            return create(provider);
-
-        } catch (IOException e) {
-            log.error("Failed to upload file", e);
-            throw new BusinessException("Failed to upload file: " + e.getMessage(), e);
-        }
     }
 }

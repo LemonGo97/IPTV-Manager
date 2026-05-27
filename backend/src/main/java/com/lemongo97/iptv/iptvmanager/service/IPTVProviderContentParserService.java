@@ -1,6 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
+import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRawData;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
 import com.lemongo97.iptv.iptvmanager.parser.m3u8.IPTVM3U8Parser;
 import com.lemongo97.iptv.iptvmanager.parser.txt.IPTVTXTParser;
@@ -8,6 +9,7 @@ import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -97,16 +99,16 @@ public class IPTVProviderContentParserService {
      * @return 解析的频道数量
      */
     public String getContentFromFile(IPTVProvider provider) {
-        log.info("Parsing IPTV from file: {}", provider.getFilePath());
+        log.info("Parsing IPTV from file: {}", provider.getFilename());
 
         try {
-            File file = new File(provider.getFilePath());
-            if (!file.exists()) {
-                throw new RuntimeException("File not found: " + provider.getFilePath());
+            IPTVProviderRawData providerRawData = rawDataService.getLatest(provider.getId());
+            if (StringUtils.isBlank(providerRawData.getContent())) {
+                throw new RuntimeException("Failed to parse IPTV from file: " + provider.getFilename());
             }
-            return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+            return providerRawData.getContent();
         } catch (Exception e) {
-            log.error("Failed to parse IPTV from file: {}", provider.getFilePath(), e);
+            log.error("Failed to parse IPTV from file: {}", provider.getFilename(), e);
             throw new RuntimeException("Failed to parse IPTV from file: " + e.getMessage(), e);
         }
     }

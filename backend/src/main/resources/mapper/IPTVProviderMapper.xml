@@ -9,7 +9,7 @@
         <result property="type" column="type"/>
         <result property="contentType" column="content_type"/>
         <result property="url" column="url"/>
-        <result property="filePath" column="file_path"/>
+        <result property="filename" column="filename"/>
         <result property="headers" column="headers"
                 typeHandler="org.apache.ibatis.type.UnknownTypeHandler"/>
         <result property="refreshRate" column="refresh_rate"/>
@@ -21,27 +21,27 @@
     </resultMap>
 
     <select id="findAll" resultMap="M3U8ProviderResultMap">
-        SELECT id, name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
+        SELECT id, name, type, content_type, url, filename, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
         FROM iptv_providers
         WHERE deleted = 0
         ORDER BY id DESC
     </select>
 
     <select id="findById" resultMap="M3U8ProviderResultMap">
-        SELECT id, name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
+        SELECT id, name, type, content_type, url, filename, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
         FROM iptv_providers
         WHERE id = #{id} AND deleted = 0
     </select>
 
     <select id="findByType" resultMap="M3U8ProviderResultMap">
-        SELECT id, name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
+        SELECT id, name, type, content_type, url, filename, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
         FROM iptv_providers
         WHERE type = #{type} AND deleted = 0
         ORDER BY id DESC
     </select>
 
     <select id="findEnabled" resultMap="M3U8ProviderResultMap">
-        SELECT id, name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
+        SELECT id, name, type, content_type, url, filename, headers, refresh_rate, enabled, description, created_at, updated_at, deleted
         FROM iptv_providers
         WHERE enabled = 1 AND deleted = 0
         ORDER BY id DESC
@@ -55,8 +55,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO iptv_providers (name, type, content_type, url, file_path, headers, refresh_rate, enabled, description, created_at, updated_at, deleted)
-        VALUES (#{name}, #{type}, #{contentType}, #{url}, #{filePath}, #{headers}, #{refreshRate}, #{enabled}, #{description}, #{createdAt}, #{updatedAt}, 0)
+        INSERT INTO iptv_providers (name, type, content_type, url, filename, headers, refresh_rate, enabled, description, created_at, updated_at, deleted)
+        VALUES (#{name}, #{type}, #{contentType}, #{url}, #{filename}, #{headers}, #{refreshRate}, #{enabled}, #{description}, #{createdAt}, #{updatedAt}, 0)
     </insert>
 
     <update id="update">
@@ -65,7 +65,7 @@
             type = #{type},
             content_type = #{contentType},
             url = #{url},
-            file_path = #{filePath},
+            filename = #{filename},
             headers = #{headers},
             refresh_rate = #{refreshRate},
             enabled = #{enabled},

@@ -19,7 +19,7 @@ public class IPTVProvider {
     private Type type;
     private ContentType contentType;
     private String url;
-    private String filePath;
+    private String filename;
     private Map<String, String> headers;
     private Integer refreshRate;
     private Boolean enabled;

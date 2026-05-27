@@ -39,16 +39,16 @@ public class IPTVProviderController {
      * 创建 IPTV 源
      */
     @PostMapping
-    public ApiResponse<IPTVProvider> create(@RequestBody IPTVProvider provider) {
-        return ApiResponse.ok(providerService.create(provider), "IPTV provider created successfully");
+    public ApiResponse<IPTVProvider> create(IPTVProvider provider, MultipartFile file) {
+        return ApiResponse.ok(providerService.create(provider, file), "IPTV provider created successfully");
     }
 
     /**
      * 更新 IPTV 源
      */
     @PutMapping("/{id}")
-    public ApiResponse<IPTVProvider> update(@PathVariable Long id, @RequestBody IPTVProvider provider) {
-        return ApiResponse.ok(providerService.update(id, provider), "IPTV provider updated successfully");
+    public ApiResponse<IPTVProvider> update(@PathVariable Long id, IPTVProvider provider, MultipartFile file) {
+        return ApiResponse.ok(providerService.update(id, provider, file), "IPTV provider updated successfully");
     }
 
     /**
@@ -77,16 +77,4 @@ public class IPTVProviderController {
      * 任务提交结果
      */
     public record TaskSubmissionResult(Long taskId, String message) {}
-
-    /**
-     * 上传本地 IPTV 文件
-     */
-    @PostMapping("/upload")
-    public ApiResponse<IPTVProvider> upload(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "description", required = false) String description
-    ) {
-        return ApiResponse.ok(providerService.uploadFile(file, name, description), "File uploaded successfully");
-    }
 }

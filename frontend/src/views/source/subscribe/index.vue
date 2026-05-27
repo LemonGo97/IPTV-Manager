@@ -126,21 +126,28 @@
           v-if="modalForm.type === 'file'"
           label="上传文件"
           path="file"
-          :rule="{
-            required: modalAction === 'add',
-            message: '请选择 M3U8 文件',
-            trigger: ['change', 'blur'],
-          }"
         >
           <n-upload
-            :file-list="fileList"
-            :max="1"
             accept=".m3u,.m3u8,.txt,.text"
-            :custom-request="handleFileUpload"
-            @update:file-list="handleFileListChange"
+            :on-change="handleFileUploadChange"
+            :on-remove="handleFileUploadRemove"
+            :default-upload="false"
+            :max="1"
           >
-            <NButton>选择文件</NButton>
+            <n-button>
+              <i class="i-me:arcticons:iptv-pro mr-5"></i>
+              选择文件
+            </n-button>
           </n-upload>
+<!--          <n-upload-->
+<!--            :file-list="fileList"-->
+<!--            :max="1"-->
+<!--            accept=".m3u,.m3u8,.txt,.text"-->
+<!--            :custom-request="handleFileUpload"-->
+<!--            @update:file-list="handleFileListChange"-->
+<!--          >-->
+<!--            <NButton>选择文件</NButton>-->
+<!--          </n-upload>-->
         </n-form-item>
 
         <n-form-item
@@ -230,6 +237,7 @@ import {
 import { MeCrud, MeModal, MeQueryItem } from '@/components'
 import { useCrud } from '@/composables'
 import api from './api'
+import {ref} from "vue";
 
 const $table = ref(null)
 const queryItems = reactive({
@@ -263,7 +271,7 @@ const columns = [
     key: 'url',
     width: 300,
     ellipsis: { tooltip: true },
-    render: row => row.url || row.fileName || '-',
+    render: row => row.url || row.filename || '-',
   },
   {
     title: '自动刷新',
@@ -343,9 +351,29 @@ const {
     refreshRate: 3600,
     enabled: true,
   },
-  doCreate: api.create,
+  doCreate: (form) => {
+    let req = new FormData()
+    for(let key of Object.keys(form)){
+      req.append(key, form[key]);
+    }
+    if (form.file) {
+      req.delete("file")
+      req.append('file', form.file.file)
+    }
+    return api.create(req)
+  },
   doDelete: api.delete,
-  doUpdate: (data) => api.update(data.id, data),
+  doUpdate: (form) => {
+    let req = new FormData()
+    for(let key of Object.keys(form)){
+      req.append(key, form[key]);
+    }
+    if (form.file) {
+      req.delete("file")
+      req.append('file', form.file.file)
+    }
+    return api.update(form.id, req)
+  },
   refresh: () => $table.value?.handleSearch(),
 })
 
@@ -361,19 +389,15 @@ function handleOpen(row) {
   })
 }
 
-const handleFileUpload = async ({ file }) => {
-  try {
-    await api.upload(file.file, modalForm.value.name, modalForm.value.description)
-    window.$message?.success('文件上传成功')
-    modalRef.value.hide()
-    handleSave()
-  } catch (error) {
-    window.$message?.error('文件上传失败')
+const torrentFile = ref(null)
+
+function handleFileUploadChange(options){
+  if (options.event){
+    modalForm.value.file = options.file
   }
 }
-
-const handleFileListChange = (list) => {
-  fileList.value = list
+function handleFileUploadRemove(options) {
+  modalForm.value.file = null
 }
 
 const handleRefresh = async (row) => {

@@ -8,6 +8,9 @@ spring:
     driver-class-name: org.sqlite.JDBC
   websocket:
     prefix: "/ws"
+  servlet:
+    multipart:
+      max-file-size: 100MB
 
 mybatis:
   configuration:
