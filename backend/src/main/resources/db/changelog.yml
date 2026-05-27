@@ -270,3 +270,13 @@ databaseChangeLog:
             path: db/sql/create-distribution-users-table.sql
             relativeToChangelogFile: false
             stripComments: true
+
+
+  - changeSet:
+      id: add-date-type-to-distribution-subscriptions
+      author: lemongo97
+      changes:
+        - sqlFile:
+            path: db/sql/add-date-type-to-distribution-subscriptions.sql
+            relativeToChangelogFile: false
+            stripComments: true

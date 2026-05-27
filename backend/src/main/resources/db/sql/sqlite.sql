@@ -354,6 +354,7 @@ CREATE TABLE IF NOT EXISTS distribution_subscriptions
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT    NOT NULL,
     user_id    INTEGER NOT NULL,
+    date_type  TEXT,
     start_time TEXT    NOT NULL DEFAULT (datetime('now')),
     end_time   TEXT,
     created_at TEXT    NOT NULL DEFAULT (datetime('now')),
