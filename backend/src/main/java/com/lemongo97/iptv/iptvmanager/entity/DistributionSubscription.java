@@ -21,4 +21,31 @@ public class DistributionSubscription {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean deleted;
+
+    public enum DateType {
+        /**
+         * 一个月
+         */
+        MONTH,
+        /**
+         * 一个季度（三个月）
+         */
+        QUARTER,
+        /**
+         * 半年
+         */
+        HALF_YEAR,
+        /**
+         * 一年
+         */
+        YEAR,
+        /**
+         * 永久
+         */
+        FOREVER,
+        /**
+         * 自定义
+         */
+        CUSTOM
+    }
 }

@@ -182,7 +182,7 @@ const columns = [
           { size: 'small', onClick: () => handleCopyUrl(row) },
           { default: () => '复制链接', icon: h('i', { class: 'i-material-symbols:link' }) },
         ),
-        h(NButton, { size: 'small', onClick: () => handleOpen(row) }, { default: () => '编辑' }),
+        h(NButton, { size: 'small', onClick: () => handleOpenWrapper(row) }, { default: () => '编辑' }),
         h(
           NPopconfirm,
           { onPositiveClick: () => handleDelete(row.id) },
@@ -239,6 +239,70 @@ const {
   refresh: () => $table.value?.handleSearch(),
 })
 
+// 包装 handleOpen 以处理编辑时的数据转换
+async function handleOpenWrapper(row) {
+  const rowData = row ?? {}
+  
+  // 后端只返回 startTime 和 endTime，需要推断 validityType
+  let validityType = '1year'
+  let customStartTime = null
+  let customEndTime = null
+  
+  if (rowData.startTime) {
+    const startTime = new Date(rowData.startTime)
+    const endTime = rowData.endTime ? new Date(rowData.endTime) : null
+    
+    // 计算时间差推断有效期类型
+    if (!endTime) {
+      validityType = 'forever'
+    } else if (isApproxOneMonth(startTime, endTime)) {
+      validityType = '1month'
+    } else if (isApproxThreeMonths(startTime, endTime)) {
+      validityType = '3month'
+    } else if (isApproxSixMonths(startTime, endTime)) {
+      validityType = '6month'
+    } else if (isApproxOneYear(startTime, endTime)) {
+      validityType = '1year'
+    } else {
+      validityType = 'custom'
+      customStartTime = startTime.getTime()
+      customEndTime = endTime.getTime()
+    }
+  }
+  
+  // 调用原始的 handleOpen 并传递处理后的数据
+  handleOpen({
+    action: 'edit',
+    row: {
+      ...rowData,
+      validityType,
+      customStartTime,
+      customEndTime,
+    }
+  })
+}
+
+// 判断是否约等于一个月
+function isApproxOneMonth(start, end) {
+  const diffDays = (end - start) / (1000 * 60 * 60 * 24)
+  return diffDays >= 28 && diffDays <= 35
+}
+
+function isApproxThreeMonths(start, end) {
+  const diffDays = (end - start) / (1000 * 60 * 60 * 24)
+  return diffDays >= 85 && diffDays <= 95
+}
+
+function isApproxSixMonths(start, end) {
+  const diffDays = (end - start) / (1000 * 60 * 60 * 24)
+  return diffDays >= 175 && diffDays <= 190
+}
+
+function isApproxOneYear(start, end) {
+  const diffDays = (end - start) / (1000 * 60 * 60 * 24)
+  return diffDays >= 355 && diffDays <= 380
+}
+
 // 有效期类型变化时处理
 function handleValidityTypeChange(value) {
   if (value !== 'custom') {
@@ -250,8 +314,8 @@ function handleValidityTypeChange(value) {
 // 加载用户选项
 async function loadUserOptions() {
   try {
-    const { data } = await fetch('/api/distribution/users').then(r => r.json())
-    userOptions.value = data || []
+    const res = await fetch('/api/distribution/users').then(r => r.json())
+    userOptions.value = res.data || []
   } catch (error) {
     console.error('Failed to load users:', error)
   }
@@ -261,7 +325,7 @@ async function loadUserOptions() {
 async function handleCopyUrl(row) {
   try {
     const res = await api.getSubscriptionUrl(row.id)
-    copy(res.data.url || window.location.origin + res.data)
+    copy(res.data || window.location.origin + res.data)
   } catch (error) {
     $message.error('获取订阅链接失败')
   }
