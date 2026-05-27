@@ -4,49 +4,57 @@ info:
   description: |
     IPTV 管理系统 API 文档
 
-    基于 Spring Boot 的 M3U8 播放列表管理服务，支持 IPTV 频道解析、管理和播放。
+    基于 Spring Boot 的 IPTV 播放列表管理服务，支持 M3U8/TXT 格式源解析、频道清洗、EPG 电子节目单管理和播放。
 
     ## 功能特性
 
-    - **M3U8 源管理**：在线订阅源和本地 M3U8 文件管理
-    - **频道管理**：频道信息的增删改查
+    - **IPTV 源管理**：支持 M3U8/TXT 格式的在线订阅源和本地文件管理
+    - **频道管理**：频道列表查看、分页、搜索、排序
     - **频道组管理**：频道分组管理
-    - **EPG 源管理**：电子节目指南源管理
-    - **定时刷新**：支持 Quartz 定时任务自动刷新 M3U8 源
+    - **频道清洗**：基于规则引擎的频道数据清洗（过滤、规范化、延迟检测、分组）
+    - **EPG 源管理**：支持 XMLTV/XMLTV_GZIP 格式的电子节目指南源管理
+    - **EPG 节目查询**：树形展示频道和节目，支持懒加载
+    - **任务进度管理**：异步任务执行和进度追踪
+    - **定时刷新**：支持 Quartz 定时任务自动刷新
     - **逻辑删除**：所有数据支持软删除，可随时恢复
-    - **历史备份**：M3U8 原始数据自动备份，保留最近 3 次
+    - **历史备份**：原始数据自动备份
 
   version: 1.0.0
   contact:
     name: IPTV Manager
-    email: support@example.com
 
 servers:
   - url: http://localhost:8080
     description: 开发环境
 
 tags:
-  - name: M3U8 Provider
-    description: M3U8 源管理
+  - name: IPTV Provider
+    description: IPTV 源管理
+  - name: IPTV Task History
+    description: IPTV 刷新任务历史
   - name: Channel
     description: 频道管理
   - name: Channel Group
     description: 频道组管理
-  - name: EPG Source
+  - name: Channel Cleanup
+    description: 频道清洗规则
+  - name: EPG Provider
     description: EPG 源管理
-  - name: M3U8 Task History
-    description: M3U8 刷新任务历史
+  - name: EPG Program
+    description: EPG 节目查询
+  - name: Task Progress
+    description: 任务进度
 
 paths:
-  /api/m3u8/provider:
+  /iptv/provider:
     get:
       tags:
-        - M3U8 Provider
-      summary: 获取所有 M3U8 源
-      operationId: findAllM3U8Providers
+        - IPTV Provider
+      summary: 获取所有 IPTV 源
+      operationId: findAllIPTVProviders
       responses:
         '200':
-          description: 成功返回 M3U8 源列表
+          description: 成功返回 IPTV 源列表
           content:
             application/json:
               schema:
@@ -57,162 +65,22 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: '#/components/schemas/M3U8Provider'
+                          $ref: '#/components/schemas/IPTVProvider'
     post:
       tags:
-        - M3U8 Provider
-      summary: 创建 M3U8 源
-      description: 创建新的 M3U8 源，创建后自动配置定时刷新任务
-      operationId: createM3U8Provider
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/M3U8ProviderCreate'
-            examples:
-              online:
-                summary: 在线订阅源
-                value:
-                  name: 示例 IPTV 源
-                  type: online
-                  url: https://example.com/playlist.m3u8
-                  refreshRate: 3600
-                  enabled: true
-                  description: 示例 IPTV 订阅源
-              local:
-                summary: 本地文件
-                value:
-                  name: 本地 IPTV
-                  type: local
-                  filePath: /path/to/local/playlist.m3u8
-                  refreshRate: 0
-                  enabled: false
-      responses:
-        '200':
-          description: M3U8 源创建成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/M3U8Provider'
-
-  /api/m3u8/provider/{id}:
-    get:
-      tags:
-        - M3U8 Provider
-      summary: 获取指定 M3U8 源
-      operationId: findM3U8ProviderById
-      parameters:
-        - $ref: '#/components/parameters/ProviderId'
-      responses:
-        '200':
-          description: 成功返回 M3U8 源详情
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/M3U8Provider'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    put:
-      tags:
-        - M3U8 Provider
-      summary: 更新 M3U8 源
-      description: 更新 M3U8 源信息，更新后自动重新配置定时刷新任务
-      operationId: updateM3U8Provider
-      parameters:
-        - $ref: '#/components/parameters/ProviderId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/M3U8ProviderUpdate'
-      responses:
-        '200':
-          description: M3U8 源更新成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/M3U8Provider'
-
-    delete:
-      tags:
-        - M3U8 Provider
-      summary: 删除 M3U8 源
-      description: 逻辑删除 M3U8 源（软删除），同时取消定时刷新任务
-      operationId: deleteM3U8Provider
-      parameters:
-        - $ref: '#/components/parameters/ProviderId'
-      responses:
-        '200':
-          description: M3U8 源删除成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-
-  /api/m3u8/provider/{id}/refresh:
-    post:
-      tags:
-        - M3U8 Provider
-      summary: 手动刷新 M3U8 源
-      description: 立即解析 M3U8 源并更新频道数据
-      operationId: refreshM3U8Provider
-      parameters:
-        - $ref: '#/components/parameters/ProviderId'
-      responses:
-        '200':
-          description: M3U8 源刷新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-
-  /api/m3u8/provider/upload:
-    post:
-      tags:
-        - M3U8 Provider
-      summary: 上传本地 M3U8 文件
-      description: 上传 M3U8 文件并创建本地类型的 Provider
-      operationId: uploadM3U8File
+        - IPTV Provider
+      summary: 创建 IPTV 源
+      description: 创建新的 IPTV 源，支持 M3U8/TXT 格式
+      operationId: createIPTVProvider
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              required:
-                - file
-              properties:
-                file:
-                  type: string
-                  format: binary
-                  description: M3U8 文件（支持 .m3u 和 .m3u8 格式）
-                name:
-                  type: string
-                  description: Provider 名称（可选，默认使用文件名）
-                description:
-                  type: string
-                  description: 备注信息（可选）
+              $ref: '#/components/schemas/IPTVProviderCreate'
       responses:
         '200':
-          description: 文件上传成功，返回创建的 Provider
+          description: IPTV 源创建成功
           content:
             application/json:
               schema:
@@ -221,70 +89,19 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/M3U8Provider'
-        '400':
-          description: 文件格式错误或文件为空
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+                        $ref: '#/components/schemas/IPTVProvider'
 
-  /api/channel:
+  /iptv/provider/{id}:
     get:
       tags:
-        - Channel
-      summary: 获取所有频道
-      operationId: findAllChannels
-      responses:
-        '200':
-          description: 成功返回频道列表
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Channel'
-
-    post:
-      tags:
-        - Channel
-      summary: 创建频道
-      operationId: createChannel
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ChannelCreate'
-      responses:
-        '200':
-          description: 频道创建成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/Channel'
-
-  /api/channel/{id}:
-    get:
-      tags:
-        - Channel
-      summary: 获取指定频道
-      operationId: findChannelById
+        - IPTV Provider
+      summary: 获取指定 IPTV 源
+      operationId: findIPTVProviderById
       parameters:
-        - $ref: '#/components/parameters/ChannelId'
+        - $ref: '#/components/parameters/ProviderId'
       responses:
         '200':
-          description: 成功返回频道详情
+          description: 成功返回 IPTV 源详情
           content:
             application/json:
               schema:
@@ -293,26 +110,25 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/Channel'
+                        $ref: '#/components/schemas/IPTVProvider'
         '404':
           $ref: '#/components/responses/NotFound'
-
     put:
       tags:
-        - Channel
-      summary: 更新频道
-      operationId: updateChannel
+        - IPTV Provider
+      summary: 更新 IPTV 源
+      operationId: updateIPTVProvider
       parameters:
-        - $ref: '#/components/parameters/ChannelId'
+        - $ref: '#/components/parameters/ProviderId'
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ChannelUpdate'
+              $ref: '#/components/schemas/IPTVProviderUpdate'
       responses:
         '200':
-          description: 频道更新成功
+          description: IPTV 源更新成功
           content:
             application/json:
               schema:
@@ -321,86 +137,35 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/Channel'
-
+                        $ref: '#/components/schemas/IPTVProvider'
     delete:
       tags:
-        - Channel
-      summary: 删除频道
-      description: 逻辑删除频道（软删除）
-      operationId: deleteChannel
+        - IPTV Provider
+      summary: 删除 IPTV 源
+      description: 逻辑删除 IPTV 源（软删除）
+      operationId: deleteIPTVProvider
       parameters:
-        - $ref: '#/components/parameters/ChannelId'
+        - $ref: '#/components/parameters/ProviderId'
       responses:
         '200':
-          description: 频道删除成功
+          description: IPTV 源删除成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
-  /api/channel/group/{group}:
-    get:
-      tags:
-        - Channel
-      summary: 根据分组获取频道
-      operationId: findChannelsByGroup
-      parameters:
-        - name: group
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 成功返回频道列表
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Channel'
-
-  /api/channel/group:
-    get:
-      tags:
-        - Channel Group
-      summary: 获取所有频道组
-      operationId: findAllChannelGroups
-      responses:
-        '200':
-          description: 成功返回频道组列表
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ChannelGroup'
-
+  /iptv/provider/{id}/refresh:
     post:
       tags:
-        - Channel Group
-      summary: 创建频道组
-      operationId: createChannelGroup
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ChannelGroupCreate'
+        - IPTV Provider
+      summary: 手动刷新 IPTV 源
+      description: 提交异步刷新任务，返回任务 ID
+      operationId: refreshIPTVProvider
+      parameters:
+        - $ref: '#/components/parameters/ProviderId'
       responses:
         '200':
-          description: 频道组创建成功
+          description: IPTV 源刷新任务已提交
           content:
             application/json:
               schema:
@@ -409,207 +174,15 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/ChannelGroup'
+                        $ref: '#/components/schemas/TaskSubmissionResult'
 
-  /api/channel/group/{id}:
+  /iptv/task/history:
     get:
       tags:
-        - Channel Group
-      summary: 获取指定频道组
-      operationId: findChannelGroupById
-      parameters:
-        - $ref: '#/components/parameters/GroupId'
-      responses:
-        '200':
-          description: 成功返回频道组详情
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/ChannelGroup'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    put:
-      tags:
-        - Channel Group
-      summary: 更新频道组
-      operationId: updateChannelGroup
-      parameters:
-        - $ref: '#/components/parameters/GroupId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ChannelGroupUpdate'
-      responses:
-        '200':
-          description: 频道组更新成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/ChannelGroup'
-
-    delete:
-      tags:
-        - Channel Group
-      summary: 删除频道组
-      description: 逻辑删除频道组（软删除）
-      operationId: deleteChannelGroup
-      parameters:
-        - $ref: '#/components/parameters/GroupId'
-      responses:
-        '200':
-          description: 频道组删除成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-
-  /api/epg/source:
-    get:
-      tags:
-        - EPG Source
-      summary: 获取所有 EPG 源
-      operationId: findAllEpgSources
-      responses:
-        '200':
-          description: 成功返回 EPG 源列表
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/EpgSource'
-
-    post:
-      tags:
-        - EPG Source
-      summary: 创建 EPG 源
-      operationId: createEpgSource
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EpgSourceCreate'
-      responses:
-        '200':
-          description: EPG 源创建成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/EpgSource'
-
-  /api/epg/source/{id}:
-    get:
-      tags:
-        - EPG Source
-      summary: 获取指定 EPG 源
-      operationId: findEpgSourceById
-      parameters:
-        - $ref: '#/components/parameters/EpgSourceId'
-      responses:
-        '200':
-          description: 成功返回 EPG 源详情
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/EpgSource'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    put:
-      tags:
-        - EPG Source
-      summary: 更新 EPG 源
-      operationId: updateEpgSource
-      parameters:
-        - $ref: '#/components/parameters/EpgSourceId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EpgSourceUpdate'
-      responses:
-        '200':
-          description: EPG 源更新成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/EpgSource'
-
-    delete:
-      tags:
-        - EPG Source
-      summary: 删除 EPG 源
-      description: 逻辑删除 EPG 源（软删除）
-      operationId: deleteEpgSource
-      parameters:
-        - $ref: '#/components/parameters/EpgSourceId'
-      responses:
-        '200':
-          description: EPG 源删除成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-
-  /api/epg/source/{id}/refresh:
-    post:
-      tags:
-        - EPG Source
-      summary: 手动刷新 EPG 源
-      description: 立即解析 EPG 源并更新节目数据
-      operationId: refreshEpgSource
-      parameters:
-        - $ref: '#/components/parameters/EpgSourceId'
-      responses:
-        '200':
-          description: EPG 源刷新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-
-  /api/m3u8/task/history:
-    get:
-      tags:
-        - M3U8 Task History
+        - IPTV Task History
       summary: 获取任务历史列表
-      description: 分页查询 M3U8 刷新任务历史记录
-      operationId: findAllM3U8Tasks
+      description: 分页查询 IPTV 刷新任务历史记录
+      operationId: findAllIPTVTasks
       parameters:
         - name: providerName
           in: query
@@ -630,13 +203,13 @@ paths:
             enum: [success, failed, running]
         - name: startTime
           in: query
-          description: 开始时间（过滤此时间之后的记录）
+          description: 开始时间
           schema:
             type: string
             format: date-time
         - name: endTime
           in: query
-          description: 结束时间（过滤此时间之前的记录）
+          description: 结束时间
           schema:
             type: string
             format: date-time
@@ -665,15 +238,14 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: '#/components/schemas/M3U8RefreshTask'
+                          $ref: '#/components/schemas/IPTVRefreshTaskDTO'
 
-  /api/m3u8/task/history/count:
+  /iptv/task/history/count:
     get:
       tags:
-        - M3U8 Task History
+        - IPTV Task History
       summary: 获取任务总数
-      description: 统计符合条件的任务总数（用于分页）
-      operationId: countM3U8Tasks
+      operationId: countIPTVTasks
       parameters:
         - name: providerName
           in: query
@@ -683,12 +255,10 @@ paths:
           in: query
           schema:
             type: string
-            enum: [manual, scheduled]
         - name: status
           in: query
           schema:
             type: string
-            enum: [success, failed, running]
         - name: startTime
           in: query
           schema:
@@ -713,12 +283,12 @@ paths:
                         type: integer
                         format: int64
 
-  /api/m3u8/task/history/{id}:
+  /iptv/task/history/{id}:
     get:
       tags:
-        - M3U8 Task History
+        - IPTV Task History
       summary: 获取任务详情
-      operationId: findM3U8TaskById
+      operationId: findIPTVTaskById
       parameters:
         - $ref: '#/components/parameters/TaskId'
       responses:
@@ -732,16 +302,15 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/M3U8RefreshTask'
+                        $ref: '#/components/schemas/IPTVRefreshTaskDTO'
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/m3u8/task/history/{id}/channels:
+  /iptv/task/history/{id}/channels:
     get:
       tags:
-        - M3U8 Task History
+        - IPTV Task History
       summary: 获取任务解析的频道列表
-      description: 获取指定任务解析出的频道列表
       operationId: findChannelsByTask
       parameters:
         - $ref: '#/components/parameters/TaskId'
@@ -758,7 +327,645 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: '#/components/schemas/Channel'
+                          $ref: '#/components/schemas/OriginalChannelMetadata'
+
+  /channel:
+    get:
+      tags:
+        - Channel
+      summary: 获取频道列表
+      description: 支持分页、搜索、排序
+      operationId: findChannels
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: name
+          in: query
+          description: 按频道名称搜索
+          schema:
+            type: string
+        - name: groupId
+          in: query
+          description: 按频道组过滤
+          schema:
+            type: integer
+        - name: status
+          in: query
+          description: 按状态过滤
+          schema:
+            type: string
+            enum: [valid, invalid, unknown]
+        - name: sortBy
+          in: query
+          description: 排序字段
+          schema:
+            type: string
+        - name: sortOrder
+          in: query
+          description: 排序方向
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: 成功返回频道列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageResult'
+
+  /channel/statistic:
+    get:
+      tags:
+        - Channel
+      summary: 获取统计信息
+      operationId: getChannelStatistic
+      responses:
+        '200':
+          description: 成功返回统计信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          totalChannels:
+                            type: integer
+                          validChannels:
+                            type: integer
+                          invalidChannels:
+                            type: integer
+
+  /channel/options:
+    get:
+      tags:
+        - Channel
+      summary: 获取过滤器选项
+      operationId: getChannelOptions
+      responses:
+        '200':
+          description: 成功返回选项
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /channel/{id}/timeline:
+    get:
+      tags:
+        - Channel
+      summary: 获取频道 EPG 时间轴
+      operationId: getChannelEPGTimeline
+      parameters:
+        - $ref: '#/components/parameters/ChannelId'
+      responses:
+        '200':
+          description: 成功返回 EPG 时间轴
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ChannelEPGTimeline'
+
+  /channel/clean/{step}:
+    post:
+      tags:
+        - Channel
+      summary: 执行数据清洗
+      description: 按步骤执行频道数据清洗
+      operationId: cleanChannels
+      parameters:
+        - name: step
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [FILTER, NAME_NORMALIZE, DELAY_DETECT, GROUPING]
+      responses:
+        '200':
+          description: 清洗任务已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /channel/group:
+    get:
+      tags:
+        - Channel Group
+      summary: 获取所有频道组
+      operationId: findAllChannelGroups
+      parameters:
+        - name: name
+          in: query
+          description: 按名称搜索
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功返回频道组列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ChannelGroup'
+    post:
+      tags:
+        - Channel Group
+      summary: 创建频道组
+      operationId: createChannelGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelGroupCreate'
+      responses:
+        '200':
+          description: 频道组创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ChannelGroup'
+
+  /channel/group/{id}:
+    put:
+      tags:
+        - Channel Group
+      summary: 更新频道组
+      operationId: updateChannelGroup
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelGroupUpdate'
+      responses:
+        '200':
+          description: 频道组更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ChannelGroup'
+    delete:
+      tags:
+        - Channel Group
+      summary: 删除频道组
+      description: 逻辑删除频道组（软删除）
+      operationId: deleteChannelGroup
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      responses:
+        '200':
+          description: 频道组删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /channel/cleanup/engines:
+    get:
+      tags:
+        - Channel Cleanup
+      summary: 获取支持的处理引擎列表
+      operationId: listCleanupEngines
+      responses:
+        '200':
+          description: 成功返回引擎列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CleanupEngine'
+
+  /channel/cleanup/rules:
+    get:
+      tags:
+        - Channel Cleanup
+      summary: 获取所有清洗规则
+      operationId: listCleanupRules
+      parameters:
+        - name: ruleType
+          in: query
+          description: 按规则类型过滤
+          schema:
+            type: string
+            enum: [FILTER, NAME_NORMALIZE, DELAY_DETECT, GROUPING]
+      responses:
+        '200':
+          description: 成功返回规则列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CleanupRule'
+    post:
+      tags:
+        - Channel Cleanup
+      summary: 创建清洗规则
+      operationId: createCleanupRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CleanupRuleCreate'
+      responses:
+        '200':
+          description: 规则创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CleanupRule'
+
+  /channel/cleanup/rules/{id}:
+    get:
+      tags:
+        - Channel Cleanup
+      summary: 获取单个规则详情
+      operationId: getCleanupRule
+      parameters:
+        - $ref: '#/components/parameters/RuleId'
+      responses:
+        '200':
+          description: 成功返回规则详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CleanupRule'
+    put:
+      tags:
+        - Channel Cleanup
+      summary: 更新清洗规则
+      operationId: updateCleanupRule
+      parameters:
+        - $ref: '#/components/parameters/RuleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CleanupRuleUpdate'
+      responses:
+        '200':
+          description: 规则更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CleanupRule'
+    delete:
+      tags:
+        - Channel Cleanup
+      summary: 删除清洗规则
+      description: 逻辑删除清洗规则（软删除）
+      operationId: deleteCleanupRule
+      parameters:
+        - $ref: '#/components/parameters/RuleId'
+      responses:
+        '200':
+          description: 规则删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /channel/cleanup/rules/reorder:
+    put:
+      tags:
+        - Channel Cleanup
+      summary: 重排序规则
+      operationId: reorderCleanupRules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderRequest'
+      responses:
+        '200':
+          description: 规则重排序成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /epg/provider:
+    get:
+      tags:
+        - EPG Provider
+      summary: 获取所有 EPG 源
+      operationId: findAllEpgProviders
+      parameters:
+        - name: name
+          in: query
+          description: 按名称搜索
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功返回 EPG 源列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EpgProvider'
+    post:
+      tags:
+        - EPG Provider
+      summary: 创建 EPG 源
+      operationId: createEpgProvider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EpgProviderCreate'
+      responses:
+        '200':
+          description: EPG 源创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EpgProvider'
+
+  /epg/provider/{id}:
+    get:
+      tags:
+        - EPG Provider
+      summary: 获取指定 EPG 源
+      operationId: findEpgProviderById
+      parameters:
+        - $ref: '#/components/parameters/EpgProviderId'
+      responses:
+        '200':
+          description: 成功返回 EPG 源详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EpgProvider'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - EPG Provider
+      summary: 更新 EPG 源
+      operationId: updateEpgProvider
+      parameters:
+        - $ref: '#/components/parameters/EpgProviderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EpgProviderUpdate'
+      responses:
+        '200':
+          description: EPG 源更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EpgProvider'
+    delete:
+      tags:
+        - EPG Provider
+      summary: 删除 EPG 源
+      description: 逻辑删除 EPG 源（软删除）
+      operationId: deleteEpgProvider
+      parameters:
+        - $ref: '#/components/parameters/EpgProviderId'
+      responses:
+        '200':
+          description: EPG 源删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /epg/provider/{id}/refresh:
+    post:
+      tags:
+        - EPG Provider
+      summary: 手动刷新 EPG 源
+      description: 提交异步刷新任务，返回任务进度对象
+      operationId: refreshEpgProvider
+      parameters:
+        - $ref: '#/components/parameters/EpgProviderId'
+      responses:
+        '200':
+          description: EPG 源刷新任务已提交
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TaskProgress'
+
+  /epg/channels:
+    get:
+      tags:
+        - EPG Program
+      summary: 获取指定源的频道列表
+      description: 用于前端树形数据的第一层展示
+      operationId: getEpgChannels
+      parameters:
+        - name: sourceId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 成功返回频道列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EpgChannelGroup'
+
+  /epg/programs:
+    get:
+      tags:
+        - EPG Program
+      summary: 获取指定频道的节目列表
+      description: 用于前端树形数据的第二层展示（懒加载）
+      operationId: getEpgPrograms
+      parameters:
+        - name: sourceId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: channelId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功返回节目列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EpgProgram'
+
+  /task/progress/{taskId}:
+    get:
+      tags:
+        - Task Progress
+      summary: 获取任务进度
+      operationId: getTaskProgress
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功返回任务进度
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TaskProgress'
+        '404':
+          description: 任务不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /task/progress/latest/{taskType}:
+    get:
+      tags:
+        - Task Progress
+      summary: 获取最新任务进度
+      operationId: getLatestTaskProgress
+      parameters:
+        - name: taskType
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功返回最新任务进度
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TaskProgress'
 
 components:
   parameters:
@@ -769,6 +976,7 @@ components:
       schema:
         type: integer
         format: int64
+        description: IPTV 源 ID
 
     ChannelId:
       name: id
@@ -777,6 +985,7 @@ components:
       schema:
         type: integer
         format: int64
+        description: 频道 ID
 
     GroupId:
       name: id
@@ -785,14 +994,25 @@ components:
       schema:
         type: integer
         format: int64
+        description: 频道组 ID
 
-    EpgSourceId:
+    RuleId:
       name: id
       in: path
       required: true
       schema:
         type: integer
         format: int64
+        description: 规则 ID
+
+    EpgProviderId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        description: EPG 源 ID
 
     TaskId:
       name: id
@@ -801,7 +1021,7 @@ components:
       schema:
         type: integer
         format: int64
-      description: 任务 ID
+        description: 任务 ID
 
   schemas:
     ApiResponse:
@@ -818,68 +1038,78 @@ components:
           type: string
           nullable: true
 
-    M3U8Provider:
+    PageResult:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        page:
+          type: integer
+        limit:
+          type: integer
+        items:
+          type: array
+
+    IPTVProvider:
       type: object
       properties:
         id:
           type: integer
           format: int64
-          example: 1
         name:
           type: string
-          example: 示例 IPTV 源
         type:
           type: string
-          enum: [online, local]
-          example: online
+          enum: [online, file]
+        contentType:
+          type: string
+          enum: [M3U8, TXT]
         url:
           type: string
           format: uri
-          example: https://example.com/playlist.m3u8
-        filePath:
+        filename:
           type: string
-          example: /path/to/local/playlist.m3u8
         headers:
           type: object
           additionalProperties:
             type: string
         refreshRate:
           type: integer
-          example: 3600
         enabled:
           type: boolean
-          example: true
         description:
           type: string
-          example: 示例 IPTV 订阅源
         createdAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
         updatedAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
         deleted:
           type: boolean
-          example: false
 
-    M3U8ProviderCreate:
+    IPTVProviderCreate:
       type: object
       required:
         - name
         - type
+        - contentType
       properties:
         name:
           type: string
         type:
           type: string
-          enum: [online, local]
+          enum: [online, file]
+        contentType:
+          type: string
+          enum: [M3U8, TXT]
         url:
           type: string
           format: uri
-        filePath:
+        file:
           type: string
+          format: binary
         headers:
           type: object
           additionalProperties:
@@ -891,16 +1121,23 @@ components:
         description:
           type: string
 
-    M3U8ProviderUpdate:
+    IPTVProviderUpdate:
       type: object
       properties:
         name:
           type: string
+        type:
+          type: string
+          enum: [online, file]
+        contentType:
+          type: string
+          enum: [M3U8, TXT]
         url:
           type: string
           format: uri
-        filePath:
+        file:
           type: string
+          format: binary
         headers:
           type: object
           additionalProperties:
@@ -910,6 +1147,66 @@ components:
         enabled:
           type: boolean
         description:
+          type: string
+
+    TaskSubmissionResult:
+      type: object
+      properties:
+        taskId:
+          type: integer
+          format: int64
+        message:
+          type: string
+
+    IPTVRefreshTaskDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        providerId:
+          type: integer
+          format: int64
+        providerName:
+          type: string
+        triggerType:
+          type: string
+          enum: [manual, scheduled]
+        status:
+          type: string
+          enum: [success, failed, running]
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          format: int64
+        channelCount:
+          type: integer
+        errorMessage:
+          type: string
+
+    OriginalChannelMetadata:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        taskId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        url:
+          type: string
+        logo:
+          type: string
+        epgId:
+          type: string
+        groupId:
           type: string
 
     Channel:
@@ -918,121 +1215,66 @@ components:
         id:
           type: integer
           format: int64
-          example: 1
         name:
           type: string
-          example: CCTV-1
         logo:
           type: string
-          format: uri
-          example: https://example.com/logo/cctv1.png
         url:
           type: string
-          format: uri
-          example: https://example.com/stream/cctv1.m3u8
-        number:
-          type: string
-          example: '001'
-        channelId:
-          type: string
-          example: cctv1.hd
-        enabled:
-          type: boolean
-          example: true
-        providerId:
-          type: integer
-          format: int64
-          example: 1
         groupId:
           type: integer
           format: int64
-          example: 1
         epgSourceId:
+          type: string
+        status:
+          type: string
+          enum: [valid, invalid, unknown]
+        country:
+          type: string
+        language:
+          type: string
+        httpDetectDelayMilliseconds:
           type: integer
           format: int64
-          example: 1
-        sortOrder:
+        ffmpegDetectDelayMilliseconds:
           type: integer
-          example: 1
-        description:
+          format: int64
+        videoInfo:
           type: string
-          example: 中央电视台综合频道
+        audioInfo:
+          type: string
+        score:
+          type: integer
+          format: int64
         createdAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
         updatedAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
-        deleted:
-          type: boolean
-          example: false
 
-    ChannelCreate:
-      type: object
-      required:
-        - name
-        - url
-      properties:
-        name:
-          type: string
-        logo:
-          type: string
-          format: uri
-        url:
-          type: string
-          format: uri
-        number:
-          type: string
-        channelId:
-          type: string
-        enabled:
-          type: boolean
-        providerId:
-          type: integer
-          format: int64
-        groupId:
-          type: integer
-          format: int64
-        epgSourceId:
-          type: integer
-          format: int64
-        sortOrder:
-          type: integer
-        description:
-          type: string
-
-    ChannelUpdate:
-      type: object
-      properties:
-        name:
-          type: string
-        logo:
-          type: string
-          format: uri
-        url:
-          type: string
-          format: uri
-        number:
-          type: string
-        channelId:
-          type: string
-        enabled:
-          type: boolean
-        providerId:
-          type: integer
-          format: int64
-        groupId:
-          type: integer
-          format: int64
-        epgSourceId:
-          type: integer
-          format: int64
-        sortOrder:
-          type: integer
-        description:
-          type: string
+    ChannelEPGTimeline:
+      type: array
+      items:
+        type: object
+        properties:
+          channel:
+            type: string
+          type:
+            type: string
+            enum: [program, date]
+          startTime:
+            type: string
+            format: date-time
+          stopTime:
+            type: string
+            format: date-time
+          title:
+            type: string
+          lang:
+            type: string
+          description:
+            type: string
 
     ChannelGroup:
       type: object
@@ -1040,27 +1282,20 @@ components:
         id:
           type: integer
           format: int64
-          example: 1
         name:
           type: string
-          example: 央视频道
         sortOrder:
           type: integer
-          example: 1
         description:
           type: string
-          example: 中央电视台频道组
         createdAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
         updatedAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
         deleted:
           type: boolean
-          example: false
 
     ChannelGroupCreate:
       type: object
@@ -1084,46 +1319,131 @@ components:
         description:
           type: string
 
-    EpgSource:
+    CleanupEngine:
       type: object
       properties:
         id:
           type: integer
           format: int64
-          example: 1
         name:
           type: string
-          example: 示例 EPG 源
-        url:
+        engineCode:
           type: string
-          format: uri
-          example: https://example.com/epg.xml
-        type:
+        ruleType:
           type: string
-          example: xmltv
+        params:
+          type: string
+          description: JSON 格式的参数配置
+
+    CleanupRule:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        engine:
+          type: string
+        ruleType:
+          type: string
         enabled:
           type: boolean
-          example: true
-        description:
+        params:
           type: string
-          example: 示例电子节目指南源
+          description: JSON 格式的参数值
+        sortOrder:
+          type: integer
         createdAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
         updatedAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
+
+    CleanupRuleCreate:
+      type: object
+      required:
+        - name
+        - engine
+        - ruleType
+      properties:
+        name:
+          type: string
+        engine:
+          type: string
+        ruleType:
+          type: string
+        enabled:
+          type: boolean
+        params:
+          type: string
+        sortOrder:
+          type: integer
+
+    CleanupRuleUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        engine:
+          type: string
+        ruleType:
+          type: string
+        enabled:
+          type: boolean
+        params:
+          type: string
+        sortOrder:
+          type: integer
+
+    ReorderRequest:
+      type: object
+      required:
+        - ruleType
+        - ruleIds
+      properties:
+        ruleType:
+          type: string
+        ruleIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+
+    EpgProvider:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        type:
+          type: string
+          enum: [XMLTV, XMLTV_GZIP]
+        enabled:
+          type: boolean
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
         deleted:
           type: boolean
-          example: false
 
-    EpgSourceCreate:
+    EpgProviderCreate:
       type: object
       required:
         - name
         - url
+        - type
       properties:
         name:
           type: string
@@ -1132,12 +1452,13 @@ components:
           format: uri
         type:
           type: string
+          enum: [XMLTV, XMLTV_GZIP]
         enabled:
           type: boolean
         description:
           type: string
 
-    EpgSourceUpdate:
+    EpgProviderUpdate:
       type: object
       properties:
         name:
@@ -1147,71 +1468,72 @@ components:
           format: uri
         type:
           type: string
+          enum: [XMLTV, XMLTV_GZIP]
         enabled:
           type: boolean
         description:
           type: string
 
-    M3U8RefreshTask:
+    EpgChannelGroup:
+      type: object
+      properties:
+        channelId:
+          type: string
+        channelName:
+          type: string
+
+    EpgProgram:
       type: object
       properties:
         id:
           type: integer
           format: int64
-          example: 1
-        providerId:
-          type: integer
-          format: int64
-          example: 1
-          description: M3U8 提供者 ID
-        providerName:
+        channelId:
           type: string
-          example: 示例 IPTV 源
-          description: M3U8 提供者名称
-        triggerType:
+        title:
           type: string
-          enum: [manual, scheduled]
-          example: manual
-          description: 触发方式（手动/定时）
-        status:
-          type: string
-          enum: [success, failed, running]
-          example: success
-          description: 执行状态
         startTime:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
-          description: 开始时间（时间戳）
-        endTime:
+        stopTime:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:05Z'
-          description: 结束时间（时间戳）
-        duration:
+        description:
+          type: string
+        lang:
+          type: string
+
+    TaskProgress:
+      type: object
+      properties:
+        id:
           type: integer
           format: int64
-          example: 5000
-          description: 耗时（毫秒）
-        channelCount:
+        taskId:
+          type: string
+        taskType:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        progress:
           type: integer
-          example: 150
-          description: 解析的频道数量
-        errorMessage:
+          minimum: 0
+          maximum: 100
+        total:
+          type: integer
+        current:
+          type: integer
+        message:
           type: string
-          example: 'Connection timeout'
-          description: 错误信息（失败时）
-        rawContent:
+        error:
           type: string
-          description: 原始 M3U8 内容
         createdAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:00Z'
         updatedAt:
           type: string
           format: date-time
-          example: '2025-01-12T10:00:05Z'
 
   responses:
     NotFound:

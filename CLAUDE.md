@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-IPTV 管理系统 - 基于 Spring Boot 的 M3U8 播放列表管理服务，支持 IPTV 频道解析、管理和播放。
+IPTV 管理系统 - 基于 Spring Boot 的 IPTV 播放列表管理服务，支持 M3U8/TXT 格式源解析、频道清洗、EPG 电子节目单管理和播放。
 
 ## 技术栈
 
@@ -28,6 +28,32 @@ IPTV-Manager/
 │   │   ├── main/
 │   │   │   ├── java/            # Java 源码
 │   │   │   │   └── com/lemongo97/iptv/iptvmanager/
+│   │   │   │       ├── cleanup/         # 数据清洗引擎
+│   │   │   │       │   ├── engine/      # 清洗引擎实现
+│   │   │   │       │   ├── rule/        # 清洗规则
+│   │   │   │       │   └── config/      # 清洗配置
+│   │   │   │       ├── common/          # 通用组件
+│   │   │   │       │   ├── ApiResponse.java      # API 响应封装
+│   │   │   │       │   ├── BusinessException.java # 业务异常
+│   │   │   │       │   ├── PageQuery.java        # 分页查询
+│   │   │   │       │   └── PageResult.java       # 分页结果
+│   │   │   │       ├── configuration/   # 配置类
+│   │   │   │       │   ├── mybatis/     # MyBatis 配置
+│   │   │   │       │   └── websocket/   # WebSocket 配置
+│   │   │   │       ├── dto/             # 数据传输对象
+│   │   │   │       ├── entity/          # 实体类
+│   │   │   │       ├── endpoint/        # 端点（控制器和 WebSocket）
+│   │   │   │       │   ├── controller/  # REST 控制器
+│   │   │   │       │   └── websocket/   # WebSocket 端点
+│   │   │   │       ├── mapper/          # MyBatis Mapper
+│   │   │   │       ├── parser/          # 解析器
+│   │   │   │       │   ├── m3u8/        # M3U8 解析器
+│   │   │   │       │   ├── txt/         # TXT 解析器
+│   │   │   │       │   └── epg/         # EPG 解析器
+│   │   │   │       ├── quartz/          # Quartz 定时任务
+│   │   │   │       │   └── job/         # 任务实现
+│   │   │   │       ├── service/         # 业务服务
+│   │   │   │       └── utils/           # 工具类
 │   │   │   └── resources/       # 配置文件
 │   │   │       ├── application.yml
 │   │   │       ├── db/           # 数据库迁移
@@ -37,129 +63,167 @@ IPTV-Manager/
 │   └── build.gradle
 ├── frontend/                     # 前端模块
 │   ├── src/
-│   │   ├── api/                 # API 接口定义
-│   │   ├── assets/              # 静态资源
 │   │   ├── components/          # 组件
 │   │   │   ├── common/          # 通用组件
-│   │   │   └── me/             # 业务组件（CRUD、Modal等）
+│   │   │   └── me/              # 业务组件（CRUD、Modal等）
 │   │   ├── composables/         # 组合式函数
 │   │   ├── layouts/             # 布局组件
-│   │   │   ├── full/           # 完整布局（带侧边栏）
-│   │   │   ├── normal/         # 标准布局
-│   │   │   ├── simple/         # 简洁布局
-│   │   │   └── empty/          # 空白布局
-│   │   ├── router/             # 路由配置
-│   │   ├── store/              # Pinia 状态管理
-│   │   │   └── modules/        # Store 模块
-│   │   ├── styles/             # 全局样式
-│   │   ├── utils/              # 工具函数
-│   │   │   ├── http/           # HTTP 请求封装
-│   │   │   └── storage/        # 本地存储
-│   │   ├── views/              # 页面视图
-│   │   │   ├── login/          # 登录页
-│   │   │   ├── home/           # 首页
-│   │   │   ├── pms/            # 权限管理
-│   │   │   └── error-page/     # 错误页
-│   │   ├── App.vue             # 根组件
-│   │   ├── main.js             # 入口文件
-│   │   └── settings.js         # 应用配置
-│   ├── build/                  # 构建插件
-│   ├── public/                 # 公共资源
-│   ├── build.gradle            # Gradle 构建配置
-│   ├── package.json            # npm 依赖
-│   ├── vite.config.js          # Vite 配置
-│   └── uno.config.js           # UnoCSS 配置
+│   │   ├── router/              # 路由配置
+│   │   ├── store/               # Pinia 状态管理
+│   │   ├── utils/               # 工具函数
+│   │   ├── views/               # 页面视图（API 与页面同目录）
+│   │   │   ├── source/          # 源管理
+│   │   │   │   ├── subscribe/   # 订阅配置
+│   │   │   │   └── history/     # 任务历史
+│   │   │   ├── channel-management/  # 频道管理
+│   │   │   │   ├── list/        # 频道列表
+│   │   │   │   ├── groups/      # 频道组管理
+│   │   │   │   └── rules/       # 频道处理规则
+│   │   │   └── epg-management/  # EPG 管理
+│   │   │       ├── sources/     # EPG 源管理
+│   │   │       └── viewer/      # EPG 查看
+│   │   ├── App.vue              # 根组件
+│   │   ├── main.js              # 入口文件
+│   │   └── settings.js          # 应用配置
+│   ├── build.gradle             # Gradle 构建配置
+│   ├── package.json             # npm 依赖
+│   ├── vite.config.js           # Vite 配置
+│   └── uno.config.js            # UnoCSS 配置
 ├── gradle/
 │   ├── libs.versions.toml       # 版本目录（依赖版本管理）
 │   └── repositories.gradle
-├── build.gradle                  # 根构建文件
-└── settings.gradle               # 项目设置
+├── build.gradle                 # 根构建文件
+└── settings.gradle              # 项目设置
 ```
 
 ## 核心功能
 
-### 1. M3U8 源管理
+### 1. IPTV 源管理
 
-- 在线订阅源（通过 URL）
-- 本地 M3U8 文件
-- 源刷新和自动解析
+- **在线订阅源**：支持通过 URL 订阅 M3U8/TXT 格式的 IPTV 源
+- **本地文件上传**：支持上传本地 M3U8/TXT 文件
+- **自动刷新**：通过 Quartz 实现定时自动刷新
+- **原始数据备份**：每次解析前自动保存原始内容
+- **任务历史**：记录每次刷新任务的历史和解析结果
 
-### 2. M3U8 原始数据历史
+### 2. 频道管理
 
-- **自动备份**：每次解析前自动保存原始 M3U8 内容
-- **保留策略**：每个提供者保留最近 3 次的历史记录
-- **数据用途**：
-  - 解析失败时的备用数据
-  - 调试和问题排查
-  - 历史对比分析
+- **频道列表**：查看所有解析的频道，支持分页、搜索、排序
+- **频道组管理**：创建和管理频道分组
+- **数据清洗**：基于规则引擎的频道数据清洗
+  - 频道过滤：黑名单过滤
+  - 名称规范化：大小写转换、正则替换、字符串处理
+  - 延迟检测：HTTP 检测、FFMPEG/FFProbe 检测
+  - 频道分组：自动分组规则
+- **EPG 时间轴**：查看频道的电子节目单时间轴
 
-### 3. 逻辑删除
+### 3. EPG 管理
+
+- **EPG 源管理**：支持 XMLTV 和 XMLTV_GZIP 格式的 EPG 源
+- **EPG 解析**：解析 XMLTV 格式的电子节目单
+- **EPG 查看**：树形展示频道和节目，支持懒加载
+- **自动刷新**：支持定时自动刷新 EPG 数据
+
+### 4. 任务进度管理
+
+- **异步任务执行**：IPTV 源和 EPG 源刷新使用异步任务
+- **任务进度追踪**：通过 `task_progress` 表记录任务进度
+- **任务状态查询**：支持按任务 ID 和任务类型查询进度
+- **WebSocket 实时推送**：频道清洗进度实时推送
+
+### 5. 逻辑删除
 
 所有表都使用逻辑删除（软删除）：
-- 删除操作只标记 `deleted = 1`
+- 删除操作只标记 `deleted = true`
 - 数据永久保留，可随时恢复
 - 支持审计追踪
 
-### 4. 定时任务调度（Quartz）
-
-- **自动刷新**：M3U8 提供者可配置定时自动刷新
-- **Quartz 集成**：使用 Quartz 2.5.0 实现任务调度
-- **灵活配置**：通过 `refreshRate` 字段配置刷新间隔（秒）
-- **动态管理**：创建/更新/删除提供者时自动管理定时任务
-- **任务持久化**：使用内存存储（RAMJobStore），重启后需要重新调度
-
 ## API 端点
 
-### M3U8 提供者管理
+### IPTV 源管理
 
 | 方法 | 端点 | 描述 |
 |------|------|------|
-| GET | `/api/m3u8/provider` | 获取所有 M3U8 源 |
-| GET | `/api/m3u8/provider/{id}` | 获取指定 M3U8 源 |
-| POST | `/api/m3u8/provider` | 创建 M3U8 源 |
-| PUT | `/api/m3u8/provider/{id}` | 更新 M3U8 源 |
-| DELETE | `/api/m3u8/provider/{id}` | 删除 M3U8 源（逻辑删除） |
-| POST | `/api/m3u8/provider/{id}/refresh` | 手动刷新 M3U8 源 |
+| GET | `/iptv/provider` | 获取所有 IPTV 源 |
+| GET | `/iptv/provider/{id}` | 获取指定 IPTV 源 |
+| POST | `/iptv/provider` | 创建 IPTV 源（支持文件上传） |
+| PUT | `/iptv/provider/{id}` | 更新 IPTV 源（支持文件上传） |
+| DELETE | `/iptv/provider/{id}` | 删除 IPTV 源（逻辑删除） |
+| POST | `/iptv/provider/{id}/refresh` | 手动刷新 IPTV 源（异步） |
+
+### IPTV 任务历史
+
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| GET | `/iptv/task/history` | 分页查询任务历史 |
+| GET | `/iptv/task/history/count` | 获取任务总数 |
+| GET | `/iptv/task/history/{id}` | 获取任务详情 |
+| GET | `/iptv/task/history/{id}/channels` | 获取任务解析的频道列表 |
 
 ### 频道管理
 
 | 方法 | 端点 | 描述 |
 |------|------|------|
-| GET | `/api/channel` | 获取所有频道 |
-| GET | `/api/channel/{id}` | 获取指定频道 |
-| GET | `/api/channel/group/{group}` | 根据分组获取频道 |
-| POST | `/api/channel` | 创建频道 |
-| PUT | `/api/channel/{id}` | 更新频道 |
-| DELETE | `/api/channel/{id}` | 删除频道（逻辑删除） |
+| GET | `/channel` | 获取频道列表（分页、搜索、排序） |
+| GET | `/channel/statistic` | 获取统计信息 |
+| GET | `/channel/options` | 获取过滤器选项 |
+| GET | `/channel/{id}/timeline` | 获取频道 EPG 时间轴 |
+| POST | `/channel/clean/{step}` | 执行数据清洗 |
 
 ### 频道组管理
 
 | 方法 | 端点 | 描述 |
 |------|------|------|
-| GET | `/api/channel/group` | 获取所有频道组 |
-| GET | `/api/channel/group/{id}` | 获取指定频道组 |
-| POST | `/api/channel/group` | 创建频道组 |
-| PUT | `/api/channel/group/{id}` | 更新频道组 |
-| DELETE | `/api/channel/group/{id}` | 删除频道组（逻辑删除） |
+| GET | `/channel/group` | 获取所有频道组 |
+| POST | `/channel/group` | 创建频道组 |
+| PUT | `/channel/group/{id}` | 更新频道组 |
+| DELETE | `/channel/group/{id}` | 删除频道组（逻辑删除） |
+
+### 频道清洗规则
+
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| GET | `/channel/cleanup/engines` | 获取支持的处理引擎列表 |
+| GET | `/channel/cleanup/rules` | 获取所有规则（支持按 ruleType 过滤） |
+| GET | `/channel/cleanup/rules/{id}` | 获取单个规则详情 |
+| POST | `/channel/cleanup/rules` | 创建规则 |
+| PUT | `/channel/cleanup/rules/{id}` | 更新规则 |
+| DELETE | `/channel/cleanup/rules/{id}` | 删除规则（逻辑删除） |
+| PUT | `/channel/cleanup/rules/reorder` | 重排序规则 |
 
 ### EPG 源管理
 
 | 方法 | 端点 | 描述 |
 |------|------|------|
-| GET | `/api/epg/source` | 获取所有 EPG 源 |
-| GET | `/api/epg/source/{id}` | 获取指定 EPG 源 |
-| POST | `/api/epg/source` | 创建 EPG 源 |
-| PUT | `/api/epg/source/{id}` | 更新 EPG 源 |
-| DELETE | `/api/epg/source/{id}` | 删除 EPG 源（逻辑删除） |
-| POST | `/api/epg/source/{id}/refresh` | 手动刷新 EPG 源 |
+| GET | `/epg/provider` | 获取所有 EPG 源 |
+| GET | `/epg/provider/{id}` | 获取指定 EPG 源 |
+| POST | `/epg/provider` | 创建 EPG 源 |
+| PUT | `/epg/provider/{id}` | 更新 EPG 源 |
+| DELETE | `/epg/provider/{id}` | 删除 EPG 源（逻辑删除） |
+| POST | `/epg/provider/{id}/refresh` | 手动刷新 EPG 源（异步） |
+
+### EPG 节目查询
+
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| GET | `/epg/channels` | 获取指定源的频道列表 |
+| GET | `/epg/programs` | 获取指定频道的节目列表 |
+
+### 任务进度
+
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| GET | `/task/progress/{taskId}` | 获取任务进度 |
+| GET | `/task/progress/latest/{taskType}` | 获取最新任务进度 |
 
 ### 请求示例
 
-创建 M3U8 提供者（带定时刷新）：
+创建 IPTV 提供者（带定时刷新）：
 ```json
 {
   "name": "示例源",
   "type": "online",
+  "contentType": "M3U8",
   "url": "https://example.com/playlist.m3u8",
   "refreshRate": 3600,
   "enabled": true
@@ -1126,7 +1190,52 @@ function initEngineParams(engine) {
 }
 ```
 
+## 数据清洗引擎
+
+### 清洗规则类型
+
+| 规则类型 | 说明 | 引擎 |
+|---------|------|------|
+| FILTER | 频道过滤 | BlackListEngine |
+| NAME_NORMALIZE | 名称规范化 | CaseConversionEngine, RegexReplaceEngine, StringReplaceEngine, StringRemoveEngine, OpenCCEngine |
+| DELAY_DETECT | 延迟检测 | HttpCheckEngine, FFProbeCheckEngine, FFMpegCheckEngine |
+| GROUPING | 频道分组 | GroupingEngine |
+
+### 清洗流程
+
+1. **频道过滤**：根据黑名单过滤频道
+2. **名称规范化**：规范化频道名称（大小写、正则替换等）
+3. **延迟检测**：检测频道延迟，评分排序
+4. **频道分组**：根据规则自动分组
+
+### 清洗引擎配置
+
+每个引擎都有对应的参数配置（JSON 格式），包括：
+- 参数类型（INPUT, NUMBER, SWITCH, SELECT, DYNAMIC_INPUT, DYNAMIC_PAIR_INPUT）
+- 参数标签、字段名、占位符
+- 默认值、选项列表等
+
 ## 最新更新
+
+### 2026-05-26
+
+#### 大规模重构
+
+**后端重构**：
+- 重构包结构：`controller` → `endpoint`，分离 REST 控制器和 WebSocket 端点
+- 新增通用组件：`ApiResponse`、`BusinessException`、`PageQuery`、`PageResult`
+- 完善数据清洗引擎：支持多种清洗规则和引擎
+- 实现 EPG 解析和管理功能
+- 添加任务进度管理：通过 `TaskProgress` 实体追踪异步任务
+
+**前端重构**：
+- 优化目录结构：API 与页面同目录，便于维护
+- 完善页面功能：
+  - 源管理：订阅配置、任务历史
+  - 频道管理：频道列表、频道组、处理规则
+  - EPG 管理：EPG 源、EPG 查看
+- 实现动态表单系统：支持基于后端配置的动态表单渲染
+- 支持 EPG 时间轴展示
 
 ### 2026-05-21
 
@@ -1136,17 +1245,12 @@ function initEngineParams(engine) {
 - 基于后端引擎配置的动态表单渲染（`/channel-management/rules`）
 - 支持多种参数类型：INPUT, NUMBER, SWITCH, SELECT, DYNAMIC_INPUT, DYNAMIC_PAIR_INPUT
 - 所有"新增规则"按钮共用一个弹窗，通过 `ruleType` 过滤可用引擎
-- 单引擎时自动选择，多引擎时用户手动选择
 
 **技术要点**：
 - 使用 Vue3 `h` 函数实现动态组件渲染
 - NFormItem 插槽使用对象语法：`{ default: () => content }`
 - Naive UI 事件绑定格式：`'onUpdate:value'`（带引号）
-- NDynamicInput 初始化需要在表单中设置默认值，而非使用 `defaultValue` prop
-- MeModal 使用 `:onOk` 属性而非 `@confirm` 事件
-
-**API 接口**：
-- `GET /api/channel/cleanup/engines` - 获取支持的处理引擎列表
+- NDynamicInput 初始化需要在表单中设置默认值
 
 ### 2026-05-13
 
