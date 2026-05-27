@@ -32,7 +32,7 @@
         <n-form-item
           label="订阅用户"
           path="userId"
-          :rule="{ required: true, message: '请选择订阅用户', trigger: ['change', 'blur'] }"
+          :rule="{ type: 'number', required: true, message: '请选择订阅用户', trigger: ['change', 'blur'] }"
         >
           <n-select
             v-model:value="modalForm.userId"
@@ -104,6 +104,7 @@ import { MeCrud, MeModal, MeQueryItem } from '@/components'
 import { useCrud } from '@/composables'
 import api from './api'
 import { formatDateTime } from '@/utils'
+import {ref} from "vue";
 
 const $table = ref(null)
 
