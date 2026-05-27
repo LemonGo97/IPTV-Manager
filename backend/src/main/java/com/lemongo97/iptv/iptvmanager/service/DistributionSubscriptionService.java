@@ -70,24 +70,31 @@ public class DistributionSubscriptionService {
     }
 
     @Transactional
-    public DistributionSubscription create(DistributionSubscription subscription, DistributionSubscription.DateType dateType,
-                                          LocalDateTime customStartTime, LocalDateTime customEndTime) {
+    public DistributionSubscription create(DistributionSubscription subscription) {
         log.info("Creating distribution subscription: {}", subscription.getName());
 
         // 验证用户是否存在
         DistributionUser user = userService.findById(subscription.getUserId());
 
-        var startTime = calculateStartTime(dateType, customStartTime);
-        var endTime = calculateEndTime(dateType, customEndTime);
+        var startTime = calculateStartTime(subscription.getDateType(), subscription.getStartTime());
+        var endTime = calculateEndTime(subscription.getDateType(), subscription.getEndTime());
 
         var now = LocalDateTime.now();
         var newSubscription = new DistributionSubscription(
                 null,
                 subscription.getName(),
                 user.getId(),
-                dateType,
+                subscription.getDateType(),
                 startTime,
                 endTime,
+                // 高级设置 - 使用前端传来的值或默认值
+                subscription.getFilterInvalidChannels() != null ? subscription.getFilterInvalidChannels() : true,
+                subscription.getFilterHttpHighDelay() != null ? subscription.getFilterHttpHighDelay() : -1,
+                subscription.getFilterFfmpegHighDelay() != null ? subscription.getFilterFfmpegHighDelay() : -1,
+                subscription.getFilterNoVideoStream() != null ? subscription.getFilterNoVideoStream() : true,
+                subscription.getFilterNoAudioStream() != null ? subscription.getFilterNoAudioStream() : true,
+                subscription.getFilterLowResolution() != null ? subscription.getFilterLowResolution() : "1080p",
+                subscription.getMergeSameChannels() != null ? subscription.getMergeSameChannels() : true,
                 now,
                 now,
                 false,
@@ -100,8 +107,7 @@ public class DistributionSubscriptionService {
     }
 
     @Transactional
-    public DistributionSubscription update(Long id, DistributionSubscription subscription, DistributionSubscription.DateType dateType,
-                                          LocalDateTime customStartTime, LocalDateTime customEndTime) {
+    public DistributionSubscription update(Long id, DistributionSubscription subscription) {
         var existing = findById(id);
         log.info("Updating distribution subscription: id={}", id);
 
@@ -109,16 +115,24 @@ public class DistributionSubscriptionService {
         Long userId = subscription.getUserId() != null ? subscription.getUserId() : existing.getUserId();
         userService.findById(userId);
 
-        var startTime = calculateStartTime(dateType, customStartTime);
-        var endTime = calculateEndTime(dateType, customEndTime);
+        var startTime = calculateStartTime(subscription.getDateType(), subscription.getStartTime());
+        var endTime = calculateEndTime(subscription.getDateType(), subscription.getEndTime());
 
         var updated = new DistributionSubscription(
                 id,
                 subscription.getName() != null ? subscription.getName() : existing.getName(),
                 userId,
-                dateType,
+                subscription.getDateType(),
                 startTime,
                 endTime,
+                // 高级设置 - 使用前端传来的值或保留现有值
+                subscription.getFilterInvalidChannels() != null ? subscription.getFilterInvalidChannels() : existing.getFilterInvalidChannels(),
+                subscription.getFilterHttpHighDelay() != null ? subscription.getFilterHttpHighDelay() : existing.getFilterHttpHighDelay(),
+                subscription.getFilterFfmpegHighDelay() != null ? subscription.getFilterFfmpegHighDelay() : existing.getFilterFfmpegHighDelay(),
+                subscription.getFilterNoVideoStream() != null ? subscription.getFilterNoVideoStream() : existing.getFilterNoVideoStream(),
+                subscription.getFilterNoAudioStream() != null ? subscription.getFilterNoAudioStream() : existing.getFilterNoAudioStream(),
+                subscription.getFilterLowResolution() != null ? subscription.getFilterLowResolution() : existing.getFilterLowResolution(),
+                subscription.getMergeSameChannels() != null ? subscription.getMergeSameChannels() : existing.getMergeSameChannels(),
                 existing.getCreatedAt(),
                 LocalDateTime.now(),
                 existing.getDeleted(),

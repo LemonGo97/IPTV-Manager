@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 分发订阅
@@ -19,6 +20,15 @@ public class DistributionSubscription {
     private DateType dateType;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    // 高级设置
+    private Boolean filterInvalidChannels;
+    private Integer filterHttpHighDelay;
+    private Integer filterFfmpegHighDelay;
+    private Boolean filterNoVideoStream;
+    private Boolean filterNoAudioStream;
+    private String filterLowResolution;
+    private Boolean mergeSameChannels;
+    // 审计字段
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean deleted;

@@ -10,6 +10,13 @@
         <result property="dateType" column="date_type"/>
         <result property="startTime" column="start_time"/>
         <result property="endTime" column="end_time"/>
+        <result property="filterInvalidChannels" column="filter_invalid_channels"/>
+        <result property="filterHttpHighDelay" column="filter_http_high_delay"/>
+        <result property="filterFfmpegHighDelay" column="filter_ffmpeg_high_delay"/>
+        <result property="filterNoVideoStream" column="filter_no_video_stream"/>
+        <result property="filterNoAudioStream" column="filter_no_audio_stream"/>
+        <result property="filterLowResolution" column="filter_low_resolution"/>
+        <result property="mergeSameChannels" column="merge_same_channels"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="deleted" column="deleted"/>
@@ -26,7 +33,11 @@
     </resultMap>
 
     <select id="findByCondition" resultMap="DistributionSubscriptionResultMap">
-        SELECT ds.id, ds.name, ds.user_id, ds.date_type, ds.start_time, ds.end_time, ds.created_at, ds.updated_at,
+        SELECT ds.id, ds.name, ds.user_id, ds.date_type, ds.start_time, ds.end_time,
+               ds.filter_invalid_channels, ds.filter_http_high_delay, ds.filter_ffmpeg_high_delay,
+               ds.filter_no_video_stream, ds.filter_no_audio_stream, ds.filter_low_resolution,
+               ds.merge_same_channels,
+               ds.created_at, ds.updated_at,
                du.username as distributionUser_username
         FROM distribution_subscriptions ds left join distribution_users du on ds.user_id = du.id and du.deleted = 0
         WHERE ds.deleted = 0
@@ -40,13 +51,21 @@
     </select>
 
     <select id="findById" resultMap="DistributionSubscriptionResultMap">
-        SELECT id, name, user_id, date_type, start_time, end_time, created_at, updated_at, deleted
+        SELECT id, name, user_id, date_type, start_time, end_time,
+               filter_invalid_channels, filter_http_high_delay, filter_ffmpeg_high_delay,
+               filter_no_video_stream, filter_no_audio_stream, filter_low_resolution,
+               merge_same_channels,
+               created_at, updated_at, deleted
         FROM distribution_subscriptions
         WHERE id = #{id} AND deleted = 0
     </select>
 
     <select id="findByUserId" resultMap="DistributionSubscriptionResultMap">
-        SELECT id, name, user_id, date_type, start_time, end_time, created_at, updated_at, deleted
+        SELECT id, name, user_id, date_type, start_time, end_time,
+               filter_invalid_channels, filter_http_high_delay, filter_ffmpeg_high_delay,
+               filter_no_video_stream, filter_no_audio_stream, filter_low_resolution,
+               merge_same_channels,
+               created_at, updated_at, deleted
         FROM distribution_subscriptions
         WHERE user_id = #{userId} AND deleted = 0
     </select>
@@ -58,8 +77,19 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO distribution_subscriptions (name, user_id, date_type, start_time, end_time, created_at, updated_at, deleted)
-        VALUES (#{name}, #{userId}, #{dateType}, #{startTime}, #{endTime}, #{createdAt}, #{updatedAt}, 0)
+        INSERT INTO distribution_subscriptions (
+            name, user_id, date_type, start_time, end_time,
+            filter_invalid_channels, filter_http_high_delay, filter_ffmpeg_high_delay,
+            filter_no_video_stream, filter_no_audio_stream, filter_low_resolution,
+            merge_same_channels, created_at, updated_at, deleted
+        )
+        VALUES (
+            #{name}, #{userId}, #{dateType}, #{startTime}, #{endTime},
+            #{filterInvalidChannels}, #{filterHttpHighDelay}, #{filterFfmpegHighDelay},
+            #{filterNoVideoStream}, #{filterNoAudioStream}, #{filterLowResolution},
+            #{mergeSameChannels},
+            #{createdAt}, #{updatedAt}, 0
+        )
     </insert>
 
     <update id="update">
@@ -69,6 +99,13 @@
             date_type = #{dateType},
             start_time = #{startTime},
             end_time = #{endTime},
+            filter_invalid_channels = #{filterInvalidChannels},
+            filter_http_high_delay = #{filterHttpHighDelay},
+            filter_ffmpeg_high_delay = #{filterFfmpegHighDelay},
+            filter_no_video_stream = #{filterNoVideoStream},
+            filter_no_audio_stream = #{filterNoAudioStream},
+            filter_low_resolution = #{filterLowResolution},
+            merge_same_channels = #{mergeSameChannels},
             updated_at = #{updatedAt}
         WHERE id = #{id} AND deleted = 0
     </update>

@@ -50,11 +50,11 @@
       <template v-if="modalForm.dateType === 'CUSTOM'">
         <n-form-item
           label="开始时间"
-          path="customStartTime"
+          path="startTime"
           :rule="{ required: true, message: '请选择开始时间', trigger: ['change', 'blur'] }"
         >
           <n-date-picker
-            v-model:value="modalForm.customStartTime"
+            v-model:value="modalForm.startTime"
             type="datetime"
             placeholder="请选择开始时间"
             style="width: 100%"
@@ -64,18 +64,18 @@
 
         <n-form-item
           label="结束时间"
-          path="customEndTime"
+          path="endTime"
           :rule="{ required: true, message: '请选择结束时间', trigger: ['change', 'blur'] }"
         >
           <n-date-picker
-            v-model:value="modalForm.customEndTime"
+            v-model:value="modalForm.endTime"
             type="datetime"
             placeholder="请选择结束时间"
             style="width: 100%"
             clearable
             :is-date-disabled="(timestamp) => {
-              if (!modalForm.customStartTime) return false
-              return timestamp < modalForm.customStartTime
+              if (!modalForm.startTime) return false
+              return timestamp < modalForm.startTime
             }"
           />
         </n-form-item>
@@ -126,15 +126,6 @@
             <n-switch v-model:value="modalForm.mergeSameChannels" />
           </n-form-item>
 
-          <n-form-item label="频道组选择" path="channelGroupIds">
-            <n-transfer
-              v-model:value="modalForm.channelGroupIds"
-              :options="channelGroupOptions"
-              source-title="可选频道组"
-              target-title="已选频道组"
-              style="width: 100%"
-            />
-          </n-form-item>
         </n-collapse-item>
       </n-collapse>
     </n-form>
@@ -173,8 +164,8 @@ const modalForm = reactive({
   name: '',
   userId: null,
   dateType: 'YEAR',
-  customStartTime: null,
-  customEndTime: null,
+  startTime: null,
+  endTime: null,
   // 高级设置
   filterInvalidChannels: true,
   filterHttpHighDelay: -1,
@@ -183,7 +174,6 @@ const modalForm = reactive({
   filterNoAudioStream: true,
   filterLowResolution: '1080p',
   mergeSameChannels: true,
-  channelGroupIds: [],
 })
 
 // 有效期选项（枚举值）
@@ -211,8 +201,8 @@ const channelGroupOptions = ref([])
 // 有效期类型变化时处理
 function handleValidityTypeChange(value) {
   if (value !== 'CUSTOM') {
-    modalForm.customStartTime = null
-    modalForm.customEndTime = null
+    modalForm.startTime = null
+    modalForm.endTime = null
   }
 }
 
@@ -255,8 +245,8 @@ async function handleConfirm() {
       name: modalForm.name,
       userId: modalForm.userId,
       dateType: modalForm.dateType,
-      customStartTime: modalForm.customStartTime ? new Date(modalForm.customStartTime).toISOString() : null,
-      customEndTime: modalForm.customEndTime ? new Date(modalForm.customEndTime).toISOString() : null,
+      startTime: modalForm.startTime ? new Date(modalForm.startTime).toISOString() : null,
+      endTime: modalForm.endTime ? new Date(modalForm.endTime).toISOString() : null,
       // 高级设置
       filterInvalidChannels: modalForm.filterInvalidChannels,
       filterHttpHighDelay: modalForm.filterHttpHighDelay,
@@ -265,9 +255,7 @@ async function handleConfirm() {
       filterNoAudioStream: modalForm.filterNoAudioStream,
       filterLowResolution: modalForm.filterLowResolution,
       mergeSameChannels: modalForm.mergeSameChannels,
-      channelGroupIds: modalForm.channelGroupIds,
     }
-
     if (internalAction.value === 'add') {
       await api.create(payload)
       $message.success('创建成功')
@@ -301,8 +289,8 @@ function openAdd() {
     name: '',
     userId: null,
     dateType: 'YEAR',
-    customStartTime: null,
-    customEndTime: null,
+    startTime: null,
+    endTime: null,
     // 高级设置
     filterInvalidChannels: true,
     filterHttpHighDelay: -1,
@@ -311,8 +299,6 @@ function openAdd() {
     filterNoAudioStream: true,
     filterLowResolution: '1080p',
     mergeSameChannels: true,
-    // 默认全选所有频道组
-    channelGroupIds: channelGroupOptions.value.map(opt => opt.value),
   })
   emit('update:visible', true)
 }
@@ -322,19 +308,19 @@ function openEdit(row) {
   internalAction.value = 'edit'
   const dateType = row.dateType || 'YEAR'
 
-  let customStartTime = null
-  let customEndTime = null
+  let startTime = null
+  let endTime = null
 
   if (row.dateType === 'CUSTOM' && row.startTime && row.endTime) {
-    customStartTime = new Date(row.startTime).getTime()
-    customEndTime = new Date(row.endTime).getTime()
+    startTime = new Date(row.startTime).getTime()
+    endTime = new Date(row.endTime).getTime()
   }
 
   Object.assign(modalForm, {
     ...row,
     dateType,
-    customStartTime,
-    customEndTime,
+    startTime,
+    endTime,
     // 高级设置 - 使用后端返回的值或默认值
     filterInvalidChannels: row.filterInvalidChannels ?? true,
     filterHttpHighDelay: row.filterHttpHighDelay ?? -1,
@@ -343,7 +329,6 @@ function openEdit(row) {
     filterNoAudioStream: row.filterNoAudioStream ?? true,
     filterLowResolution: row.filterLowResolution ?? '1080p',
     mergeSameChannels: row.mergeSameChannels ?? true,
-    channelGroupIds: row.channelGroupIds || [],
   })
   emit('update:visible', true)
 }

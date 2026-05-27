@@ -52,16 +52,10 @@ public class DistributionSubscriptionController {
      */
     @PostMapping
     public ApiResponse<DistributionSubscription> create(
-            @RequestBody CreateSubscriptionRequest request) {
-        DistributionSubscription subscription = new DistributionSubscription();
-        subscription.setName(request.name());
-        subscription.setUserId(request.userId());
+            @RequestBody DistributionSubscription subscription) {
 
         var created = subscriptionService.create(
-                subscription,
-                request.dateType(),
-                request.customStartTime(),
-                request.customEndTime()
+                subscription
         );
         return ApiResponse.ok(created, "Distribution subscription created successfully");
     }
@@ -72,17 +66,10 @@ public class DistributionSubscriptionController {
     @PutMapping("/{id}")
     public ApiResponse<DistributionSubscription> update(
             @PathVariable Long id,
-            @RequestBody UpdateSubscriptionRequest request) {
-        DistributionSubscription subscription = new DistributionSubscription();
-        subscription.setName(request.name());
-        subscription.setUserId(request.userId());
-
+            @RequestBody DistributionSubscription subscription) {
         var updated = subscriptionService.update(
                 id,
-                subscription,
-                request.dateType(),
-                request.customStartTime(),
-                request.customEndTime()
+                subscription
         );
         return ApiResponse.ok(updated, "Distribution subscription updated successfully");
     }
@@ -105,26 +92,4 @@ public class DistributionSubscriptionController {
         String url = "/api/distribution/subscriptions/" + id + "/playlist.m3u8";
         return ApiResponse.<String>ok(url, "");
     }
-
-    /**
-     * 创建订阅请求
-     */
-    public record CreateSubscriptionRequest(
-            String name,
-            Long userId,
-            DistributionSubscription.DateType dateType,
-            LocalDateTime customStartTime,
-            LocalDateTime customEndTime
-    ) {}
-
-    /**
-     * 更新订阅请求
-     */
-    public record UpdateSubscriptionRequest(
-            String name,
-            Long userId,
-            DistributionSubscription.DateType dateType,
-            LocalDateTime customStartTime,
-            LocalDateTime customEndTime
-    ) {}
 }

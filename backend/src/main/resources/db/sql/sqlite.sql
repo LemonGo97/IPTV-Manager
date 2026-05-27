@@ -351,15 +351,22 @@ CREATE INDEX IF NOT EXISTS idx_distribution_users_deleted ON distribution_users 
 -- 创建分发订阅表
 CREATE TABLE IF NOT EXISTS distribution_subscriptions
 (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    name       TEXT    NOT NULL,
-    user_id    INTEGER NOT NULL,
-    date_type  TEXT,
-    start_time TEXT    NOT NULL DEFAULT (datetime('now')),
-    end_time   TEXT,
-    created_at TEXT    NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT    NOT NULL DEFAULT (datetime('now')),
-    deleted    INTEGER NOT NULL DEFAULT 0,
+    id                       INTEGER PRIMARY KEY AUTOINCREMENT,
+    name                     TEXT    NOT NULL,
+    user_id                  INTEGER NOT NULL,
+    date_type                TEXT,
+    start_time               TEXT    NOT NULL DEFAULT (datetime('now')),
+    end_time                 TEXT,
+    filter_invalid_channels  TEXT             DEFAULT 1,
+    filter_http_high_delay   TEXT             DEFAULT -1,
+    filter_ffmpeg_high_delay TEXT             DEFAULT -1,
+    filter_no_video_stream   TEXT             DEFAULT 1,
+    filter_no_audio_stream   TEXT             DEFAULT 1,
+    filter_low_resolution    TEXT             DEFAULT '1080p',
+    merge_same_channels      TEXT             DEFAULT 1,
+    created_at               TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at               TEXT    NOT NULL DEFAULT (datetime('now')),
+    deleted                  INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES distribution_users (id)
 );
 
