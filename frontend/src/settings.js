@@ -25,7 +25,7 @@ export const naiveThemeOverrides = {
 export const basePermissions = [
   {
     code: 'SourceManage',
-    name: '源管理',
+    name: '订阅管理',
     type: 'MENU',
     icon: 'i-fe:list',
     order: -1,
