@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.config;
+package com.lemongo97.iptv.iptvmanager.configuration;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

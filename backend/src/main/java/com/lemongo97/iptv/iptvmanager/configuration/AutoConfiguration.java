@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.config;
+package com.lemongo97.iptv.iptvmanager.configuration;
 
 import com.lemongo97.iptv.iptvmanager.cleanup.CleanEngineManager;
 import com.lemongo97.iptv.iptvmanager.cleanup.CleaningEngineFactory;

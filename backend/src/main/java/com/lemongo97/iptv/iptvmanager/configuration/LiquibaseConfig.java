@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.config;
+package com.lemongo97.iptv.iptvmanager.configuration;
 
 import liquibase.integration.spring.SpringLiquibase;
 import org.springframework.context.annotation.Bean;

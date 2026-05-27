@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.config;
+package com.lemongo97.iptv.iptvmanager.configuration.mybatis;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
