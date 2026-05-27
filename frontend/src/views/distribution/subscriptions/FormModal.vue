@@ -80,6 +80,63 @@
           />
         </n-form-item>
       </template>
+
+      <!-- 高级设置 -->
+      <n-collapse>
+        <n-collapse-item title="高级设置" name="advanced">
+          <n-form-item label="过滤无效频道" path="filterInvalidChannels">
+            <n-switch v-model:value="modalForm.filterInvalidChannels" />
+          </n-form-item>
+
+          <n-form-item label="过滤HTTP测试延迟较高频道" path="filterHttpHighDelay">
+            <n-input-number
+              v-model:value="modalForm.filterHttpHighDelay"
+              placeholder="允许的最大延迟时间(ms)，-1表示不过滤"
+              :min="-1"
+              style="width: 100%"
+            />
+          </n-form-item>
+
+          <n-form-item label="过滤FFmpeg测试延迟较高频道" path="filterFfmpegHighDelay">
+            <n-input-number
+              v-model:value="modalForm.filterFfmpegHighDelay"
+              placeholder="允许的最大延迟时间(ms)，-1表示不过滤"
+              :min="-1"
+              style="width: 100%"
+            />
+          </n-form-item>
+
+          <n-form-item label="过滤无视频流频道" path="filterNoVideoStream">
+            <n-switch v-model:value="modalForm.filterNoVideoStream" />
+          </n-form-item>
+
+          <n-form-item label="过滤无音频流频道" path="filterNoAudioStream">
+            <n-switch v-model:value="modalForm.filterNoAudioStream" />
+          </n-form-item>
+
+          <n-form-item label="过滤低分辨率频道" path="filterLowResolution">
+            <n-select
+              v-model:value="modalForm.filterLowResolution"
+              :options="resolutionOptions"
+              placeholder="请选择最低分辨率"
+            />
+          </n-form-item>
+
+          <n-form-item label="合并相同频道为多线路" path="mergeSameChannels">
+            <n-switch v-model:value="modalForm.mergeSameChannels" />
+          </n-form-item>
+
+          <n-form-item label="频道组选择" path="channelGroupIds">
+            <n-transfer
+              v-model:value="modalForm.channelGroupIds"
+              :options="channelGroupOptions"
+              source-title="可选频道组"
+              target-title="已选频道组"
+              style="width: 100%"
+            />
+          </n-form-item>
+        </n-collapse-item>
+      </n-collapse>
     </n-form>
 
     <template #footer>
@@ -92,10 +149,11 @@
 </template>
 
 <script setup>
-import { NModal, NForm, NFormItem, NInput, NSelect, NDatePicker, NButton } from 'naive-ui'
+import { NModal, NForm, NFormItem, NInput, NSelect, NDatePicker, NButton, NSwitch, NInputNumber, NTransfer, NCollapse, NCollapseItem } from 'naive-ui'
 import { ref, reactive, onMounted } from 'vue'
 import distributionUserApi from '../users/api'
 import api from './api'
+import channelGroupApi from '@/views/channel-management/groups/api'
 
 const props = defineProps({
   visible: {
@@ -117,6 +175,15 @@ const modalForm = reactive({
   dateType: 'YEAR',
   customStartTime: null,
   customEndTime: null,
+  // 高级设置
+  filterInvalidChannels: true,
+  filterHttpHighDelay: -1,
+  filterFfmpegHighDelay: -1,
+  filterNoVideoStream: true,
+  filterNoAudioStream: true,
+  filterLowResolution: '1080p',
+  mergeSameChannels: true,
+  channelGroupIds: [],
 })
 
 // 有效期选项（枚举值）
@@ -129,7 +196,17 @@ const validityOptions = [
   { label: '自定义', value: 'CUSTOM' },
 ]
 
+// 分辨率选项
+const resolutionOptions = [
+  { label: '480p', value: '480p' },
+  { label: '720p', value: '720p' },
+  { label: '1080p', value: '1080p' },
+  { label: '1440p (2K)', value: '1440p' },
+  { label: '2160p (4K)', value: '2160p' },
+]
+
 const userOptions = ref([])
+const channelGroupOptions = ref([])
 
 // 有效期类型变化时处理
 function handleValidityTypeChange(value) {
@@ -149,6 +226,21 @@ async function loadUserOptions() {
   }
 }
 
+// 加载频道组选项
+async function loadChannelGroupOptions() {
+  try {
+    const res = await channelGroupApi.getAll()
+    const groups = res.data || []
+    // 转换为 transfer 组件需要的格式
+    channelGroupOptions.value = groups.map(group => ({
+      label: group.name,
+      value: group.id,
+    }))
+  } catch (error) {
+    console.error('Failed to load channel groups:', error)
+  }
+}
+
 // 取消
 function handleCancel() {
   emit('update:visible', false)
@@ -165,6 +257,15 @@ async function handleConfirm() {
       dateType: modalForm.dateType,
       customStartTime: modalForm.customStartTime ? new Date(modalForm.customStartTime).toISOString() : null,
       customEndTime: modalForm.customEndTime ? new Date(modalForm.customEndTime).toISOString() : null,
+      // 高级设置
+      filterInvalidChannels: modalForm.filterInvalidChannels,
+      filterHttpHighDelay: modalForm.filterHttpHighDelay,
+      filterFfmpegHighDelay: modalForm.filterFfmpegHighDelay,
+      filterNoVideoStream: modalForm.filterNoVideoStream,
+      filterNoAudioStream: modalForm.filterNoAudioStream,
+      filterLowResolution: modalForm.filterLowResolution,
+      mergeSameChannels: modalForm.mergeSameChannels,
+      channelGroupIds: modalForm.channelGroupIds,
     }
 
     if (internalAction.value === 'add') {
@@ -202,6 +303,16 @@ function openAdd() {
     dateType: 'YEAR',
     customStartTime: null,
     customEndTime: null,
+    // 高级设置
+    filterInvalidChannels: true,
+    filterHttpHighDelay: -1,
+    filterFfmpegHighDelay: -1,
+    filterNoVideoStream: true,
+    filterNoAudioStream: true,
+    filterLowResolution: '1080p',
+    mergeSameChannels: true,
+    // 默认全选所有频道组
+    channelGroupIds: channelGroupOptions.value.map(opt => opt.value),
   })
   emit('update:visible', true)
 }
@@ -224,12 +335,22 @@ function openEdit(row) {
     dateType,
     customStartTime,
     customEndTime,
+    // 高级设置 - 使用后端返回的值或默认值
+    filterInvalidChannels: row.filterInvalidChannels ?? true,
+    filterHttpHighDelay: row.filterHttpHighDelay ?? -1,
+    filterFfmpegHighDelay: row.filterFfmpegHighDelay ?? -1,
+    filterNoVideoStream: row.filterNoVideoStream ?? true,
+    filterNoAudioStream: row.filterNoAudioStream ?? true,
+    filterLowResolution: row.filterLowResolution ?? '1080p',
+    mergeSameChannels: row.mergeSameChannels ?? true,
+    channelGroupIds: row.channelGroupIds || [],
   })
   emit('update:visible', true)
 }
 
 onMounted(() => {
   loadUserOptions()
+  loadChannelGroupOptions()
 })
 
 // 暴露方法给父组件
