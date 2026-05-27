@@ -100,6 +100,7 @@
 <script setup>
 import { NButton, NTag, NPopconfirm, NSelect } from 'naive-ui'
 import { useClipboard } from '@vueuse/core'
+import { isBefore, isAfter, isWithinInterval } from 'date-fns'
 import { MeCrud, MeModal, MeQueryItem } from '@/components'
 import { useCrud } from '@/composables'
 import api from './api'
@@ -157,6 +158,38 @@ function formatDate(date) {
   return `${date.getMonth() + 1}/${date.getDate()}`
 }
 
+// 获取订阅状态
+function getStatus(row) {
+  const now = new Date()
+
+  // 永久有效
+  if (!row.endTime) {
+    return { label: '生效中', type: 'success' }
+  }
+
+  const startTime = new Date(row.startTime)
+  const endTime = new Date(row.endTime)
+
+  // 未开始
+  if (isBefore(now, startTime)) {
+    return { label: '未生效', type: 'default' }
+  }
+
+  // 已过期
+  if (isAfter(now, endTime)) {
+    return { label: '已过期', type: 'error' }
+  }
+
+  // 生效中
+  return { label: '生效中', type: 'success' }
+}
+
+// 渲染状态标签
+function renderStatus(row) {
+  const status = getStatus(row)
+  return h(NTag, { type: status.type }, { default: () => status.label })
+}
+
 const columns = [
   { title: 'ID', key: 'id', width: 80 },
   { title: '分发名称', key: 'name', ellipsis: { tooltip: true } },
@@ -165,6 +198,24 @@ const columns = [
     key: 'userId',
     width: 120,
     render: row => row.username || '-',
+  },
+  {
+    title: '生效时间',
+    key: 'startTime',
+    width: 160,
+    render: row => row.startTime ? formatDateTime(row.startTime) : '-',
+  },
+  {
+    title: '过期时间',
+    key: 'endTime',
+    width: 160,
+    render: row => row.endTime ? formatDateTime(row.endTime) : '永久',
+  },
+  {
+    title: '状态',
+    key: 'status',
+    width: 100,
+    render: row => renderStatus(row),
   },
   {
     title: '有效期',
