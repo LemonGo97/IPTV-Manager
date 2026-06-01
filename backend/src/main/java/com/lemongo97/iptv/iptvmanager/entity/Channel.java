@@ -24,7 +24,7 @@ public class Channel {
     /**
      * 频道名称
      */
-    private String name;
+    private volatile String name;
     /**
      * 频道LOGO URL
      */
@@ -36,7 +36,7 @@ public class Channel {
     /**
      * 频道组ID
      */
-    private Long groupId;
+    private volatile Long groupId;
     /**
      * 用于匹配EPG的ID字符串
      */
@@ -44,7 +44,7 @@ public class Channel {
     /**
      * 状态（有效/无效）
      */
-    private Status status;
+    private volatile Status status;
     /**
      * 国家/地区
      */
@@ -55,10 +55,10 @@ public class Channel {
     private String language;
 
 
-    private Long httpDetectDelayMilliseconds;
-    private Long ffmpegDetectDelayMilliseconds;
-    private String videoInfo;
-    private String audioInfo;
+    private volatile Long httpDetectDelayMilliseconds;
+    private volatile Long ffmpegDetectDelayMilliseconds;
+    private volatile String videoInfo;
+    private volatile String audioInfo;
 
     /**
      * 评分。满分100，分数越高质量越好

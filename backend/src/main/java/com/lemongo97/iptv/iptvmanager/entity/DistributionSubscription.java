@@ -22,8 +22,8 @@ public class DistributionSubscription {
     private LocalDateTime endTime;
     // 高级设置
     private Boolean filterInvalidChannels;
-    private Integer filterHttpHighDelay;
-    private Integer filterFfmpegHighDelay;
+    private Long filterHttpHighDelay;
+    private Long filterFfmpegHighDelay;
     private Boolean filterNoVideoStream;
     private Boolean filterNoAudioStream;
     private String filterLowResolution;
@@ -59,5 +59,20 @@ public class DistributionSubscription {
          * 自定义
          */
         CUSTOM
+    }
+
+
+    public boolean valid(){
+        LocalDateTime now = LocalDateTime.now();
+        // 检查开始时间
+        if (this.getStartTime().isAfter(now)) {
+            return false;
+        }
+
+        // 检查结束时间（null 表示永久）
+        if (this.getEndTime() != null && this.getEndTime().isBefore(now)) {
+            return false;
+        }
+        return true;
     }
 }

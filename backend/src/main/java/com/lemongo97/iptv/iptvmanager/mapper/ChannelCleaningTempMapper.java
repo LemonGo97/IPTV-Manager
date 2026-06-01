@@ -18,6 +18,12 @@ public interface ChannelCleaningTempMapper {
      */
     void truncate();
 
+    default void insert(List<Channel> channels) {
+        for (Channel channel : channels) {
+            this.insert(channel);
+        }
+    }
+
     /**
      * 插入单个频道到中间表
      */

@@ -12,6 +12,7 @@ import com.lemongo97.iptv.iptvmanager.mapper.*;
 import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -233,11 +234,11 @@ public class CleanupRuleService {
             int processedCount = 0;
             double lastProgressUpdate = 0;
 
-            for (int i = 0; i < channels.size(); i++) {
-                Channel channel = channels.get(i);
+            int i = 0;
+            int batchSize = 50;
+            List<List<Channel>> partitions = ListUtils.partition(channels, batchSize);
+            for (List<Channel> input : partitions) {
 
-                // 单频道处理（包装为单元素 List）
-                List<Channel> input = List.of(channel);
                 List<Channel> cleaned = cleanEngineManager.process(input, configs, step);
 
                 if (step == null || step == RuleType.undefined || step == RuleType.DELAY){
@@ -248,26 +249,27 @@ public class CleanupRuleService {
 
                 // 如果未被过滤，插入中间表
                 if (!cleaned.isEmpty()) {
-                    channelCleaningTempMapper.insert(cleaned.getFirst());
+                    channelCleaningTempMapper.insert(cleaned);
                     processedCount++;
                 }
 
                 // 每5%更新一次进度
-                double currentProgress = 15 + ((i + 1) * 70.0 / totalChannels);
+                double currentProgress = 15 + ((i + batchSize) * 70.0 / totalChannels);
                 if (currentProgress > lastProgressUpdate || i == channels.size() - 1) {
                     taskProgressService.updateProgress(
                             taskId,
                             processedCount,
                             currentProgress,
-                            "已处理 " + (i + 1) + "/" + totalChannels + " 个频道"
+                            "已处理 " + (i + batchSize) + "/" + totalChannels + " 个频道"
                     );
                     lastProgressUpdate = currentProgress;
                 }
 
                 // 每处理 100 个频道记录一次日志
-                if ((i + 1) % 100 == 0) {
+                if ((i + batchSize) % 100 == 0) {
                     log.info("Processed {}/{} channels, {} valid so far", i + 1, totalChannels, processedCount);
                 }
+                i += batchSize;
             }
 
             log.info("Channel processing completed: {}/{} valid channels", processedCount, totalChannels);

@@ -11,11 +11,17 @@ import org.bytedeco.ffmpeg.avformat.AVFormatContext;
 import org.bytedeco.ffmpeg.avformat.AVIOInterruptCB;
 import org.bytedeco.ffmpeg.avformat.AVStream;
 import org.bytedeco.ffmpeg.avutil.AVDictionary;
+import org.bytedeco.ffmpeg.global.avformat;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.Pointer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.bytedeco.ffmpeg.global.avcodec.avcodec_get_name;
 import static org.bytedeco.ffmpeg.global.avformat.*;
@@ -31,6 +37,78 @@ public class FFProbeCheckEngine implements CleaningEngine {
 
     @Override
     public List<Channel> process(List<Channel> channels, String paramsJson) {
+        FFProbeCheckEngineParam param = JSONUtil.fromJsonString(paramsJson, FFProbeCheckEngineParam.class);
+        try {
+            avformat.avformat_network_init();
+        } catch (Throwable t) {
+            log.warn("FFmpeg 网络初始化警告（可能某些版本已废弃或自动加载）: " + t.getMessage());
+        }
+        return this.threadDetect(channels, param);
+    }
+
+    public List<Channel> threadDetect(List<Channel> channels, FFProbeCheckEngineParam param){
+        // 2. 创建一个固定大小为 20 的线程池。这能保证同时运行的线程正好是 20 个。
+        ExecutorService executor = Executors.newFixedThreadPool(20);
+        List<CompletableFuture<Channel>> futures = channels.stream()
+                .map(channel -> {
+                    // 1. 创建核心检测异步任务
+                    CompletableFuture<Channel> detectTask = CompletableFuture.supplyAsync(() -> {
+                        if (channel.getStatus() == Channel.Status.invalid) {
+                            return channel;
+                        }
+
+                        String url = channel.getUrl();
+                        log.debug("开始检测 URL: {}", url);
+
+                        FFProbeCheckReport checkReport = this.doDetect(url, param);
+
+                        if (checkReport == null) {
+                            channel.setStatus(Channel.Status.invalid);
+                            return channel;
+                        }
+
+                        channel.setFfmpegDetectDelayMilliseconds(checkReport.getDelayMilliseconds());
+                        channel.setVideoInfo(checkReport.getVideo() == null ? null : JSONUtil.toJsonString(checkReport.getVideo()));
+                        channel.setAudioInfo(checkReport.getAudio() == null ? null : JSONUtil.toJsonString(checkReport.getAudio()));
+                        return channel;
+                    }, executor);
+
+                    // 2. 【核心杀手锏】在 Java 层面给这个任务套上一个“硬超时”
+                    // 如果 doDetect 在指定的毫秒内没有把代码执行完（不管它是卡在 C 语言还是哪里），
+                    // 这个 CF 任务会立刻被主线程强制终止，并抛出 TimeoutException
+                    return detectTask.orTimeout(param.getDelayMillisecond() + 1000L, TimeUnit.MILLISECONDS) // 稍微比底层的超时宽限 1 秒
+                            .exceptionally(throwable -> {
+                                // 3. 任务超时后的兜底补救逻辑
+                                log.warn("⚠️ 网址检测在 Java 层触发硬超时，强行放弃该网址: {}", channel.getUrl());
+                                channel.setStatus(Channel.Status.invalid);
+                                return channel; // 超时了也必须返回 channel，确保最后结果能顺利收集
+                            });
+                })
+                .toList();
+
+        log.debug("所有检测任务已分发，等待 20 个线程并发处理中...");
+
+        // 3. 组合所有异步任务，并阻塞等待它们全部执行完毕
+        CompletableFuture<Void> allCombinedTask = CompletableFuture.allOf(
+                futures.toArray(new CompletableFuture[0])
+        );
+        // 这一步会停在这里，直到 10,000 个网址全部检测完
+        allCombinedTask.join();
+
+        // 4. 按顺序统一回收所有线程的处理结果
+        List<Channel> result = futures.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+
+        // 5. 关闭线程池，释放系统资源
+        executor.shutdown();
+
+        log.debug("所有任务检测完毕，统一返回结果");
+        return result;
+    }
+
+//    @Override
+    public List<Channel> processOld(List<Channel> channels, String paramsJson) {
         FFProbeCheckEngineParam param = JSONUtil.fromJsonString(paramsJson, FFProbeCheckEngineParam.class);
         List<Channel> result = new ArrayList<>();
         for (Channel channel : channels) {
@@ -65,10 +143,11 @@ public class FFProbeCheckEngine implements CleaningEngine {
         if (formatContext == null) {
             return null;
         }
-
+        // 阻止 JavaCPP 自动回收指针，防止与 finally 中的手动释放冲突导致 Double Free
+        formatContext.deallocate(false);
         // 2. 强引用保障：显式创建并分配回调函数指针，防止被提前 GC
         TimeoutCallback myCallback = new TimeoutCallback(param.getDelayMillisecond());
-
+        myCallback.deallocate(false);
         // 3. 正确初始化并配置中断回调结构体
         AVIOInterruptCB interruptCB = new AVIOInterruptCB();
         interruptCB.callback(myCallback);
@@ -77,6 +156,7 @@ public class FFProbeCheckEngine implements CleaningEngine {
 
 
         AVDictionary options = new AVDictionary();
+        options.deallocate(false);
 
         // 2. 配置软超时与低延迟参数 (单位均为微秒)
         String timeoutMicros = String.valueOf(param.getDelayMillisecond() * 1000L);
@@ -97,6 +177,7 @@ public class FFProbeCheckEngine implements CleaningEngine {
         try {
             // 3. 步骤一：打开网络输入流（这一步会自动递归追踪多层 m3u8 并完成握手）
             int ret = avformat_open_input(formatContext, url, null, options);
+            // 之后的读取流信息、解析音视频参数（最耗时的步骤）依然完全保持 20 个线程的并发
             if (ret < 0) {
                 byte[] errBuffer = new byte[1024];
                 av_strerror(ret, errBuffer, errBuffer.length);
@@ -139,21 +220,27 @@ public class FFProbeCheckEngine implements CleaningEngine {
             // 7. 严格释放底层 C 语言的指针资源，防止 Java 进程发生内存泄漏
             if (options != null) {
                 av_dict_free(options);
-                options.deallocate(); // 释放字典自身指针
+                options.deallocate(true); // 释放字典自身指针
             }
             if (formatContext != null) {
                 // close 内部会断开网络，此时会最后一次触发 interrupt_callback
                 avformat_close_input(formatContext);
                 avformat_free_context(formatContext);
+                formatContext.deallocate(true);
             }
             // 必须在 context 销毁后，再安全抹去回调函数的内存
             if (interruptCB != null) {
-                interruptCB.deallocate();
+                interruptCB.deallocate(true);
             }
             if (myCallback != null) {
-                myCallback.deallocate();
+                myCallback.deallocate(true);
             }
         }
+        // 👈 核心安全锁：强行在方法最末尾引用一下这两个对象
+        // 确保在 avformat_open_input 运行期间，这两个回调指针在 JVM 堆里绝对活着
+        java.util.Objects.requireNonNull(myCallback);
+        java.util.Objects.requireNonNull(interruptCB);
+
         return checkReport;
     }
 

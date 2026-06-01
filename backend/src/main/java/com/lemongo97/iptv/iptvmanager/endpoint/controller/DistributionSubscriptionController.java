@@ -5,8 +5,12 @@ import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.endpoint.controller.request.DistributionSubscriptionQuery;
 import com.lemongo97.iptv.iptvmanager.entity.DistributionSubscription;
 import com.lemongo97.iptv.iptvmanager.service.DistributionSubscriptionService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,7 +18,7 @@ import java.util.List;
  * 分发订阅控制器
  */
 @RestController
-@RequestMapping("/distribution/subscriptions")
+@RequestMapping("/distribution")
 public class DistributionSubscriptionController {
 
     private final DistributionSubscriptionService subscriptionService;
@@ -26,7 +30,7 @@ public class DistributionSubscriptionController {
     /**
      * 获取所有分发订阅
      */
-    @GetMapping
+    @GetMapping("/subscriptions")
     public ApiResponse<PageResult<DistributionSubscription>> findAll(DistributionSubscriptionQuery query) {
         return ApiResponse.ok(subscriptionService.findByCondition(query));
     }
@@ -34,7 +38,7 @@ public class DistributionSubscriptionController {
     /**
      * 获取分发订阅总数
      */
-    @GetMapping("/count")
+    @GetMapping("/subscriptions/count")
     public ApiResponse<Integer> count() {
         return ApiResponse.ok(subscriptionService.count());
     }
@@ -42,7 +46,7 @@ public class DistributionSubscriptionController {
     /**
      * 获取单个分发订阅
      */
-    @GetMapping("/{id}")
+    @GetMapping("/subscriptions/{id}")
     public ApiResponse<DistributionSubscription> findById(@PathVariable Long id) {
         return ApiResponse.ok(subscriptionService.findById(id));
     }
@@ -50,7 +54,7 @@ public class DistributionSubscriptionController {
     /**
      * 创建分发订阅
      */
-    @PostMapping
+    @PostMapping("/subscriptions")
     public ApiResponse<DistributionSubscription> create(
             @RequestBody DistributionSubscription subscription) {
 
@@ -63,7 +67,7 @@ public class DistributionSubscriptionController {
     /**
      * 更新分发订阅
      */
-    @PutMapping("/{id}")
+    @PutMapping("/subscriptions/{id}")
     public ApiResponse<DistributionSubscription> update(
             @PathVariable Long id,
             @RequestBody DistributionSubscription subscription) {
@@ -77,7 +81,7 @@ public class DistributionSubscriptionController {
     /**
      * 删除分发订阅
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/subscriptions/{id}")
     public ApiResponse<Void> deleteById(@PathVariable Long id) {
         subscriptionService.deleteById(id);
         return ApiResponse.ok("Distribution subscription deleted successfully");
@@ -86,10 +90,17 @@ public class DistributionSubscriptionController {
     /**
      * 获取订阅链接
      */
-    @GetMapping("/{id}/subscription-url")
-    public ApiResponse<String> getSubscriptionUrl(@PathVariable Long id) {
-        var subscription = subscriptionService.findById(id);
-        String url = "/api/distribution/subscriptions/" + id + "/playlist.m3u8";
+    @GetMapping("/subscriptions/{id}/subscription-url")
+    public ApiResponse<String> getSubscriptionUrl(@PathVariable Long id, HttpServletRequest request) {
+        String url = subscriptionService.getSubscriptionUrl(id, request);
+        if (url == null) {
+            return ApiResponse.error("No subscription found");
+        }
         return ApiResponse.<String>ok(url, "");
+    }
+
+    @GetMapping("/subscription/{id}")
+    public void getPlaylist(@PathVariable Long id, String uid, String accessKey, HttpServletResponse response) throws IOException {
+        subscriptionService.getPlaylist(id, uid, accessKey, response);
     }
 }
