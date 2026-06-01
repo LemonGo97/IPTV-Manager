@@ -12,6 +12,7 @@ import com.lemongo97.iptv.iptvmanager.mapper.*;
 import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Service;
@@ -192,7 +193,7 @@ public class CleanupRuleService {
      * 从原始频道元数据转换为频道，并应用清洗规则
      * 新流程：使用中间表，逐个频道处理，避免清洗中断导致数据丢失
      */
-    public int executeDataCleanup(RuleType step) {
+    public int executeDataCleanup(RuleType step, List<Long> channelIds) {
         log.info("Starting data cleanup process");
 
         // 1. 创建任务跟踪器
@@ -218,7 +219,7 @@ public class CleanupRuleService {
             if (step == null || step == RuleType.undefined){
                 channels = convertOriginalChannelsToChannels();
             } else {
-                channels = getCoveredChannels();
+                channels = getCoveredChannels(channelIds);
                 // 若已处理好的频道为空，则说明未进行过处理，所以获取最原始的数据进行分步处理
                 if (channels.isEmpty()) {
                     channels = convertOriginalChannelsToChannels();
@@ -277,7 +278,11 @@ public class CleanupRuleService {
             // 6. 从中间表转移到正式表
             taskProgressService.updateProgress(taskId, processedCount, 90d, "正在保存到正式表");
             List<Channel> tempChannels = channelCleaningTempMapper.findAll();
-            channelMapper.truncate();
+            if (CollectionUtils.isNotEmpty(tempChannels) && CollectionUtils.isNotEmpty(channelIds)) {
+                channelMapper.deleteByIds(channelIds);
+            } else {
+                channelMapper.truncate();
+            }
             channelMapper.insert(tempChannels, 100);
 
             taskProgressService.completeTask(taskId, "数据清洗完成，成功处理 " + tempChannels.size() + " 个频道");
@@ -291,7 +296,10 @@ public class CleanupRuleService {
         }
     }
 
-    private List<Channel> getCoveredChannels() {
+    private List<Channel> getCoveredChannels(List<Long> channelIds) {
+        if (CollectionUtils.isNotEmpty(channelIds)) {
+            return channelMapper.findByIds(channelIds);
+        }
         return channelMapper.findAll().stream().map(ch -> ch.setId(null)).toList();
     }
 

@@ -149,9 +149,9 @@ public class ChannelService {
      * 触发数据清洗任务
      * 通过 Quartz Job 异步执行数据清洗
      */
-    public void dataClean(RuleType step) {
+    public void dataClean(RuleType step, ArrayList<Long> channelIds) {
         log.info("Cleaning data... ==> {}", step);
-        quartzScheduledTaskService.triggerManualDataCleanupJob(step);
+        quartzScheduledTaskService.triggerManualDataCleanupJob(step, channelIds);
     }
 
     public PageResult<Channel> findByQuery(ChannelQuery query) {

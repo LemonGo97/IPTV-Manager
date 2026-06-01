@@ -9,6 +9,7 @@ import com.lemongo97.iptv.iptvmanager.service.ChannelService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -54,8 +55,9 @@ public class ChannelController {
     }
 
     @PostMapping("/clean/{step}")
-    public ApiResponse<Void> clean(@PathVariable RuleType step) {
-        channelService.dataClean(step);
+    public ApiResponse<Void> clean(@PathVariable RuleType step,@RequestBody ArrayList<Long> channelIds) {
+//        if (true) return ApiResponse.ok(null);
+        channelService.dataClean(step, channelIds);
         return ApiResponse.ok(null);
     }
 }

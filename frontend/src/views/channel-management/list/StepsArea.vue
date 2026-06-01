@@ -12,15 +12,19 @@
 
 <script setup>
 import { NSteps, NStep } from 'naive-ui'
+import { ref } from 'vue'
 
-defineProps({
-  currentStep: {
-    type: Number,
-    default: 1,
+// 当前步骤（模拟）
+const currentStep = ref(3)
+const stepStatus = ref('process') // process, finish, error, wait
+
+// 暴露方法给父组件
+defineExpose({
+  setStep: (step) => {
+    currentStep.value = step
   },
-  stepStatus: {
-    type: String,
-    default: 'process',
+  setStatus: (status) => {
+    stepStatus.value = status
   },
 })
 </script>

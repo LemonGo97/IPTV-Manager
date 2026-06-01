@@ -16,6 +16,14 @@
         <i class="i-material-symbols:refresh mr-4 text-18"/>
         刷新
       </n-button>
+      <n-spin v-if="props.checkedRows.length > 0" :show="stepsAreaLoadingStatus">
+        <n-dropdown trigger="click" :options="stepPressOptions" @select="handleStepPressSelectBatch">
+          <n-button type="success" :disabled="props.checkedRows.length <= 0">
+            <i class="i-material-symbols:keyboard-arrow-down-rounded text-18"/>
+            批量处理 {{ props.checkedRows.length ? `（${props.checkedRows.length} 个频道）` : ''}}
+          </n-button>
+        </n-dropdown>
+      </n-spin>
       <n-spin :show="stepsAreaLoadingStatus">
         <n-button type="success" @click="handleStartProcessing">
           <i class="i-material-symbols:play-arrow mr-4 text-18"/>
@@ -36,16 +44,17 @@
 
 <script setup>
 import { NInput, NButton, NSpace, NSpin, NDropdown } from 'naive-ui'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
+import api from './api'
 
-const emit = defineEmits(['search', 'refresh', 'startProcessing', 'stepPressSelect'])
-
-defineProps({
-  stepsAreaLoadingStatus: {
-    type: Boolean,
-    default: false,
+const props = defineProps({
+  checkedRows: {
+    type: Array,
+    default: [],
   },
 })
+
+const emit = defineEmits(['search', 'refresh'])
 
 const stepPressOptions = [
   { label: '频道过滤', key: 'FILTER' },
@@ -59,6 +68,8 @@ const queryItems = reactive({
   name: '',
 })
 
+const stepsAreaLoadingStatus = ref(false)
+
 function handleSearch() {
   emit('search', {
     name: queryItems.name || undefined,
@@ -69,13 +80,49 @@ function handleRefresh() {
   emit('refresh')
 }
 
-function handleStartProcessing() {
-  emit('startProcessing')
+async function handleStartProcessing() {
+  stepsAreaLoadingStatus.value = true
+  try {
+    await api.dataClean(undefined, [])
+    $message.info('频道列表开始数据清洗并生成新的频道列表中...')
+  } catch (error) {
+    $message.error('开始处理失败')
+    console.error(error)
+  } finally {
+    stepsAreaLoadingStatus.value = false
+  }
 }
 
-function handleStepPressSelect(key) {
-  emit('stepPressSelect', key)
+async function handleStepPressSelect(key) {
+  stepsAreaLoadingStatus.value = true
+  try {
+    await api.dataClean(key, [])
+    $message.info('频道列表开始数据清洗并生成新的频道列表中...')
+  } catch (error) {
+    $message.error('分步处理失败')
+    console.error(error)
+  } finally {
+    stepsAreaLoadingStatus.value = false
+  }
 }
+
+async function handleStepPressSelectBatch(key) {
+  stepsAreaLoadingStatus.value = true
+  try {
+    await api.dataClean(key, props.checkedRows)
+    $message.info('频道列表开始数据清洗并生成新的频道列表中...')
+  } catch (error) {
+    $message.error('分步处理失败')
+    console.error(error)
+  } finally {
+    stepsAreaLoadingStatus.value = false
+  }
+}
+
+// 暴露方法给父组件
+defineExpose({
+  getLoadingStatus: () => stepsAreaLoadingStatus.value,
+})
 </script>
 
 <style scoped>

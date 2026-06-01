@@ -3,6 +3,7 @@ package com.lemongo97.iptv.iptvmanager.cleanup.engine.filter;
 import com.lemongo97.iptv.iptvmanager.cleanup.engine.CleaningEngine;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
+import io.micrometer.common.util.StringUtils;
 import lombok.Data;
 import org.apache.commons.lang3.Strings;
 
@@ -14,7 +15,7 @@ public class BlackListEngine implements CleaningEngine {
     @Override
     public List<Channel> process(List<Channel> channels, String paramsJson) {
         BlackListEngineParam param = JSONUtil.fromJsonString(paramsJson, BlackListEngineParam.class);
-        return channels.stream().filter(channel -> !param.containsMatch(channel.getName())).toList();
+        return channels.stream().filter(channel -> StringUtils.isNotBlank(channel.getName()) && !param.containsMatch(channel.getName())).toList();
     }
 
     @Data

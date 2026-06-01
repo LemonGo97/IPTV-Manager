@@ -51,4 +51,8 @@ public interface ChannelMapper {
     Map<String, Integer> statistics();
 
     void deleteByProviderId(@Param("providerId") Long id);
+
+    List<Channel> findByIds(List<Long> channelIds);
+
+    void deleteByIds(List<Long> channelIds);
 }

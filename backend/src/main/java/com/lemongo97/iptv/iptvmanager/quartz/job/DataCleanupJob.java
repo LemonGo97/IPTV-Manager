@@ -9,6 +9,8 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * 数据清洗定时任务
  * 使用 Quartz 框架定期执行数据清洗
@@ -26,6 +28,7 @@ public class DataCleanupJob implements org.quartz.Job {
     public void execute(JobExecutionContext context) {
         String triggerType = context.getJobDetail().getJobDataMap().getString("triggerType");
         String stepString = context.getJobDetail().getJobDataMap().getString("step");
+        List<Long> channelIds = (List<Long>) context.getJobDetail().getJobDataMap().get("channelIds");
         log.info("Executing data cleanup job, trigger: {}", triggerType);
 
         RuleType step = StringUtils.isNotBlank(stepString) ? RuleType.valueOf(stepString) : null;
@@ -33,7 +36,7 @@ public class DataCleanupJob implements org.quartz.Job {
         long startTime = System.currentTimeMillis();
 
         try {
-            int channelCount = cleanupRuleService.executeDataCleanup(step);
+            int channelCount = cleanupRuleService.executeDataCleanup(step, channelIds);
 
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;

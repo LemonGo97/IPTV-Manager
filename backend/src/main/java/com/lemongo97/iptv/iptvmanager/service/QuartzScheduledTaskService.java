@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
@@ -136,15 +138,18 @@ public class QuartzScheduledTaskService {
      *
      * @return Quartz Job Key
      */
-    public JobKey triggerManualDataCleanupJob(RuleType step) {
+    public JobKey triggerManualDataCleanupJob(RuleType step, ArrayList<Long> channelIds) {
         try {
             String jobName = "data-cleanup-manual-" + System.currentTimeMillis();
             JobKey jobKey = JobKey.jobKey(jobName, CLEANUP_MANUAL_JOB_GROUP);
 
+            JobDataMap jobDataMap = new JobDataMap();
+            jobDataMap.put("channelIds", channelIds);
             JobDetail jobDetail = JobBuilder.newJob(DataCleanupJob.class)
                     .withIdentity(jobKey)
                     .usingJobData("triggerType", "manual")
                     .usingJobData("step", step.name())
+                    .usingJobData(jobDataMap)
                     .storeDurably(false)
                     .build();
 

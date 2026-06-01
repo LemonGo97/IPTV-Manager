@@ -9,6 +9,7 @@
     :row-key="(row) => row.id"
     :filters="filters"
     @update:filters="handleFiltersChange"
+    @update:checked-row-keys="handleCheck"
     size="small"
   />
 </template>
@@ -26,7 +27,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['viewEpg', 'updateFilters', 'preview'])
+const emit = defineEmits(['viewEpg', 'updateFilters', 'preview', 'rowCheck'])
 
 const { copy, copied } = useClipboard()
 
@@ -77,6 +78,10 @@ function handleFiltersChange(filters) {
   emit('updateFilters', filters)
 }
 
+function handleCheck(rowKeys) {
+  emit('rowCheck', rowKeys)
+}
+
 // 获取表格数据
 async function fetchTableData() {
   loading.value = true
@@ -123,140 +128,151 @@ function copyToClipboard(text) {
 }
 
 // 表格列定义
-const columns = computed(() => [
-  {
-    type: "selection",
-  },
-  { title: 'ID', key: 'id', width: 80 },
-  {
-    title: '频道名称',
-    key: 'name',
-    width: 120,
-    ellipsis: { tooltip: true },
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 80,
-    render: row =>
-      h(
-        NTag,
-        { type: row.status === 'valid' ? 'success' : row.status === 'invalid' ? 'error' : 'info' },
-        {
-          default: () => {
-            switch (row.status) {
-              case 'valid': return '有效'
-              case 'invalid': return '无效'
-              case 'unknown': return '未知'
-            }
-          },
-        }
-      ),
-    filter: true,
-    filterOptions: [
-      { label: '有效', value: 'valid' },
-      { label: '无效', value: 'invalid' },
-      { label: '未知', value: 'unknown' },
-    ],
-  },
-  {
-    title: '订阅源',
-    key: 'provider.name',
-    width: 120,
-    filter: true,
-    filterOptions: providerOptions.value,
-  },
-  {
-    title: '频道组',
-    key: 'channelGroup.name',
-    width: 120,
-    filter: true,
-    filterOptions: channelGroupOptions.value,
-  },
-  {
-    title: '延迟（ms）',
-    key: 'httpDetectDelayMilliseconds',
-    width: 200,
-    render(row) {
-      return h(NSpace, { vertical: true }, {
-        default: () => [
-          h('span', `HTTP 检测：${row.httpDetectDelayMilliseconds || '超时'}`),
-          h('span', `ffmpeg 检测：${row.ffmpegDetectDelayMilliseconds || '超时'}`),
-        ],
-      })
+const columns = computed(() => {
+  const providerOpts = providerOptions.value.map(item => ({
+    label: item.label,
+    value: item.value,
+  }))
+  const groupOpts = channelGroupOptions.value.map(item => ({
+    label: item.label,
+    value: item.value,
+  }))
+
+  return [
+    {
+      type: "selection",
     },
-  },
-  {
-    title: '音视频信息',
-    key: 'mediaInfo',
-    width: 240,
-    render(row) {
-      return h(NSpace, { vertical: true }, {
-        default: () => {
-          const res = []
-          if (row.videoInfo) {
-            const vinfo = JSON.parse(row.videoInfo)
-            res.push(h('span', `视频流信息：${vinfo.width} x ${vinfo.height} ${vinfo.codec}`))
-          }
-          if (row.audioInfo) {
-            const ainfo = JSON.parse(row.audioInfo)
-            res.push(h('span', `音频流信息：${ainfo.codec} ${ainfo.rate}`))
-          }
-          return res
-        },
-      })
+    { title: 'ID', key: 'id', width: 80 },
+    {
+      title: '频道名称',
+      key: 'name',
+      width: 120,
+      ellipsis: { tooltip: true },
     },
-  },
-  {
-    title: '播放地址',
-    key: 'url',
-    width: 300,
-    ellipsis: { tooltip: true },
-    render: row =>
-      h(
-        'a',
-        {
-          href: row.url,
-          target: '_blank',
-          class: 'text-primary',
-          onClick: e => {
-            e.preventDefault()
-            copyToClipboard(row.url)
-          },
-        },
-        row.url
-      ),
-  },
-  { title: '国家', key: 'country', width: 100 },
-  { title: '语言', key: 'language', width: 100 },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 180,
-    fixed: 'right',
-    render: row =>
-      h('div', { class: 'flex gap-8' }, [
+    {
+      title: '状态',
+      key: 'status',
+      width: 80,
+      render: row =>
         h(
-          NDropdown,
+          NTag,
+          { type: row.status === 'valid' ? 'success' : row.status === 'invalid' ? 'error' : 'info' },
           {
-            options: [
-              { label: 'IINA', key: 'iina' },
-              { label: 'PotPlayer', key: 'potplayer' },
-              { label: 'VLC', key: 'vlc' },
-            ],
-            onSelect: (key) => emit('preview', { key, row }),
-          },
-          {
-            default: () =>
-              h(NButton, { size: 'small' }, { default: () => '预览' }),
+            default: () => {
+              switch (row.status) {
+                case 'valid': return '有效'
+                case 'invalid': return '无效'
+                case 'unknown': return '未知'
+              }
+            },
           }
         ),
-        h(NButton, { size: 'small', type: 'info', onClick: () => emit('viewEpg', row) }, {
-          default: () => '查看EPG',
-        }),
-      ]),
-  },
-])
+      filter: true,
+      filterOptions: [
+        { label: '有效', value: 'valid' },
+        { label: '无效', value: 'invalid' },
+        { label: '未知', value: 'unknown' },
+      ],
+    },
+    {
+      title: '订阅源',
+      key: 'provider.name',
+      width: 120,
+      filter: true,
+      filterOptions: providerOpts,
+    },
+    {
+      title: '频道组',
+      key: 'channelGroup.name',
+      width: 120,
+      filter: true,
+      filterOptions: groupOpts,
+    },
+    {
+      title: '延迟（ms）',
+      key: 'httpDetectDelayMilliseconds',
+      width: 200,
+      render(row) {
+        return h(NSpace, { vertical: true }, {
+          default: () => [
+            h('span', `HTTP 检测：${row.httpDetectDelayMilliseconds || '超时'}`),
+            h('span', `ffmpeg 检测：${row.ffmpegDetectDelayMilliseconds || '超时'}`),
+          ],
+        })
+      },
+    },
+    {
+      title: '音视频信息',
+      key: 'mediaInfo',
+      width: 240,
+      render(row) {
+        return h(NSpace, { vertical: true }, {
+          default: () => {
+            const res = []
+            if (row.videoInfo) {
+              const vinfo = JSON.parse(row.videoInfo)
+              res.push(h('span', `视频流信息：${vinfo.width} x ${vinfo.height} ${vinfo.codec}`))
+            }
+            if (row.audioInfo) {
+              const ainfo = JSON.parse(row.audioInfo)
+              res.push(h('span', `音频流信息：${ainfo.codec} ${ainfo.rate}`))
+            }
+            return res
+          },
+        })
+      },
+    },
+    {
+      title: '播放地址',
+      key: 'url',
+      width: 300,
+      ellipsis: { tooltip: true },
+      render: row =>
+        h(
+          'a',
+          {
+            href: row.url,
+            target: '_blank',
+            class: 'text-primary',
+            onClick: e => {
+              e.preventDefault()
+              copyToClipboard(row.url)
+            },
+          },
+          row.url
+        ),
+    },
+    { title: '国家', key: 'country', width: 100 },
+    { title: '语言', key: 'language', width: 100 },
+    {
+      title: '操作',
+      key: 'actions',
+      width: 180,
+      fixed: 'right',
+      render: row =>
+        h('div', { class: 'flex gap-8' }, [
+          h(
+            NDropdown,
+            {
+              options: [
+                { label: 'IINA', key: 'iina' },
+                { label: 'PotPlayer', key: 'potplayer' },
+                { label: 'VLC', key: 'vlc' },
+              ],
+              onSelect: (key) => emit('preview', { key, row }),
+            },
+            {
+              default: () =>
+                h(NButton, { size: 'small' }, { default: () => '预览' }),
+            }
+          ),
+          h(NButton, { size: 'small', type: 'info', onClick: () => emit('viewEpg', row) }, {
+            default: () => '查看EPG',
+          }),
+        ]),
+    },
+  ]
+})
 
 // 监听搜索参数变化
 watch(() => props.searchParams, () => {

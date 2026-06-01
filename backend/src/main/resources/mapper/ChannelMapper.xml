@@ -56,6 +56,14 @@
     <delete id="deleteByProviderId">
         UPDATE channels SET deleted = 1 where provider_id = #{providerId}
     </delete>
+    <update id="deleteByIds">
+        UPDATE channels
+        SET deleted = 1
+        where id in
+        <foreach collection="channelIds" open="(" separator="," close=")" item="channelId">
+            #{channelId}
+        </foreach>
+    </update>
 
     <select id="findAll" resultMap="ChannelResultMap">
         SELECT id,
@@ -191,6 +199,32 @@
             COUNT(CASE WHEN status = 'valid' THEN 1 END) AS validChannels,
             COUNT(CASE WHEN status = 'invalid' THEN 1 END) AS invalidChannels
         FROM channels WHERE deleted = 0
+    </select>
+    <select id="findByIds" resultType="com.lemongo97.iptv.iptvmanager.entity.Channel">
+        SELECT id,
+               name,
+               logo,
+               url,
+               group_id,
+               provider_id,
+               epg_source_id,
+               status,
+               country,
+               language,
+               http_detect_delay_milliseconds,
+               ffmpeg_detect_delay_milliseconds,
+               video_info,
+               audio_info,
+               score,
+               created_at,
+               updated_at
+        FROM channels
+        WHERE deleted = 0
+        AND id in
+            <foreach collection="channelIds" open="(" separator="," close=")" item="channelId">
+                #{channelId}
+            </foreach>
+        ORDER BY id ASC
     </select>
 
     <insert id="insert">
