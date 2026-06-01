@@ -124,6 +124,9 @@ function copyToClipboard(text) {
 
 // 表格列定义
 const columns = computed(() => [
+  {
+    type: "selection",
+  },
   { title: 'ID', key: 'id', width: 80 },
   {
     title: '频道名称',
