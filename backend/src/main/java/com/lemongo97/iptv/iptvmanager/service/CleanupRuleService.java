@@ -332,7 +332,7 @@ public class CleanupRuleService {
                             .setStatus(Channel.Status.unknown)
                             .setCountry(o.getTvGuideCountry())
                             .setLanguage(o.getTvGuideLanguage())
-                            .setScore(100L)
+                            .setScore(0d)
                             .setCreatedAt(o.getCreatedAt())
                             .setUpdatedAt(o.getUpdatedAt());
                     return channel;

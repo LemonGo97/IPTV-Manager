@@ -5,6 +5,7 @@ import com.lemongo97.iptv.iptvmanager.cleanup.CleaningEngineFactory;
 import com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.FFMpegCheckEngine;
 import com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.FFProbeCheckEngine;
 import com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.HttpCheckEngine;
+import com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.HttpGetCheckEngine;
 import com.lemongo97.iptv.iptvmanager.cleanup.engine.filter.BlackListEngine;
 import com.lemongo97.iptv.iptvmanager.cleanup.engine.group.GroupingEngine;
 import com.lemongo97.iptv.iptvmanager.cleanup.engine.name.*;
@@ -20,6 +21,7 @@ public class AutoConfiguration {
         cleaningEngineFactory.addEngine("FFMpegCheckEngine", new FFMpegCheckEngine());
         cleaningEngineFactory.addEngine("FFProbeCheckEngine", new FFProbeCheckEngine());
         cleaningEngineFactory.addEngine("HttpCheckEngine", new HttpCheckEngine());
+        cleaningEngineFactory.addEngine("HttpGetCheckEngine", new HttpGetCheckEngine());
 
         cleaningEngineFactory.addEngine("BlackListEngine", new BlackListEngine());
 

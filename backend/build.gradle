@@ -51,9 +51,14 @@ dependencies {
 
     implementation(platform(libs.log4j.bom))
     implementation(platform(libs.slf4j.bom))
+    implementation(platform(libs.okhttp.bom))
+
+    implementation(libs.okhttp)
+
 
     implementation(libs.slf4j.api)
     implementation(libs.log4j.slf4j2.impl)
+    implementation(libs.lmax.disruptor)
     testImplementation(libs.slf4j.api)
     testImplementation(libs.log4j.slf4j2.impl)
 
@@ -72,4 +77,8 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    // 显示测试运行时的标准输出和错误信息
+    testLogging {
+        showStandardStreams = true
+    }
 }

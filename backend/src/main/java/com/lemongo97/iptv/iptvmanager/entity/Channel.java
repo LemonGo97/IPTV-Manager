@@ -63,7 +63,7 @@ public class Channel {
     /**
      * 评分。满分100，分数越高质量越好
      */
-    private Long score;
+    private volatile Double score;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

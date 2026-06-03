@@ -209,6 +209,10 @@ INSERT INTO cleanup_engine ("id", "name", "engine", "rule_type", "params", "desc
 VALUES (9, '字符串移除', 'StringRemoveEngine', 'NAME',
         '[{"field":"ignoreCase","label":"忽略大小写","placeholder":null,"required":false,"type":"SWITCH"},{"field":"removeSpaces","label":"移除空格","placeholder":null,"required":false,"type":"SWITCH"},{"field":"target","label":"将被移除的字符串","placeholder":null,"required":false,"type":"DYNAMIC_INPUT"}]',
         NULL, 'com.lemongo97.iptv.iptvmanager.cleanup.engine.name.StringRemoveEngine');
+INSERT INTO cleanup_engine (id, name, engine, rule_type, params, description, full_class_name)
+VALUES (10, '延迟检测（HTTP GET）', 'HttpGetCheckEngine', 'DELAY',
+        '[{"field":"parallelNum","label":"并行检测数量","placeholder":null,"required":false,"type":"NUMBER"}]', null,
+        'com.lemongo97.iptv.iptvmanager.cleanup.engine.delay.HttpGetCheckEngine');
 
 -- 创建数据清洗规则表
 CREATE TABLE IF NOT EXISTS cleanup_rules

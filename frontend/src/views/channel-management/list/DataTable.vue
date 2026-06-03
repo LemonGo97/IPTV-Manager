@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { NButton, NTag, NDataTable, NSpace, NDropdown } from 'naive-ui'
+import {NButton, NTag, NDataTable, NSpace, NDropdown, NBadge} from 'naive-ui'
 import { h, computed, onMounted, reactive, ref, watch } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import api from './api'
@@ -153,20 +153,46 @@ const columns = computed(() => {
       title: '状态',
       key: 'status',
       width: 80,
-      render: row =>
-        h(
-          NTag,
-          { type: row.status === 'valid' ? 'success' : row.status === 'invalid' ? 'error' : 'info' },
-          {
-            default: () => {
-              switch (row.status) {
-                case 'valid': return '有效'
-                case 'invalid': return '无效'
-                case 'unknown': return '未知'
-              }
-            },
-          }
-        ),
+      render: row =>{
+
+        if (row.score === undefined || row.score === null) {
+          return h(
+            NTag,
+            { type: row.status === 'valid' ? 'success' : row.status === 'invalid' ? 'error' : 'info' },
+            {
+              default: () => {
+                switch (row.status) {
+                  case 'valid': return '有效'
+                  case 'invalid': return '无效'
+                  case 'unknown': return '未知'
+                }
+              },
+            }
+          )
+        }
+        let type = row.score > 80 ? 'success' : row.score > 60 ? 'warning' : 'error'
+       return h(
+         NBadge,
+         {
+           type: type,
+           dot: true,
+           processing: true,
+         },
+         h(
+           NTag,
+           { type: row.status === 'valid' ? 'success' : row.status === 'invalid' ? 'error' : 'info' },
+           {
+             default: () => {
+               switch (row.status) {
+                 case 'valid': return '有效'
+                 case 'invalid': return '无效'
+                 case 'unknown': return '未知'
+               }
+             },
+           }
+         )
+       )
+      },
       filter: true,
       filterOptions: [
         { label: '有效', value: 'valid' },
@@ -222,6 +248,7 @@ const columns = computed(() => {
         })
       },
     },
+    { title: '评分', key: 'score', width: 100 },
     {
       title: '播放地址',
       key: 'url',

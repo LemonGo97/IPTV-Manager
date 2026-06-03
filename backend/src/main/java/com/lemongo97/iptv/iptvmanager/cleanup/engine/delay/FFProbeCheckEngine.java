@@ -17,10 +17,7 @@ import org.bytedeco.javacpp.Pointer;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static org.bytedeco.ffmpeg.global.avcodec.avcodec_get_name;
@@ -46,73 +43,92 @@ public class FFProbeCheckEngine implements CleaningEngine {
         return this.threadDetect(channels, param);
     }
 
-    public List<Channel> threadDetect(List<Channel> channels, FFProbeCheckEngineParam param){
+    public List<Channel> threadDetect(List<Channel> channels, FFProbeCheckEngineParam param) {
         // 2. 创建一个固定大小为 20 的线程池。这能保证同时运行的线程正好是 20 个。
-        ExecutorService executor = Executors.newFixedThreadPool(20);
-        List<CompletableFuture<Channel>> futures = channels.stream()
-                .map(channel -> {
-                    // 1. 创建核心检测异步任务
-                    CompletableFuture<Channel> detectTask = CompletableFuture.supplyAsync(() -> {
-                        if (channel.getStatus() == Channel.Status.invalid) {
-                            return channel;
-                        }
+//        ExecutorService executor = Executors.newFixedThreadPool(20);
+        try (ExecutorService executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual()
+                .name("FFProbeCheckEngine-", 1) // 参数1：名字前缀；参数2：计数的起始值（从1开始自增）
+                .factory())) {
+            Semaphore semaphore = new Semaphore(20);
+            List<CompletableFuture<Channel>> futures = channels.stream()
+                    .map(channel -> {
+                        // 1. 创建核心检测异步任务
+                        CompletableFuture<Channel> detectTask = CompletableFuture.supplyAsync(() -> {
+                            log.debug("当前线程全称: {}", Thread.currentThread());
+                            try {
+                                semaphore.acquire();
+                                if (channel.getStatus() == Channel.Status.invalid) {
+                                    return channel;
+                                }
 
-                        String url = channel.getUrl();
-                        log.debug("开始检测 URL: {}", url);
+                                String url = channel.getUrl();
+                                log.debug("开始检测 URL: {}", url);
 
-                        FFProbeCheckReport checkReport = this.doDetect(url, param);
+                                FFProbeCheckReport checkReport = this.doDetect(url, param);
 
-                        if (checkReport == null) {
+                                if (checkReport == null) {
+                                    channel.setStatus(Channel.Status.invalid);
+                                    return channel;
+                                }
+
+                                channel.setFfmpegDetectDelayMilliseconds(checkReport.getDelayMilliseconds());
+                                channel.setVideoInfo(checkReport.getVideo() == null ? null : JSONUtil.toJsonString(checkReport.getVideo()));
+                                channel.setAudioInfo(checkReport.getAudio() == null ? null : JSONUtil.toJsonString(checkReport.getAudio()));
+                                return channel;
+                            } catch (Exception e) {
+                                Thread.currentThread().interrupt();
+                                throw new IllegalStateException("任务被中断", e);
+                            } finally {
+                                semaphore.release();
+                            }
+                        }, executor).exceptionally(throwable -> {
                             channel.setStatus(Channel.Status.invalid);
+                            log.warn("检测失败，Channel: {}, 错误信息: {}", channel.getName(), throwable.getMessage());
                             return channel;
-                        }
+                        });
 
-                        channel.setFfmpegDetectDelayMilliseconds(checkReport.getDelayMilliseconds());
-                        channel.setVideoInfo(checkReport.getVideo() == null ? null : JSONUtil.toJsonString(checkReport.getVideo()));
-                        channel.setAudioInfo(checkReport.getAudio() == null ? null : JSONUtil.toJsonString(checkReport.getAudio()));
-                        return channel;
-                    }, executor);
+                        // 2. 【核心杀手锏】在 Java 层面给这个任务套上一个“硬超时”
+                        // 如果 doDetect 在指定的毫秒内没有把代码执行完（不管它是卡在 C 语言还是哪里），
+                        // 这个 CF 任务会立刻被主线程强制终止，并抛出 TimeoutException
+                        return detectTask.orTimeout(param.getDelayMillisecond() + 1000L, TimeUnit.MILLISECONDS) // 稍微比底层的超时宽限 1 秒
+                                .exceptionally(throwable -> {
+                                    // 3. 任务超时后的兜底补救逻辑
+                                    log.warn("⚠️ 网址检测在 Java 层触发硬超时，强行放弃该网址: {}", channel.getUrl());
+                                    channel.setStatus(Channel.Status.invalid);
+                                    return channel; // 超时了也必须返回 channel，确保最后结果能顺利收集
+                                });
+                    })
+                    .toList();
 
-                    // 2. 【核心杀手锏】在 Java 层面给这个任务套上一个“硬超时”
-                    // 如果 doDetect 在指定的毫秒内没有把代码执行完（不管它是卡在 C 语言还是哪里），
-                    // 这个 CF 任务会立刻被主线程强制终止，并抛出 TimeoutException
-                    return detectTask.orTimeout(param.getDelayMillisecond() + 1000L, TimeUnit.MILLISECONDS) // 稍微比底层的超时宽限 1 秒
-                            .exceptionally(throwable -> {
-                                // 3. 任务超时后的兜底补救逻辑
-                                log.warn("⚠️ 网址检测在 Java 层触发硬超时，强行放弃该网址: {}", channel.getUrl());
-                                channel.setStatus(Channel.Status.invalid);
-                                return channel; // 超时了也必须返回 channel，确保最后结果能顺利收集
-                            });
-                })
-                .toList();
+            log.debug("所有检测任务已分发，等待 20 个线程并发处理中...");
 
-        log.debug("所有检测任务已分发，等待 20 个线程并发处理中...");
+            // 3. 组合所有异步任务，并阻塞等待它们全部执行完毕
+            CompletableFuture<Void> allCombinedTask = CompletableFuture.allOf(
+                    futures.toArray(new CompletableFuture[0])
+            );
+            // 这一步会停在这里，直到 10,000 个网址全部检测完
+            allCombinedTask.join();
 
-        // 3. 组合所有异步任务，并阻塞等待它们全部执行完毕
-        CompletableFuture<Void> allCombinedTask = CompletableFuture.allOf(
-                futures.toArray(new CompletableFuture[0])
-        );
-        // 这一步会停在这里，直到 10,000 个网址全部检测完
-        allCombinedTask.join();
+            // 4. 按顺序统一回收所有线程的处理结果
+            List<Channel> result = futures.stream()
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
+            log.debug("所有任务检测完毕，统一返回结果");
 
-        // 4. 按顺序统一回收所有线程的处理结果
-        List<Channel> result = futures.stream()
-                .map(CompletableFuture::join)
-                .collect(Collectors.toList());
+            return result;
 
-        // 5. 关闭线程池，释放系统资源
-        executor.shutdown();
-
-        log.debug("所有任务检测完毕，统一返回结果");
-        return result;
+        } catch (Exception e) {
+            log.warn("FFProbeCheckEngine 运行时检测线程出现问题: {}", e.getMessage());
+            return channels;
+        }
     }
 
-//    @Override
+    //    @Override
     public List<Channel> processOld(List<Channel> channels, String paramsJson) {
         FFProbeCheckEngineParam param = JSONUtil.fromJsonString(paramsJson, FFProbeCheckEngineParam.class);
         List<Channel> result = new ArrayList<>();
         for (Channel channel : channels) {
-            if (channel.getStatus() == Channel.Status.invalid){
+            if (channel.getStatus() == Channel.Status.invalid) {
                 log.debug("Channel {} has status invalid, next", channel);
                 result.add(channel);
                 continue;
@@ -121,7 +137,7 @@ public class FFProbeCheckEngine implements CleaningEngine {
             log.debug("开始使用 ffmpeg 检测 {} 的 URL链接: {}", channel.getName(), channel.getUrl());
 
             FFProbeCheckReport checkReport = this.doDetect(url, param);
-            if(checkReport == null) {
+            if (checkReport == null) {
                 channel.setStatus(Channel.Status.invalid);
                 result.add(channel);
                 continue;
@@ -203,7 +219,7 @@ public class FFProbeCheckEngine implements CleaningEngine {
                 AVCodecParameters codecPar = stream.codecpar();
 
                 String codec;
-                try(BytePointer bytePointer = avcodec_get_name(codecPar.codec_id())){
+                try (BytePointer bytePointer = avcodec_get_name(codecPar.codec_id())) {
                     codec = bytePointer.getString();
                 }
                 if (codecPar.codec_type() == AVMEDIA_TYPE_VIDEO) {
@@ -275,7 +291,7 @@ public class FFProbeCheckEngine implements CleaningEngine {
 
     @Data
     @Accessors(chain = true)
-    public static class FFProbeCheckReport{
+    public static class FFProbeCheckReport {
 
         private Long delayMilliseconds;
         private VideoInfo video;
