@@ -83,7 +83,7 @@ public class HttpGetCheckEngine implements CleaningEngine {
                                 channel.setHttpDetectDelayMilliseconds(duration);
 
                                 String contentType = response.header("Content-Type");
-                                if (Strings.CI.containsAny(contentType, "vnd.apple.mpegurl", "x-mpegurl")) {
+                                if (Strings.CI.containsAny(contentType, "vnd.apple.mpegurl", "x-mpegurl", "audio/mpegurl")) {
                                     // m3u8 HLS单播
                                     log.debug("收到 m3u8 HLS 单播响应，Content-Type: {}", contentType);
                                     String content = response.body().string();
@@ -93,13 +93,14 @@ public class HttpGetCheckEngine implements CleaningEngine {
                                     channel.setScore(metric.getScore());
                                     channel.setHttpDetectDelayMilliseconds(metric.getTotalCost());
 
-                                } else if (Strings.CI.containsAny(contentType, "video/x-flv", "video/mp2t", "application/octet-stream")) {
+                                } else if (Strings.CI.containsAny(contentType, "video/x-flv", "video/mp2t", "application/octet-stream", "video/mp4", "video/mpeg")) {
                                     // 原生流式单播 / 组播转单播
                                     log.debug("收到流式单播/组播转单播响应，Content-Type: {}", contentType);
                                     StreamMetrics metric = this.checkStreamMetric(response);
                                     log.debug("检测结果：{}", metric);
                                     channel.setScore(metric.getScore());
                                 } else {
+                                    //TODO application/dash+xml
                                     log.debug("未知的响应，Content-Type: {}", contentType);
                                 }
 
