@@ -33,7 +33,7 @@ public interface OriginalChannelCover {
                             .setLogo(o.getTvGuideLogo())
                             .setUrl(o.getUrl())
                             .setProviderId(o.getProviderId())
-                            .setGroupId(0L)
+                            .setGroupId(null)
                             .setEpgSourceId(o.getTvGuideId())
                             .setStatus(Channel.Status.unknown)
                             .setCountry(o.getTvGuideCountry())

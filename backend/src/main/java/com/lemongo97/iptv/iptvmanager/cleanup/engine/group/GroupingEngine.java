@@ -22,6 +22,8 @@ public class GroupingEngine implements CleaningEngine {
         GroupingEngineParam param = JSONUtil.fromJsonString(paramsJson, GroupingEngineParam.class);
         if (Strings.CI.contains(channel.getName(), param.getKeyword())){
             channel.setGroupId(param.getGroupId());
+        } else {
+            channel.setGroupId(-1L);
         }
         return channel;
     }

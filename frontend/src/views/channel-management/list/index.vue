@@ -109,7 +109,6 @@ function handlePreview({ key, row }) {
 
 // 处理选中行
 function handleCheck(rowKeys) {
-  console.log('选中的行:', rowKeys)
   checkedRows.value = rowKeys
 }
 

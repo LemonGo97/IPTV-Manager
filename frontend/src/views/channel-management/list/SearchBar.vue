@@ -16,31 +16,11 @@
         <i class="i-material-symbols:refresh mr-4 text-18"/>
         刷新
       </n-button>
-      <n-button type="primary" @click="handleCleanup">
-        <i class="i-mdi:database-clock-outline mr-4 text-18"/>
-        数据清洗
-      </n-button>
-      <n-spin v-if="props.checkedRows.length > 0" :show="stepsAreaLoadingStatus">
-        <n-dropdown trigger="click" :options="stepPressOptions" @select="handleStepPressSelectBatch">
-          <n-button type="success" :disabled="props.checkedRows.length <= 0">
-            <i class="i-material-symbols:keyboard-arrow-down-rounded text-18"/>
-            批量处理 {{ props.checkedRows.length ? `（${props.checkedRows.length} 个频道）` : ''}}
-          </n-button>
-        </n-dropdown>
-      </n-spin>
       <n-spin :show="stepsAreaLoadingStatus">
-        <n-button type="success" @click="handleStartProcessing">
-          <i class="i-material-symbols:play-arrow mr-4 text-18"/>
-          开始处理
+        <n-button type="success" @click="handleCleanup">
+          <i class="i-mdi:database-clock-outline mr-4 text-18"/>
+          数据清洗
         </n-button>
-      </n-spin>
-      <n-spin :show="stepsAreaLoadingStatus">
-        <n-dropdown trigger="click" :options="stepPressOptions" @select="handleStepPressSelect">
-          <n-button type="success">
-            <i class="i-material-symbols:keyboard-arrow-down-rounded text-18"/>
-            分步处理
-          </n-button>
-        </n-dropdown>
       </n-spin>
     </n-space>
   </div>
@@ -60,14 +40,6 @@ const props = defineProps({
 
 const emit = defineEmits(['search', 'refresh', 'cleanup'])
 
-const stepPressOptions = [
-  { label: '频道过滤', key: 'FILTER' },
-  { label: '名称规范化', key: 'NAME' },
-  { label: '相同频道合并', key: 'MERGE' },
-  { label: '延迟检测', key: 'DELAY' },
-  { label: '频道分组', key: 'GROUP' },
-]
-
 const queryItems = reactive({
   name: '',
 })
@@ -86,50 +58,6 @@ function handleCleanup() {
 
 function handleRefresh() {
   emit('refresh')
-}
-
-async function handleStartProcessing() {
-  stepsAreaLoadingStatus.value = true
-  try {
-    await api.dataClean({})
-    $message.info('频道列表开始数据清洗并生成新的频道列表中...')
-  } catch (error) {
-    $message.error('开始处理失败')
-    console.error(error)
-  } finally {
-    stepsAreaLoadingStatus.value = false
-  }
-}
-
-async function handleStepPressSelect(key) {
-  stepsAreaLoadingStatus.value = true
-  try {
-    await api.dataClean({
-      ruleType: [key],
-    })
-    $message.info('频道列表开始数据清洗并生成新的频道列表中...')
-  } catch (error) {
-    $message.error('分步处理失败')
-    console.error(error)
-  } finally {
-    stepsAreaLoadingStatus.value = false
-  }
-}
-
-async function handleStepPressSelectBatch(key) {
-  stepsAreaLoadingStatus.value = true
-  try {
-    await api.dataClean({
-      ruleType: [key],
-      channelId: props.checkedRows,
-    })
-    $message.info('频道列表开始数据清洗并生成新的频道列表中...')
-  } catch (error) {
-    $message.error('分步处理失败')
-    console.error(error)
-  } finally {
-    stepsAreaLoadingStatus.value = false
-  }
 }
 
 // 暴露方法给父组件
