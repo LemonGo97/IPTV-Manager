@@ -12,6 +12,7 @@
     <SearchBar
       @search="handleSearch"
       @refresh="handleRefresh"
+      @cleanup="handleCleanup"
       v-model:checkedRows="checkedRows"
     />
 
@@ -30,6 +31,8 @@
 
     <!-- 预览弹窗 -->
     <PreviewModal ref="previewModalRef" v-model:visible="previewModalVisible" />
+
+    <CleanupModal ref="cleanupModalRef" v-model:visible="cleanupModalVisible" />
   </CommonPage>
 </template>
 
@@ -42,10 +45,12 @@ import SearchBar from './SearchBar.vue'
 import DataTable from './DataTable.vue'
 import EpgModal from './EpgModal.vue'
 import PreviewModal from './PreviewModal.vue'
+import CleanupModal from "@/views/channel-management/list/CleanupModal.vue";
 
 // 弹窗显示状态
 const epgModalVisible = ref(false)
 const previewModalVisible = ref(false)
+const cleanupModalVisible = ref(false)
 
 // 组件引用
 const statisticsRef = ref(null)
@@ -53,6 +58,7 @@ const stepsRef = ref(null)
 const tableRef = ref(null)
 const epgModalRef = ref(null)
 const previewModalRef = ref(null)
+const cleanupModalRef = ref(null)
 
 const checkedRows = ref([])
 
@@ -83,6 +89,12 @@ function handleSearch(searchParams) {
 function handleRefresh() {
   statisticsRef.value?.refresh()
   tableRef.value?.refresh()
+}
+
+
+// 刷新
+function handleCleanup() {
+  cleanupModalRef.value?.open()
 }
 
 // 查看EPG

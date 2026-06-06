@@ -16,6 +16,10 @@
         <i class="i-material-symbols:refresh mr-4 text-18"/>
         刷新
       </n-button>
+      <n-button type="primary" @click="handleCleanup">
+        <i class="i-mdi:database-clock-outline mr-4 text-18"/>
+        数据清洗
+      </n-button>
       <n-spin v-if="props.checkedRows.length > 0" :show="stepsAreaLoadingStatus">
         <n-dropdown trigger="click" :options="stepPressOptions" @select="handleStepPressSelectBatch">
           <n-button type="success" :disabled="props.checkedRows.length <= 0">
@@ -54,7 +58,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['search', 'refresh'])
+const emit = defineEmits(['search', 'refresh', 'cleanup'])
 
 const stepPressOptions = [
   { label: '频道过滤', key: 'FILTER' },
@@ -74,6 +78,10 @@ function handleSearch() {
   emit('search', {
     name: queryItems.name || undefined,
   })
+}
+
+function handleCleanup() {
+  emit('cleanup')
 }
 
 function handleRefresh() {
