@@ -5,17 +5,26 @@ import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
 import io.micrometer.common.util.StringUtils;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Strings;
 
 import java.util.List;
 
+@Slf4j
 @Data
 public class BlackListEngine implements CleaningEngine {
 
     @Override
-    public List<Channel> process(List<Channel> channels, String paramsJson) {
+    public Channel process(Channel channel, String paramsJson) {
+        log.debug("Channel cleanup: Processing BlackListEngine");
         BlackListEngineParam param = JSONUtil.fromJsonString(paramsJson, BlackListEngineParam.class);
-        return channels.stream().filter(channel -> StringUtils.isNotBlank(channel.getName()) && !param.containsMatch(channel.getName())).toList();
+
+        if (StringUtils.isBlank(channel.getName()) || param.containsMatch(channel.getName())) {
+            log.debug("Ignoring blacklisted channel {}", channel.getName());
+            return null;
+        }
+
+        return channel;
     }
 
     @Data

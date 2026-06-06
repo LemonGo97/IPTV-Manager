@@ -45,6 +45,19 @@
         WHERE task_id = #{taskId}
         ORDER BY name ASC, id ASC
     </select>
+    <select id="prepareChannelCleanupList"
+            resultType="com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata">
+        select * from original_channels
+        <where>
+            deleted = 0
+            <if test="@org.apache.commons.collections4.CollectionUtils@isNotEmpty(jobParams.channelProviderId)">
+                AND provider_id in
+                <foreach collection="jobParams.channelProviderId" item="providerId" open="(" separator="," close=")">
+                    #{providerId}
+                </foreach>
+            </if>
+        </where>
+    </select>
 
     <insert id="insert">
         INSERT INTO original_channels (provider_id, name, url, tvg_id, tvg_name, tvg_logo, group_title, tvg_country, tvg_language, created_at, updated_at, task_id, deleted)

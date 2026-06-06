@@ -1,16 +1,14 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
-import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
 import com.lemongo97.iptv.iptvmanager.quartz.job.DataCleanupJob;
 import com.lemongo97.iptv.iptvmanager.quartz.job.EpgRefreshJob;
 import com.lemongo97.iptv.iptvmanager.quartz.job.IPTVProviderRefreshJob;
+import com.lemongo97.iptv.iptvmanager.quartz.job.params.ChannelCleanupJobParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
@@ -138,17 +136,16 @@ public class QuartzScheduledTaskService {
      *
      * @return Quartz Job Key
      */
-    public JobKey triggerManualDataCleanupJob(RuleType step, ArrayList<Long> channelIds) {
+    public JobKey triggerManualDataCleanupJob(ChannelCleanupJobParams jobParams) {
         try {
             String jobName = "data-cleanup-manual-" + System.currentTimeMillis();
             JobKey jobKey = JobKey.jobKey(jobName, CLEANUP_MANUAL_JOB_GROUP);
 
             JobDataMap jobDataMap = new JobDataMap();
-            jobDataMap.put("channelIds", channelIds);
+            jobDataMap.put("jobParams", jobParams);
             JobDetail jobDetail = JobBuilder.newJob(DataCleanupJob.class)
                     .withIdentity(jobKey)
                     .usingJobData("triggerType", "manual")
-                    .usingJobData("step", step.name())
                     .usingJobData(jobDataMap)
                     .storeDurably(false)
                     .build();

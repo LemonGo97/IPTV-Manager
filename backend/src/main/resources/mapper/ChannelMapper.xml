@@ -226,6 +226,24 @@
             </foreach>
         ORDER BY id ASC
     </select>
+    <select id="prepareChannelCleanupList" resultType="com.lemongo97.iptv.iptvmanager.entity.Channel">
+        select * from channels
+            <where>
+                deleted = 0
+                <if test="@org.apache.commons.collections4.CollectionUtils@isNotEmpty(jobParams.channelProviderId)">
+                    AND provider_id in
+                       <foreach collection="jobParams.channelProviderId" item="providerId" open="(" separator="," close=")">
+                           #{providerId}
+                       </foreach>
+                </if>
+                <if test="@org.apache.commons.collections4.CollectionUtils@isNotEmpty(jobParams.channelId)">
+                    AND id in
+                       <foreach collection="jobParams.channelId" item="channelId" open="(" separator="," close=")">
+                           #{channelId}
+                       </foreach>
+                </if>
+            </where>
+    </select>
 
     <insert id="insert">
         INSERT INTO channels (name, logo, url, provider_id, group_id, epg_source_id,

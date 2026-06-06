@@ -24,6 +24,8 @@ public interface ChannelCleaningTempMapper {
         }
     }
 
+    void insertBatch(@Param("channels") List<Channel> channels);
+
     /**
      * 插入单个频道到中间表
      */

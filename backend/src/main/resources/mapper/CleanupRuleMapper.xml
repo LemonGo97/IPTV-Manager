@@ -35,6 +35,25 @@
         FROM cleanup_rules
         WHERE id = #{id} AND deleted = 0
     </select>
+    <select id="prepareCleanupRuleList"
+            resultType="com.lemongo97.iptv.iptvmanager.entity.CleanupRule">
+        select * from cleanup_rules
+        <where>
+            deleted = 0
+            <if test="@org.apache.commons.collections4.CollectionUtils@isNotEmpty(jobParams.ruleType)">
+                AND rule_type in
+                <foreach collection="jobParams.ruleType" item="ruleType" open="(" separator="," close=")">
+                    #{ruleType}
+                </foreach>
+            </if>
+            <if test="@org.apache.commons.collections4.CollectionUtils@isNotEmpty(jobParams.ruleId)">
+                AND id in
+                <foreach collection="jobParams.ruleId" item="ruleId" open="(" separator="," close=")">
+                    #{ruleId}
+                </foreach>
+            </if>
+        </where>
+    </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO cleanup_rules (name, engine, rule_type, enabled, params, sort_order, created_at, updated_at, deleted)

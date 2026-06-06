@@ -9,6 +9,7 @@ import com.lemongo97.iptv.iptvmanager.cleanup.CleanEngineManager;
 import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.*;
 import com.lemongo97.iptv.iptvmanager.mapper.*;
+import com.lemongo97.iptv.iptvmanager.quartz.job.params.ChannelCleanupJobParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
@@ -51,13 +52,6 @@ public class ChannelService {
     public Channel findById(Long id) {
         return channelMapper.findById(id)
                 .orElseThrow(() -> new BusinessException("Channel not found: id=" + id));
-    }
-
-    /**
-     * 根据分组获取频道
-     */
-    public List<Channel> findByGroup(String group) {
-        return channelMapper.findByGroup(group);
     }
 
     /**
@@ -149,9 +143,9 @@ public class ChannelService {
      * 触发数据清洗任务
      * 通过 Quartz Job 异步执行数据清洗
      */
-    public void dataClean(RuleType step, ArrayList<Long> channelIds) {
-        log.info("Cleaning data... ==> {}", step);
-        quartzScheduledTaskService.triggerManualDataCleanupJob(step, channelIds);
+    public void dataClean(ChannelCleanupJobParams jobParams) {
+        log.info("Cleaning data... ==> {}", jobParams);
+        quartzScheduledTaskService.triggerManualDataCleanupJob(jobParams);
     }
 
     public PageResult<Channel> findByQuery(ChannelQuery query) {

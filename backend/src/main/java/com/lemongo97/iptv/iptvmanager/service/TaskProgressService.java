@@ -4,6 +4,7 @@ import com.lemongo97.iptv.iptvmanager.entity.TaskProgress;
 import com.lemongo97.iptv.iptvmanager.mapper.TaskProgressMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TaskProgressService {
+public class TaskProgressService implements InitializingBean {
 
     private final TaskProgressMapper taskProgressMapper;
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -112,5 +113,10 @@ public class TaskProgressService {
      */
     public Optional<TaskProgress> getLatestTask(String taskType) {
         return taskProgressMapper.findLatestByTaskType(taskType);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        taskProgressMapper.failUnfinishedTasks();
     }
 }

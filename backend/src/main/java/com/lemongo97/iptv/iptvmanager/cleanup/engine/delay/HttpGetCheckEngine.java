@@ -14,7 +14,6 @@ import okio.BufferedSource;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.net.URI;
@@ -23,13 +22,11 @@ import java.util.DoubleSummaryStatistics;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class HttpGetCheckEngine implements CleaningEngine {
 
-    private final OkHttpClient okHttpClient =
+    private static final OkHttpClient okHttpClient =
             new OkHttpClient.Builder()
                     .connectTimeout(5, TimeUnit.SECONDS)
                     .readTimeout(10, TimeUnit.SECONDS)
@@ -38,107 +35,58 @@ public class HttpGetCheckEngine implements CleaningEngine {
                     .build();
 
     @Override
-    public List<Channel> process(List<Channel> channels, String paramsJson) {
+    public Channel process(Channel channel, String paramsJson) {
+        log.debug("Channel cleanup: Processing HttpGetCheckEngine");
 
         HttpGetCheckEngineParam param = JSONUtil.fromJsonString(paramsJson, HttpGetCheckEngineParam.class);
 
-//        ThreadPoolExecutor executor = new ThreadPoolExecutor(
-//                param.getParallelNum(),                                // 核心线程数
-//                param.getParallelNum(),                                // 最大线程数
-//                0L,                               // 空闲线程存活时间
-//                TimeUnit.MILLISECONDS,                 // 时间单位：秒
-//                new LinkedBlockingQueue<>(100),   // 任务队列，一定要设置容量上限
-//                new HttpGetCheckEngineThreadFactory(),            // 自定义线程工厂
-//                new ThreadPoolExecutor.CallerRunsPolicy() // 拒绝策略：直接抛出异常
-//        );
-
-        try (ExecutorService executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual()
-                .name("HttpGetCheckEngine-", 1) // 参数1：名字前缀；参数2：计数的起始值（从1开始自增）
-                .factory())) {
-            Semaphore semaphore = new Semaphore(param.getParallelNum());
-            // 4. 将每个 channel 的 HTTP 检测任务提交到线程池中异步运行
-            List<CompletableFuture<Channel>> futures = channels.stream()
-                    .map(channel -> CompletableFuture.supplyAsync(() -> {
-                        log.debug("当前线程全称: {}", Thread.currentThread());
-                        try {
-                            semaphore.acquire();
-                            if (channel.getStatus() == Channel.Status.invalid) {
-                                log.debug("Channel {} has status invalid, next", channel);
-                                return channel;
-                            }
-
-                            log.debug("开始使用 HTTP GET 检测 {} 的 URL链接: {}", channel.getName(), channel.getUrl());
-                            try (Response response = okHttpClient
-                                    .newCall(new Request.Builder().get().header("User-Agent", "AptvPlayer/1.4.25").url(channel.getUrl()).build()).execute()) {
-                                if (!response.isSuccessful()) {
-                                    throw new OkHttpRequestException("HTTP request failed with code " + response.code());
-                                }
-
-                                long startTime = response.sentRequestAtMillis();
-                                long endTime = response.receivedResponseAtMillis();
-                                long duration = endTime - startTime;
-
-
-                                log.debug("请求耗时: {} 毫秒", duration);
-                                channel.setHttpDetectDelayMilliseconds(duration);
-
-                                String contentType = response.header("Content-Type");
-                                if (Strings.CI.containsAny(contentType, "vnd.apple.mpegurl", "x-mpegurl", "audio/mpegurl")) {
-                                    // m3u8 HLS单播
-                                    log.debug("收到 m3u8 HLS 单播响应，Content-Type: {}", contentType);
-                                    String content = response.body().string();
-                                    this.checkM3UContentValid(content);
-                                    SegmentMetrics metric = this.checkHlsMetrics(channel.getUrl(), content);
-                                    log.debug("检测结果：{}", metric);
-                                    channel.setScore(metric.getScore());
-                                    channel.setHttpDetectDelayMilliseconds(metric.getTotalCost());
-
-                                } else if (Strings.CI.containsAny(contentType, "video/x-flv", "video/mp2t", "application/octet-stream", "video/mp4", "video/mpeg")) {
-                                    // 原生流式单播 / 组播转单播
-                                    log.debug("收到流式单播/组播转单播响应，Content-Type: {}", contentType);
-                                    StreamMetrics metric = this.checkStreamMetric(response);
-                                    log.debug("检测结果：{}", metric);
-                                    channel.setScore(metric.getScore());
-                                } else {
-                                    //TODO application/dash+xml
-                                    log.debug("未知的响应，Content-Type: {}", contentType);
-                                }
-
-                            } catch (Exception e) {
-                                channel.setStatus(Channel.Status.invalid);
-                                log.warn("检测失败，Channel: {}, 错误信息: {}", channel.getName(), e.getMessage());
-                            }
-                            return channel;
-                        } catch (Exception e) {
-                            Thread.currentThread().interrupt();
-                            throw new IllegalStateException("任务被中断", e);
-                        } finally {
-                            // 3. 铁律：必须在 finally 中释放许可证，确保发生异常时名额也能归还
-                            semaphore.release();
-                        }
-                    }, executor).exceptionally(throwable -> {
-                        channel.setStatus(Channel.Status.invalid);
-                        log.warn("检测失败，Channel: {}, 错误信息: {}", channel.getName(), throwable.getMessage());
-                        return channel;
-                    }))
-                    .toList();
-
-            log.debug("所有 HTTP 检测任务已提交到线程池，正在进行 20 并发处理...");
-
-            // 5. 组合所有任务，并阻塞等待 10,000 个请求全部结束
-            CompletableFuture<Void> allCombinedTask = CompletableFuture.allOf(
-                    futures.toArray(new CompletableFuture[0])
-            );
-            allCombinedTask.join();
-            List<Channel> result = futures.stream()
-                    .map(CompletableFuture::join)
-                    .collect(Collectors.toList());
-            log.debug("所有任务检测完毕，统一返回结果");
-            return result;
-        } catch (Exception e) {
-            log.warn("HttpClient 初始化或运行出错: {}", e.getMessage());
-            return channels;
+        if (channel.getStatus() == Channel.Status.invalid) {
+            log.debug("Channel {} has status invalid, next", channel);
+            return channel;
         }
+
+        log.debug("开始使用 HTTP GET 检测 {} 的 URL链接: {}", channel.getName(), channel.getUrl());
+        try (Response response = okHttpClient
+                .newCall(new Request.Builder().get().header("User-Agent", "AptvPlayer/1.4.25").url(channel.getUrl()).build()).execute()) {
+            if (!response.isSuccessful()) {
+                throw new OkHttpRequestException("HTTP request failed with code " + response.code());
+            }
+
+            long startTime = response.sentRequestAtMillis();
+            long endTime = response.receivedResponseAtMillis();
+            long duration = endTime - startTime;
+
+
+            log.debug("请求耗时: {} 毫秒", duration);
+            channel.setHttpDetectDelayMilliseconds(duration);
+
+            String contentType = response.header("Content-Type");
+            if (Strings.CI.containsAny(contentType, "vnd.apple.mpegurl", "x-mpegurl", "audio/mpegurl")) {
+                // m3u8 HLS单播
+                log.debug("收到 m3u8 HLS 单播响应，Content-Type: {}", contentType);
+                String content = response.body().string();
+                this.checkM3UContentValid(content);
+                SegmentMetrics metric = this.checkHlsMetrics(channel.getUrl(), content);
+                log.debug("检测结果：{}", metric);
+                channel.setScore(metric.getScore());
+                channel.setHttpDetectDelayMilliseconds(metric.getTotalCost());
+
+            } else if (Strings.CI.containsAny(contentType, "video/x-flv", "video/mp2t", "application/octet-stream", "video/mp4", "video/mpeg")) {
+                // 原生流式单播 / 组播转单播
+                log.debug("收到流式单播/组播转单播响应，Content-Type: {}", contentType);
+                StreamMetrics metric = this.checkStreamMetric(response);
+                log.debug("检测结果：{}", metric);
+                channel.setScore(metric.getScore());
+            } else {
+                //TODO application/dash+xml
+                log.debug("未知的响应，Content-Type: {}", contentType);
+            }
+
+        } catch (Exception e) {
+            channel.setStatus(Channel.Status.invalid);
+            log.warn("检测失败，Channel: {}, 错误信息: {}", channel.getName(), e.getMessage());
+        }
+        return channel;
     }
 
     private StreamMetrics checkStreamMetric(Response response) {
@@ -268,8 +216,7 @@ public class HttpGetCheckEngine implements CleaningEngine {
                 if (line.startsWith("http")) {
                     playlistUri = line;
                 } else {
-                    String uri = this.resolveUri(url, line);
-                    playlistUri = uri;
+                    playlistUri = this.resolveUri(url, line);
                 }
                 urls.add(playlistUri);
             }
@@ -614,11 +561,7 @@ public class HttpGetCheckEngine implements CleaningEngine {
     }
 
     /**
-     * // 计算完整路径
-     *
-     * @param baseUrl
-     * @param relativeUrl
-     * @return
+     * 计算完整路径
      */
     private String resolveUri(String baseUrl, String relativeUrl) {
         try {

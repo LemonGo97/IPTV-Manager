@@ -5,6 +5,7 @@ import com.lemongo97.iptv.iptvmanager.common.PageResult;
 import com.lemongo97.iptv.iptvmanager.endpoint.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
+import com.lemongo97.iptv.iptvmanager.quartz.job.params.ChannelCleanupJobParams;
 import com.lemongo97.iptv.iptvmanager.service.ChannelService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -54,10 +55,9 @@ public class ChannelController {
         return ApiResponse.ok(channelService.getOptions());
     }
 
-    @PostMapping("/clean/{step}")
-    public ApiResponse<Void> clean(@PathVariable RuleType step,@RequestBody ArrayList<Long> channelIds) {
-//        if (true) return ApiResponse.ok(null);
-        channelService.dataClean(step, channelIds);
+    @PostMapping("/clean")
+    public ApiResponse<Void> clean(@RequestBody ChannelCleanupJobParams jobParams) {
+        channelService.dataClean(jobParams);
         return ApiResponse.ok(null);
     }
 }

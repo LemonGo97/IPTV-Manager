@@ -1,6 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.mapper;
 
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
+import com.lemongo97.iptv.iptvmanager.quartz.job.params.ChannelCleanupJobParams;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -34,4 +35,6 @@ public interface OriginalChannelMapper {
     int deleteByProviderId(@Param("providerId") Long providerId);
 
     List<OriginalChannelMetadata> findByTaskId(@Param("taskId") Long taskId);
+
+    List<OriginalChannelMetadata> prepareChannelCleanupList(@Param("jobParams") ChannelCleanupJobParams jobParams);
 }

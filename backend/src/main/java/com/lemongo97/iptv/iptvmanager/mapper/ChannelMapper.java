@@ -2,12 +2,11 @@ package com.lemongo97.iptv.iptvmanager.mapper;
 
 import com.lemongo97.iptv.iptvmanager.endpoint.controller.request.ChannelQuery;
 import com.lemongo97.iptv.iptvmanager.entity.Channel;
-import org.apache.commons.collections4.CollectionUtils;
+import com.lemongo97.iptv.iptvmanager.quartz.job.params.ChannelCleanupJobParams;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,4 +54,6 @@ public interface ChannelMapper {
     List<Channel> findByIds(List<Long> channelIds);
 
     void deleteByIds(List<Long> channelIds);
+
+    List<Channel> prepareChannelCleanupList(@Param("jobParams") ChannelCleanupJobParams jobParams);
 }

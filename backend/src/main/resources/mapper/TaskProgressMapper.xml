@@ -41,6 +41,13 @@
             updated_at = datetime('now')
         WHERE task_id = #{taskId}
     </update>
+    <update id="failUnfinishedTasks">
+        UPDATE task_progress
+        SET status = 'ERROR',
+            message = '由于进程退出，任务已中断并失败',
+            updated_at = datetime('now')
+        WHERE status = 'RUNNING'
+    </update>
 
     <select id="findByTaskId" resultMap="TaskProgressResultMap">
         SELECT id, task_id, task_type, progress, status, message, total_items, processed_items, started_at, completed_at, created_at, updated_at

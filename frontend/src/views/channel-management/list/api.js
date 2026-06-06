@@ -14,5 +14,5 @@ export default {
   getTimeline: (id) => request.get(`/channel/${id}/timeline`),
 
   // 数据清洗
-  dataClean: (step, channelIds) => request.post(`/channel/clean/${step}`, channelIds),
+  dataClean: (params) => request.post(`/channel/clean`, params),
 }

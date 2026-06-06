@@ -1,7 +1,8 @@
 package com.lemongo97.iptv.iptvmanager.quartz.job;
 
 import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
-import com.lemongo97.iptv.iptvmanager.service.CleanupRuleService;
+import com.lemongo97.iptv.iptvmanager.quartz.job.params.ChannelCleanupJobParams;
+import com.lemongo97.iptv.iptvmanager.service.ChannelCleanupJobService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -22,21 +23,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataCleanupJob implements org.quartz.Job {
 
-    private final CleanupRuleService cleanupRuleService;
+    private final ChannelCleanupJobService channelCleanupJobService;
 
     @Override
     public void execute(JobExecutionContext context) {
         String triggerType = context.getJobDetail().getJobDataMap().getString("triggerType");
-        String stepString = context.getJobDetail().getJobDataMap().getString("step");
-        List<Long> channelIds = (List<Long>) context.getJobDetail().getJobDataMap().get("channelIds");
+        ChannelCleanupJobParams jobParams = (ChannelCleanupJobParams) context.getJobDetail().getJobDataMap().getOrDefault("jobParams", ChannelCleanupJobParams.ALL);
         log.info("Executing data cleanup job, trigger: {}", triggerType);
-
-        RuleType step = StringUtils.isNotBlank(stepString) ? RuleType.valueOf(stepString) : null;
 
         long startTime = System.currentTimeMillis();
 
         try {
-            int channelCount = cleanupRuleService.executeDataCleanup(step, channelIds);
+            int channelCount = channelCleanupJobService.execute(jobParams);
 
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;

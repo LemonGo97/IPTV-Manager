@@ -5,18 +5,16 @@ import com.lemongo97.iptv.iptvmanager.entity.IPTVProvider;
 import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRawData;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import com.lemongo97.iptv.iptvmanager.parser.m3u8.IPTVM3U8Parser;
 import com.lemongo97.iptv.iptvmanager.parser.txt.IPTVTXTParser;
-import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -28,7 +26,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class IPTVProviderContentParserService {
+public class IPTVProviderContentParserService implements OriginalChannelCover{
 
     private final OriginalChannelMapper originalChannelMapper;
     private final ChannelMapper channelMapper;
@@ -36,7 +34,6 @@ public class IPTVProviderContentParserService {
     private final IPTVProviderRawDataService rawDataService;
     private final IPTVM3U8Parser IPTVM3U8Parser;
     private final IPTVTXTParser IPTVTXTParser;
-    private final CleanupRuleService cleanupRuleService;
 
     public int parse(IPTVProvider provider, Long taskId) {
         String content;
@@ -61,7 +58,7 @@ public class IPTVProviderContentParserService {
         originalChannelMapper.insert(channels, taskId);
 
         // 直接更新到频道表中
-        List<Channel> converted = cleanupRuleService.convertOriginalChannelsToChannels(channels);
+        List<Channel> converted = this.toChannel(channels);
         channelMapper.deleteByProviderId(provider.getId());
         channelMapper.insert(converted, 100);
         return channels.size();

@@ -1,6 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.mapper;
 
 import com.lemongo97.iptv.iptvmanager.entity.CleanupRule;
+import com.lemongo97.iptv.iptvmanager.quartz.job.params.ChannelCleanupJobParams;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -26,4 +27,6 @@ public interface CleanupRuleMapper {
     int deleteById(@Param("id") Long id);
 
     void batchUpdateSortOrder(@Param("rules") List<CleanupRule> rules);
+
+    List<CleanupRule> prepareCleanupRuleList(@Param("jobParams") ChannelCleanupJobParams jobParams);
 }

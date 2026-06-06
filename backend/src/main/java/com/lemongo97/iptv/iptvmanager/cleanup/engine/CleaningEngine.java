@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface CleaningEngine {
 
-    List<Channel> process(List<Channel> channels, String paramsJson);
+    Channel process(Channel channel, String paramsJson);
 
 }

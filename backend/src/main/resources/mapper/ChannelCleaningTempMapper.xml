@@ -43,6 +43,23 @@
             #{channel.audioInfo}, #{channel.score}, #{channel.createdAt}, #{channel.updatedAt}
         )
     </insert>
+    <insert id="insertBatch">
+        INSERT INTO channel_cleaning_temp (
+            name, logo, url, provider_id, group_id, epg_source_id,
+            status, country, language,
+            http_detect_delay_milliseconds, ffmpeg_detect_delay_milliseconds,
+            video_info, audio_info, score, created_at, updated_at
+        ) VALUES
+        <foreach collection="channels" item="channel" separator=",">
+            (#{channel.name}, #{channel.logo}, #{channel.url}, #{channel.providerId},
+            #{channel.groupId}, #{channel.epgSourceId}, #{channel.status},
+            #{channel.country}, #{channel.language}, #{channel.httpDetectDelayMilliseconds},
+            #{channel.ffmpegDetectDelayMilliseconds}, #{channel.videoInfo},
+            #{channel.audioInfo}, #{channel.score}, #{channel.createdAt}, #{channel.updatedAt})
+        </foreach>
+
+
+    </insert>
 
     <!-- 查询所有频道 -->
     <select id="findAll" resultMap="ChannelTempResultMap">

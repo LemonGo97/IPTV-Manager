@@ -1,19 +1,16 @@
 package com.lemongo97.iptv.iptvmanager.service;
 
-import com.github.houbb.opencc4j.util.ZhConverterUtil;
-import com.lemongo97.iptv.iptvmanager.common.BusinessException;
-import com.lemongo97.iptv.iptvmanager.cleanup.CleanEngineManager;
-import com.lemongo97.iptv.iptvmanager.cleanup.rule.CleanUpRuleParam;
-import com.lemongo97.iptv.iptvmanager.cleanup.config.CleanupEngineConfig;
-import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
 import com.lemongo97.iptv.iptvmanager.cleanup.engine.group.GroupingEngine;
-import com.lemongo97.iptv.iptvmanager.entity.*;
-import com.lemongo97.iptv.iptvmanager.mapper.*;
+import com.lemongo97.iptv.iptvmanager.common.BusinessException;
+import com.lemongo97.iptv.iptvmanager.entity.ChannelGroup;
+import com.lemongo97.iptv.iptvmanager.entity.CleanupEngine;
+import com.lemongo97.iptv.iptvmanager.entity.CleanupRule;
+import com.lemongo97.iptv.iptvmanager.mapper.ChannelGroupMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.CleanupEngineMapper;
+import com.lemongo97.iptv.iptvmanager.mapper.CleanupRuleMapper;
 import com.lemongo97.iptv.iptvmanager.utils.JSONUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +21,7 @@ import tools.jackson.databind.node.ObjectNode;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 数据清洗规则服务
@@ -39,14 +34,7 @@ public class CleanupRuleService {
 
     private final CleanupEngineMapper cleanupEngineMapper;
     private final CleanupRuleMapper cleanupRuleMapper;
-    private final ChannelMapper channelMapper;
-    private final OriginalChannelMapper originalChannelMapper;
-    private final CleanEngineManager cleanEngineManager;
-    private final ChannelCleaningTempMapper channelCleaningTempMapper;
-    private final TaskProgressService taskProgressService;
     private final ChannelGroupMapper channelGroupMapper;
-
-    // ===== 引擎相关方法 =====
 
     /**
      * 获取所有清洗引擎列表
@@ -56,11 +44,10 @@ public class CleanupRuleService {
         List<ChannelGroup> groups = channelGroupMapper.findAll();
 
         List<ObjectNode> groupOptions = new ArrayList<>();
-        groups.forEach(group -> {
-            groupOptions.add(JsonNodeFactory.instance.objectNode()
-                    .put("label", group.getName())
-                    .put("value", group.getId()));
-        });
+        groups.forEach(group ->
+                groupOptions.add(JsonNodeFactory.instance.objectNode()
+                        .put("label", group.getName())
+                        .put("value", group.getId())));
 
         for (CleanupEngine engine : engines) {
             if (Strings.CI.equals(engine.getFullClassName(), GroupingEngine.class.getName())){
@@ -78,296 +65,6 @@ public class CleanupRuleService {
         }
         return engines;
     }
-
-    /**
-     * 黑名单引擎参数
-     */
-    public List<CleanUpRuleParam> blacklistParams() {
-        return List.of(new CleanUpRuleParam.DynamicInputParam("keyword", "关键字"));
-    }
-
-    /**
-     * FFprobe 过滤引擎参数
-     */
-    public List<CleanUpRuleParam> ffprobeFilterParams() {
-        return List.of(
-                new CleanUpRuleParam.NumberParam("delayMillisecond", "最高延迟时间"),
-                new CleanUpRuleParam.SwitchParam("discardNoVideo", "丢弃无视频"),
-                new CleanUpRuleParam.SwitchParam("discardNoAudio", "丢弃无音频"),
-                new CleanUpRuleParam.NumberParam("minVideoFrameWidth", "最小视频帧宽度"),
-                new CleanUpRuleParam.NumberParam("minVideoFrameHeight", "最小视频帧高度")
-        );
-    }
-
-    /**
-     * OpenCC 引擎参数
-     */
-    public List<CleanUpRuleParam> openccParams() {
-        List<CleanUpRuleParam.SelectParam.SelectParamOption> options = List.of(
-                new CleanUpRuleParam.SelectParam.SelectParamOption("simple", "简体"),
-                new CleanUpRuleParam.SelectParam.SelectParamOption("traditional", "繁体")
-        );
-
-        CleanUpRuleParam.SelectParam input = new CleanUpRuleParam.SelectParam("input", "输入语言");
-        input.setOptions(options);
-
-        CleanUpRuleParam.SelectParam output = new CleanUpRuleParam.SelectParam("output", "输出语言");
-        output.setOptions(options);
-        return List.of(input, output);
-    }
-
-    /**
-     * 大小写转换引擎参数
-     */
-    public List<CleanUpRuleParam> caseCoverParams() {
-        List<CleanUpRuleParam.SelectParam.SelectParamOption> options = List.of(
-                new CleanUpRuleParam.SelectParam.SelectParamOption("uppercase", "大写"),
-                new CleanUpRuleParam.SelectParam.SelectParamOption("lowercase", "小写")
-        );
-
-        CleanUpRuleParam.SelectParam input = new CleanUpRuleParam.SelectParam("input", "输入");
-        input.setOptions(options);
-
-        CleanUpRuleParam.SelectParam output = new CleanUpRuleParam.SelectParam("output", "输出");
-        output.setOptions(options);
-        return List.of(input, output);
-    }
-
-    /**
-     * 正则替换引擎参数
-     */
-    public List<CleanUpRuleParam> regexParams() {
-        CleanUpRuleParam.DynamicInputPairParam dynamicInputPairParam = new CleanUpRuleParam.DynamicInputPairParam("groups", "分组替换设置");
-        dynamicInputPairParam.setKeyField("groupId");
-        dynamicInputPairParam.setKeyPlaceholder("分组ID");
-        dynamicInputPairParam.setValueField("text");
-        dynamicInputPairParam.setValuePlaceholder("替换值");
-        return List.of(
-                new CleanUpRuleParam.InputParam("regex", "正则表达式"),
-                dynamicInputPairParam
-        );
-    }
-
-    /**
-     * 字符串替换引擎参数
-     */
-    public List<CleanUpRuleParam> stringParams() {
-        return List.of(
-                new CleanUpRuleParam.InputParam("target", "匹配值"),
-                new CleanUpRuleParam.InputParam("text", "替换文字")
-        );
-    }
-
-    /**
-     * HTTP 检测引擎参数
-     */
-    public List<CleanUpRuleParam> httpParams() {
-        List<CleanUpRuleParam.SelectParam.SelectParamOption> options = List.of(
-                new CleanUpRuleParam.SelectParam.SelectParamOption("GET", "GET"),
-                new CleanUpRuleParam.SelectParam.SelectParamOption("HEAD", "HEAD")
-        );
-
-        CleanUpRuleParam.SelectParam input = new CleanUpRuleParam.SelectParam("type", "检测方式");
-        input.setOptions(options);
-        return List.of(
-                input,
-                new CleanUpRuleParam.NumberParam("delayMillisecond", "最大延迟时间")
-        );
-    }
-
-    // ===== 数据清洗执行方法 =====
-
-    /**
-     * 获取所有启用的清洗规则配置
-     */
-    public List<CleanupEngineConfig> getEnabledEngineConfigs() {
-        List<CleanupRule> rules = cleanupRuleMapper.findAll();
-        return rules.stream()
-                .filter(rule -> rule.getEnabled() != null && rule.getEnabled())
-                .map(this::toEngineConfig)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 执行数据清洗
-     * 从原始频道元数据转换为频道，并应用清洗规则
-     * 新流程：使用中间表，逐个频道处理，避免清洗中断导致数据丢失
-     */
-    public int executeDataCleanup(RuleType step, List<Long> channelIds) {
-        log.info("Starting data cleanup process");
-
-        // 1. 创建任务跟踪器
-        TaskProgress task = taskProgressService.createTask("DATA_CLEANUP", null, "初始化数据清洗任务");
-        String taskId = task.getTaskId();
-        taskProgressService.startTask(taskId);
-
-        try {
-            // 2. 清空中间表（物理删除）
-            channelCleaningTempMapper.truncate();
-            log.info("Cleaned temp table: channel_cleaning_temp");
-            taskProgressService.updateProgress(taskId, 0, 5d, "已清空临时表");
-
-            // 3. 获取所有启用的清洗规则
-            List<CleanupEngineConfig> configs = getEnabledEngineConfigs();
-            log.debug("Found {} enabled cleanup rules", configs.size());
-            taskProgressService.updateProgress(taskId, 0, 10d, "加载清洗规则完成");
-
-            // 4. 获取原始频道元数据并转换为 Channel
-            List<Channel> channels;
-
-            // 如果传递了规则类型（分步），那么说明要对已处理的频道进行某个步骤的单独处理
-            if (step == null || step == RuleType.undefined){
-                channels = convertOriginalChannelsToChannels();
-            } else {
-                channels = getCoveredChannels(channelIds);
-                // 若已处理好的频道为空，则说明未进行过处理，所以获取最原始的数据进行分步处理
-                if (channels.isEmpty()) {
-                    channels = convertOriginalChannelsToChannels();
-                }
-            }
-
-
-            int totalChannels = channels.size();
-            log.info("Converted {} original channels to Channel format", totalChannels);
-            taskProgressService.updateProgress(taskId, 0, 15d, "找到 " + totalChannels + " 个原始频道");
-
-            // 5. 逐个处理频道并立即插入中间表
-            int processedCount = 0;
-            double lastProgressUpdate = 0;
-
-            int i = 0;
-            int batchSize = 50;
-            List<List<Channel>> partitions = ListUtils.partition(channels, batchSize);
-            for (List<Channel> input : partitions) {
-
-                List<Channel> cleaned = cleanEngineManager.process(input, configs, step);
-
-                if (step == null || step == RuleType.undefined || step == RuleType.DELAY){
-                    cleaned.forEach(c -> {
-                        if (c.getStatus() == Channel.Status.unknown) c.setStatus(Channel.Status.valid);
-                    });
-                }
-
-                // 如果未被过滤，插入中间表
-                if (!cleaned.isEmpty()) {
-                    channelCleaningTempMapper.insert(cleaned);
-                    processedCount++;
-                }
-
-                // 每5%更新一次进度
-                double currentProgress = 15 + ((i + batchSize) * 70.0 / totalChannels);
-                if (currentProgress > lastProgressUpdate || i == channels.size() - 1) {
-                    taskProgressService.updateProgress(
-                            taskId,
-                            processedCount,
-                            currentProgress,
-                            "已处理 " + (i + batchSize) + "/" + totalChannels + " 个频道"
-                    );
-                    lastProgressUpdate = currentProgress;
-                }
-
-                // 每处理 100 个频道记录一次日志
-                if ((i + batchSize) % 100 == 0) {
-                    log.info("Processed {}/{} channels, {} valid so far", i + 1, totalChannels, processedCount);
-                }
-                i += batchSize;
-            }
-
-            log.info("Channel processing completed: {}/{} valid channels", processedCount, totalChannels);
-
-            // 6. 从中间表转移到正式表
-            taskProgressService.updateProgress(taskId, processedCount, 90d, "正在保存到正式表");
-            List<Channel> tempChannels = channelCleaningTempMapper.findAll();
-            if (CollectionUtils.isNotEmpty(tempChannels) && CollectionUtils.isNotEmpty(channelIds)) {
-                channelMapper.deleteByIds(channelIds);
-            } else {
-                channelMapper.truncate();
-            }
-            channelMapper.insert(tempChannels, 100);
-
-            taskProgressService.completeTask(taskId, "数据清洗完成，成功处理 " + tempChannels.size() + " 个频道");
-            log.info("Data cleanup completed successfully, {} channels saved to main table", tempChannels.size());
-            return tempChannels.size();
-
-        } catch (Exception e) {
-            log.error("Data cleanup failed", e);
-            taskProgressService.failTask(taskId, "数据清洗失败: " + e.getMessage());
-            throw e;
-        }
-    }
-
-    private List<Channel> getCoveredChannels(List<Long> channelIds) {
-        if (CollectionUtils.isNotEmpty(channelIds)) {
-            return channelMapper.findByIds(channelIds);
-        }
-        return channelMapper.findAll().stream().map(ch -> ch.setId(null)).toList();
-    }
-
-    public List<Channel> convertOriginalChannelsToChannels(Collection<OriginalChannelMetadata> originalChannels) {
-        return originalChannels.stream()
-                .map(o -> {
-
-                    boolean tvgNameZh = ZhConverterUtil.containsChinese(o.getTvGuideName());
-                    boolean tvgIdZh = ZhConverterUtil.containsChinese(o.getTvGuideId());
-                    boolean cname = ZhConverterUtil.containsChinese(o.getName());
-
-                    String name;
-                    if (tvgNameZh){
-                        name = o.getTvGuideName();
-                    } else {
-                        if (tvgIdZh && cname){
-                            name = o.getTvGuideId();
-                        }else {
-                            name = o.getName();
-                        }
-                    }
-
-                    Channel channel = new Channel()
-                            .setName(name)
-                            .setLogo(o.getTvGuideLogo())
-                            .setUrl(o.getUrl())
-                            .setProviderId(o.getProviderId())
-                            .setGroupId(0L)
-                            .setEpgSourceId(o.getTvGuideId())
-                            .setStatus(Channel.Status.unknown)
-                            .setCountry(o.getTvGuideCountry())
-                            .setLanguage(o.getTvGuideLanguage())
-                            .setScore(0d)
-                            .setCreatedAt(o.getCreatedAt())
-                            .setUpdatedAt(o.getUpdatedAt());
-                    return channel;
-                })
-                .toList();
-    }
-    /**
-     * 将原始频道元数据转换为频道对象
-     */
-    public List<Channel> convertOriginalChannelsToChannels() {
-        return convertOriginalChannelsToChannels(originalChannelMapper.findAll());
-    }
-
-    /**
-     * 将 CleanupRule 转换为 EngineConfig
-     */
-    private CleanupEngineConfig toEngineConfig(CleanupRule rule) {
-        RuleType ruleType;
-        try {
-            ruleType = RuleType.valueOf(rule.getRuleType().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid rule type: {}, defaulting to FILTER", rule.getRuleType());
-            ruleType = RuleType.FILTER;
-        }
-
-        CleanupEngineConfig config = new CleanupEngineConfig();
-        config.setId(rule.getId());
-        config.setRuleType(ruleType);
-        config.setEngine(rule.getEngine());
-        config.setConfigParams(rule.getParams());
-        config.setSortOrder(rule.getSortOrder());
-        return config;
-    }
-
-    // ===== CRUD 方法 =====
 
     /**
      * 获取所有清洗规则（可选按规则类型过滤）

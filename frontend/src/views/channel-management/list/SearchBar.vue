@@ -83,7 +83,7 @@ function handleRefresh() {
 async function handleStartProcessing() {
   stepsAreaLoadingStatus.value = true
   try {
-    await api.dataClean(undefined, [])
+    await api.dataClean({})
     $message.info('频道列表开始数据清洗并生成新的频道列表中...')
   } catch (error) {
     $message.error('开始处理失败')
@@ -96,7 +96,9 @@ async function handleStartProcessing() {
 async function handleStepPressSelect(key) {
   stepsAreaLoadingStatus.value = true
   try {
-    await api.dataClean(key, [])
+    await api.dataClean({
+      ruleType: [key],
+    })
     $message.info('频道列表开始数据清洗并生成新的频道列表中...')
   } catch (error) {
     $message.error('分步处理失败')
@@ -109,7 +111,10 @@ async function handleStepPressSelect(key) {
 async function handleStepPressSelectBatch(key) {
   stepsAreaLoadingStatus.value = true
   try {
-    await api.dataClean(key, props.checkedRows)
+    await api.dataClean({
+      ruleType: [key],
+      channelId: props.checkedRows,
+    })
     $message.info('频道列表开始数据清洗并生成新的频道列表中...')
   } catch (error) {
     $message.error('分步处理失败')

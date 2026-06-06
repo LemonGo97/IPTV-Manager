@@ -39,4 +39,6 @@ public interface TaskProgressMapper {
      * 根据任务类型查询最新任务
      */
     Optional<TaskProgress> findLatestByTaskType(@Param("taskType") String taskType);
+
+    void failUnfinishedTasks();
 }
