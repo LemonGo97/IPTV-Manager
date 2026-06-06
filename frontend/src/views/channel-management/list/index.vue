@@ -45,7 +45,7 @@ import SearchBar from './SearchBar.vue'
 import DataTable from './DataTable.vue'
 import EpgModal from './EpgModal.vue'
 import PreviewModal from './PreviewModal.vue'
-import CleanupModal from "@/views/channel-management/list/CleanupModal.vue";
+import CleanupModal from "./CleanupModal.vue";
 
 // 弹窗显示状态
 const epgModalVisible = ref(false)

@@ -242,6 +242,12 @@
                            #{channelId}
                        </foreach>
                 </if>
+                <if test="@org.apache.commons.collections4.CollectionUtils@isNotEmpty(jobParams.status)">
+                    AND status in
+                       <foreach collection="jobParams.status" item="status" open="(" separator="," close=")">
+                           #{status}
+                       </foreach>
+                </if>
             </where>
     </select>
 

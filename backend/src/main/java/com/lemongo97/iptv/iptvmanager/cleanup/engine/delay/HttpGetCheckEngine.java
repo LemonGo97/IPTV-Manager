@@ -29,8 +29,9 @@ public class HttpGetCheckEngine implements CleaningEngine {
     private static final OkHttpClient okHttpClient =
             new OkHttpClient.Builder()
                     .connectTimeout(5, TimeUnit.SECONDS)
-                    .readTimeout(10, TimeUnit.SECONDS)
-                    .writeTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(5, TimeUnit.SECONDS)
+                    .writeTimeout(5, TimeUnit.SECONDS)
+                    .callTimeout(5, TimeUnit.SECONDS)
                     .retryOnConnectionFailure(false)
                     .build();
 
@@ -70,13 +71,14 @@ public class HttpGetCheckEngine implements CleaningEngine {
                 log.debug("检测结果：{}", metric);
                 channel.setScore(metric.getScore());
                 channel.setHttpDetectDelayMilliseconds(metric.getTotalCost());
-
+                channel.setStatus(Channel.Status.valid);
             } else if (Strings.CI.containsAny(contentType, "video/x-flv", "video/mp2t", "application/octet-stream", "video/mp4", "video/mpeg")) {
                 // 原生流式单播 / 组播转单播
                 log.debug("收到流式单播/组播转单播响应，Content-Type: {}", contentType);
                 StreamMetrics metric = this.checkStreamMetric(response);
                 log.debug("检测结果：{}", metric);
                 channel.setScore(metric.getScore());
+                channel.setStatus(Channel.Status.valid);
             } else {
                 //TODO application/dash+xml
                 log.debug("未知的响应，Content-Type: {}", contentType);

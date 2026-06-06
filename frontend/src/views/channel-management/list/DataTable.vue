@@ -153,9 +153,9 @@ const columns = computed(() => {
       title: '状态',
       key: 'status',
       width: 80,
-      render: row =>{
-
-        if (row.score === undefined || row.score === null) {
+      render: row => {
+        // 提取公共的 NTag 渲染逻辑，避免重复写两遍
+        const renderTag = () => {
           return h(
             NTag,
             { type: row.status === 'valid' ? 'success' : row.status === 'invalid' ? 'error' : 'info' },
@@ -165,33 +165,33 @@ const columns = computed(() => {
                   case 'valid': return '有效'
                   case 'invalid': return '无效'
                   case 'unknown': return '未知'
+                  default: return '未知' // 建议加上默认值防错
                 }
               },
             }
           )
         }
+
+        // 情况 1：分数为空，直接返回 Tag
+        if (row.score === undefined || row.score === null) {
+          return renderTag()
+        }
+
+        // 情况 2：有分数，返回被 Badge 包裹的 Tag
         let type = row.score > 80 ? 'success' : row.score > 60 ? 'warning' : 'error'
-       return h(
-         NBadge,
-         {
-           type: type,
-           dot: true,
-           processing: true,
-         },
-         h(
-           NTag,
-           { type: row.status === 'valid' ? 'success' : row.status === 'invalid' ? 'error' : 'info' },
-           {
-             default: () => {
-               switch (row.status) {
-                 case 'valid': return '有效'
-                 case 'invalid': return '无效'
-                 case 'unknown': return '未知'
-               }
-             },
-           }
-         )
-       )
+
+        return h(
+          NBadge,
+          {
+            type: type,
+            dot: true,
+            processing: true,
+          },
+          {
+            // 关键修改点：将 NBadge 的默认插槽也改为函数形式
+            default: () => renderTag()
+          }
+        )
       },
       filter: true,
       filterOptions: [

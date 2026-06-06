@@ -1,6 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.quartz.job.params;
 
 import com.lemongo97.iptv.iptvmanager.cleanup.rule.RuleType;
+import com.lemongo97.iptv.iptvmanager.entity.Channel;
 import lombok.Data;
 
 import java.util.HashSet;
@@ -30,6 +31,10 @@ public class ChannelCleanupJobParams {
      * 频道ID，若为空，则为全部Channel
      */
     private Set<Long> channelId = new HashSet<>();
+    /**
+     * 频道状态，若为空，则为全部Channel
+     */
+    private Set<Channel.Status> status = new HashSet<>();
 
     public ChannelCleanupJobParams addRuleType(RuleType ruleType) {
         this.ruleType.add(ruleType);
