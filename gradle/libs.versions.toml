@@ -18,6 +18,7 @@ node-gradle-plugin = "7.1.0"
 commons-net = "3.13.0"
 seancfoley-ipaddress = "5.6.2"
 commons-compress = "1.28.0"
+commons-codec = "1.22.0"
 zstd-jni = "1.5.7-7"
 snappy-java = "1.1.10.8"
 mybatis-spring-boot-starter = "4.0.1"
@@ -85,6 +86,8 @@ commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 commons-net = { module = "commons-net:commons-net", version.ref = "commons-net" }
 # Source: https://mvnrepository.com/artifact/org.apache.commons/commons-compress
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress"}
+# Source: https://mvnrepository.com/artifact/commons-codec/commons-codec
+commons-codec = {module = "commons-codec:commons-codec", version.ref="commons-codec"}
 
 # Source: https://mvnrepository.com/artifact/com.github.luben/zstd-jni
 zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni"}

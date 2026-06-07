@@ -105,7 +105,9 @@ public class TestHttpGetCheckEngine {
         Channel channel1 = new Channel().setName("test_channel1").setUrl("http://221.216.54.228:4022/rtp/239.3.1.129:8008");
         HttpGetCheckEngine.HttpGetCheckEngineParam param = new HttpGetCheckEngine.HttpGetCheckEngineParam();
         param.setParallelNum(10);
-        List<Channel> processed = engine.process(List.of(channel, channel1), JSONUtil.toJsonString(param));
+        Channel processed = engine.process(channel, JSONUtil.toJsonString(param));
+        log.info("pressed channels => {}", processed);
+        processed = engine.process(channel1, JSONUtil.toJsonString(param));
         log.info("pressed channels => {}", processed);
     }
 }

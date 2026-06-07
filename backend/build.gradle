@@ -38,12 +38,16 @@ dependencies {
     implementation 'org.bytedeco:ffmpeg-platform:8.0.1-1.5.13'
     // Source: https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
     implementation 'org.apache.commons:commons-collections4:4.5.0'
+    // Source: https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
+    implementation 'com.jayway.jsonpath:json-path:3.0.0'
     // Quartz for scheduled tasks
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.websocket)
     // jsoup for XML parsing
     implementation(libs.jsoup)
     implementation(libs.commons.compress)
+    // Source: https://mvnrepository.com/artifact/cn.hutool/hutool-crypto
+    implementation 'cn.hutool:hutool-crypto:5.8.46'
 
     // Liquibase for database migration
     implementation(libs.liquibase.core)
