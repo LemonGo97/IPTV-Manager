@@ -3,6 +3,7 @@ package com.lemongo97.iptv.iptvmanager.module.migu.configutation;
 import com.lemongo97.iptv.iptvmanager.module.migu.service.MiguApiService;
 import com.lemongo97.iptv.iptvmanager.module.migu.service.MiguLiveService;
 import okhttp3.OkHttpClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(MiguModuleProperties.class)
 public class MiguModuleConfiguration {
     @Bean
+    @ConditionalOnMissingBean(OkHttpClient.class)
     public OkHttpClient okHttpClient(MiguModuleProperties miguModuleProperties) {
         MiguModuleProperties.OkHttpClientConfiguration okhttp = miguModuleProperties.getOkhttp();
         return new OkHttpClient.Builder()
