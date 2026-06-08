@@ -1,6 +1,8 @@
 package com.lemongo97.iptv.iptvmanager.module.migu.service;
 
 import cn.hutool.crypto.digest.DigestUtil;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -27,6 +29,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <pre>
@@ -68,6 +71,18 @@ import java.util.*;
 public class MiguApiService {
 
     private static final String clientId = getClientId();
+
+    private static final Cache<String, String> cache = Caffeine.newBuilder()
+            .initialCapacity(100)
+            .maximumSize(500)
+            .expireAfterWrite(3, TimeUnit.HOURS)
+            .build();
+
+    private static final Cache<String, String> error_cache = Caffeine.newBuilder()
+            .initialCapacity(20)
+            .maximumSize(500)
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .build();
 
     private final MiguModuleProperties properties;
     private final OkHttpClient okHttpClient;
@@ -163,7 +178,18 @@ public class MiguApiService {
     }
 
     public String fetchRealChannelUrl(String pid) {
-        Headers headers = this.buildHeaders(pid);
+        String cachedErrUrl = error_cache.getIfPresent(pid);
+        if (Strings.CI.equals("noop", cachedErrUrl)) {
+            throw new MiguHttpRequestException("Missing url info, try 1 minute later...");
+        }
+
+        String cachedUrl = cache.getIfPresent(pid);
+        if (StringUtils.isNotBlank(cachedUrl)) {
+            log.info("Cached channel url for pid: {}, use cached url: {}", pid, cachedUrl);
+            return cachedUrl;
+        }
+
+        Headers headers = buildHeaders(pid);
 
         long now = System.currentTimeMillis();
         String md5 = DigestUtils.md5Hex(now + pid + Constants.APP_VERSION.substring(0, 8));
@@ -212,12 +238,18 @@ public class MiguApiService {
 
             log.debug("response received, rateType: {}, contId: {}, url: {}", rateType, contId, url);
 
-            if (StringUtils.isEmpty(url)) throw new MiguHttpRequestException("Missing url info");
+            if (StringUtils.isBlank(url)) {
+                error_cache.put(pid, "noop");
+                throw new MiguHttpRequestException("Missing url info, try 1 minute later...");
+            }
 
             String puData = url.split("&puData=")[1];
             String ddCalcu = getddCalcu720p(puData, pid);
 
-            return url + "&ddCalcu=" + ddCalcu+"&sv=10004&ct=android";
+            String result = url + "&ddCalcu=" + ddCalcu+"&sv=10004&ct=android";
+            // 添加到缓存
+            cache.put(pid, result);
+            return result;
         } catch (IOException e) {
             throw new MiguHttpRequestException(e);
         }
