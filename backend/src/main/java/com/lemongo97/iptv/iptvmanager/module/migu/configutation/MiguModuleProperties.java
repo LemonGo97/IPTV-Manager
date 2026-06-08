@@ -15,9 +15,6 @@ public class MiguModuleProperties {
 
     private OkHttpClientConfiguration okhttp = new OkHttpClientConfiguration();
 
-    private String decryptKeyHex = Constants.LIVE_CHANNELS_DECRYPT_KEY_HEX;
-    private String decryptIvHex = Constants.LIVE_CHANNELS_DECRYPT_IV_HEX;
-
     private List<String> epgProvider = new ArrayList<>(List.of(
         "https://tv.mxdyeah.top/epgphp/t.xml.gz",
         "http://epg.51zmt.top:8000/e1.xml.gz",

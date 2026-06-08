@@ -16,19 +16,16 @@ import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import com.lemongo97.iptv.iptvmanager.module.migu.Constants;
 import com.lemongo97.iptv.iptvmanager.module.migu.configutation.MiguModuleProperties;
 import com.lemongo97.iptv.iptvmanager.module.migu.entity.LiveCategory;
-import com.lemongo97.iptv.iptvmanager.module.migu.entity.MiguChannel;
 import com.lemongo97.iptv.iptvmanager.module.migu.exception.MiguHttpRequestException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.lang3.Strings;
 import tools.jackson.databind.node.ArrayNode;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 
@@ -86,70 +83,4 @@ public class MiguApiService {
             throw new MiguHttpRequestException(e);
         }
     }
-
-    public List<MiguChannel> fetchChannelList() {
-        try (Response response = okHttpClient
-                .newCall(new Request.Builder().get()
-                        .url(Constants.LIVE_CHANNELS_URL).header("Referer", Constants.LIVE_CHANNELS_REFER).build()).execute()) {
-            if (!response.isSuccessful()) throw new MiguHttpRequestException("Unexpected code: " + response.code());
-            InputStream responseInputStream = response.body().byteStream();
-            InputStream inputStream = new GzipCompressorInputStream(responseInputStream);
-
-            DocumentContext jsonpath = JsonPath.parse(inputStream);
-            int status = jsonpath.read("$.status", int.class);
-            if (status != 0) throw new MiguHttpRequestException("Unexpected status with response json content: " + status);
-
-            ArrayNode channelNodes = jsonpath.read("$.data", ArrayNode.class);
-
-            List<MiguChannel> channels = channelNodes.valueStream().map(node -> {
-
-                // 过滤广告频道
-                if (node.has("ct")) {
-                    return null;
-                }
-
-                MiguChannel miguChannel = new MiguChannel();
-
-                String title = node.get("title").asString();
-                miguChannel.setTitle(title);
-
-                ArrayNode urlNodes = node.get("urls").asArray();
-                List<String> urls = urlNodes.valueStream().map(urlNode -> {
-                    String url = this.decryptChannelUrl(urlNode.asString());
-                    if (url.startsWith("sys_http")) {
-                        url = url.replace("sys_", "");
-                    }
-                    if (!url.startsWith("http")) {
-                        return null;
-                    }
-                    if (url.contains("$")) {
-                        url = url.split("\\$")[0];
-                    }
-                    return url;
-                }).filter(Objects::nonNull).toList();
-                miguChannel.setUrls(urls);
-
-                if (node.has("province")){
-                    String province = node.get("province").asString();
-                    miguChannel.setGroup(province);
-                }
-
-                return miguChannel;
-            }).filter(Objects::nonNull).toList();
-
-            return channels;
-        } catch (IOException e) {
-            throw new MiguHttpRequestException(e);
-        }
-    }
-
-    String decryptChannelUrl(String channelUrl) {
-        AES aes = new AES(
-                Mode.CBC,
-                Padding.PKCS5Padding,
-                HexUtil.decodeHex(properties.getDecryptKeyHex()),
-                HexUtil.decodeHex(properties.getDecryptIvHex()));
-        return aes.decryptStr(Base64.decode(channelUrl));
-    }
-
 }
