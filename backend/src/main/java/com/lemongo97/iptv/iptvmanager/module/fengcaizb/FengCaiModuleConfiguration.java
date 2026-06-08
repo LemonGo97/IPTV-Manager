@@ -1,7 +1,5 @@
-package com.lemongo97.iptv.iptvmanager.module.fengcaizb.configutation;
+package com.lemongo97.iptv.iptvmanager.module.fengcaizb;
 
-import com.lemongo97.iptv.iptvmanager.module.fengcaizb.FengCaiApiService;
-import com.lemongo97.iptv.iptvmanager.module.fengcaizb.FengCaiLiveService;
 import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

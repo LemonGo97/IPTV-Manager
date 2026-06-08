@@ -1,6 +1,5 @@
 package com.lemongo97.iptv.iptvmanager.module.fengcaizb;
 
-import com.lemongo97.iptv.iptvmanager.module.fengcaizb.configutation.FengCaiModuleProperties;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

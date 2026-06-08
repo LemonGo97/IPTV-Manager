@@ -1,6 +1,5 @@
-package com.lemongo97.iptv.iptvmanager.module.fengcaizb.configutation;
+package com.lemongo97.iptv.iptvmanager.module.fengcaizb;
 
-import com.lemongo97.iptv.iptvmanager.module.fengcaizb.Constants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

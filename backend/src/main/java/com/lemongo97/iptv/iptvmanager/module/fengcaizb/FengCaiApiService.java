@@ -13,8 +13,6 @@ import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.Jackson3MappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
-import com.lemongo97.iptv.iptvmanager.module.fengcaizb.configutation.FengCaiModuleProperties;
-import com.lemongo97.iptv.iptvmanager.module.fengcaizb.exception.FengCaiHttpRequestException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;

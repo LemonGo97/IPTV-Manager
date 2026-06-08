@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.module.fengcaizb.exception;
+package com.lemongo97.iptv.iptvmanager.module.fengcaizb;
 
 public class FengCaiHttpRequestException extends RuntimeException {
     public FengCaiHttpRequestException(String message) {
