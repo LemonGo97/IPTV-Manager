@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -19,22 +20,24 @@ public class MiguPlaylistService {
     private final MiguModuleProperties properties;
 
     @SuppressWarnings("DuplicateBranchesInSwitch")
-    public String getPlayList(PlaylistType type) {
+    public String getPlayList(PlaylistType type, String scheme, String host, String requestURI) {
         List<LiveChannel> channels = apiService.fetchChannelList();
         switch (type) {
             case m3u8 -> {
-                return toM3U8String(channels);
+                return toM3U8String(channels, scheme, host, requestURI);
             }
             case txt -> {
-                return toTXTString(channels);
+                return toTXTString(channels, scheme, host, requestURI);
             }
             default -> {
-                return toM3U8String(channels);
+                return toM3U8String(channels, scheme, host, requestURI);
             }
         }
     }
 
-    String toM3U8String(Collection<LiveChannel> channels) {
+    String toM3U8String(Collection<LiveChannel> channels, String scheme, String host, String requestURI) {
+        String uri = URI.create(requestURI).resolve("play/").toString();
+
         StringBuilder sb = new StringBuilder();
         this.appendM3U8Header(sb);
 
@@ -43,13 +46,15 @@ public class MiguPlaylistService {
             // output metadata
             this.appendChannelMetadata(channel, sb);
             // output url
-            sb.append("/module/migu/play/").append(channel.getPID()).append("\n");
+            sb.append(scheme).append("://").append(host).append(uri).append(channel.getPID()).append("\n");
         }
 
         return sb.toString();
     }
 
-    String toTXTString(Collection<LiveChannel> channels) {
+    String toTXTString(Collection<LiveChannel> channels, String scheme, String host, String requestURI) {
+        String uri = URI.create(requestURI).resolve("play/").toString();
+
         StringBuilder sb = new StringBuilder();
         Map<String, List<LiveChannel>> groupBy = channels.stream()
                 .collect(Collectors.groupingBy(user -> {
@@ -62,7 +67,7 @@ public class MiguPlaylistService {
             sb.append(group).append(",#genre#").append('\n');
             channelList.forEach(channel -> {
                 if (StringUtils.isBlank(channel.getPID())) return;
-                sb.append(channel.getName()).append(',').append("/module/migu/play/").append("\n");
+                sb.append(channel.getName()).append(',').append(scheme).append("://").append(host).append(uri).append(channel.getPID()).append("\n");
             });
             sb.append('\n');
         });
