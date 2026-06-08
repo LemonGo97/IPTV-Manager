@@ -1,6 +1,7 @@
 package com.lemongo97.iptv.iptvmanager.module.migu.configutation;
 
 import com.lemongo97.iptv.iptvmanager.module.migu.service.MiguApiService;
+import com.lemongo97.iptv.iptvmanager.module.migu.service.MiguPlaylistService;
 import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -26,5 +27,10 @@ public class MiguModuleConfiguration {
     @Bean
     public MiguApiService miguApiService(OkHttpClient okHttpClient, MiguModuleProperties properties) {
         return new MiguApiService(properties, okHttpClient);
+    }
+
+    @Bean
+    public MiguPlaylistService miguPlaylistService(MiguApiService miguApiService, MiguModuleProperties miguModuleProperties) {
+        return new MiguPlaylistService(miguApiService, miguModuleProperties);
     }
 }
