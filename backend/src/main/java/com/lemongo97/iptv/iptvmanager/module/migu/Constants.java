@@ -7,4 +7,7 @@ public interface Constants {
     String CHANNELS_URL = BASE_URL + "/%s";
 
     String CHANNEL_PLAY_URL = "https://play.miguvideo.com/playurl/v1/play/playurl";
+
+    String APP_VERSION = "2600034600";
+    String APP_VERSION_ID = APP_VERSION + "-99000-201600010010028";
 }

@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 public class MiguModuleProperties {
 
     private OkHttpClientConfiguration okhttp = new OkHttpClientConfiguration();
+    private boolean enableHDR = true;
+    private boolean enableH265 = true;
 
     private List<String> epgProvider = new ArrayList<>(List.of(
         "https://tv.mxdyeah.top/epgphp/t.xml.gz",
