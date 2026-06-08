@@ -1,10 +1,11 @@
-package com.lemongo97.iptv.iptvmanager.module.migu;
+package com.lemongo97.iptv.iptvmanager.module.migu.service;
 
+import com.lemongo97.iptv.iptvmanager.module.migu.configutation.MiguModuleConfiguration;
+import com.lemongo97.iptv.iptvmanager.module.migu.configutation.MiguModuleProperties;
 import com.lemongo97.iptv.iptvmanager.module.migu.entity.LiveCategory;
 import com.lemongo97.iptv.iptvmanager.module.migu.entity.MiguChannel;
-import com.lemongo97.iptv.iptvmanager.utils.OkHttpUtil;
+import com.lemongo97.iptv.iptvmanager.module.migu.service.MiguApiService;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,10 +15,13 @@ import java.util.List;
 public class TestMiguApiService {
 
     MiguApiService miguApiService;
+    MiguModuleProperties properties;
 
     @BeforeEach
     void init(){
-        this.miguApiService = new MiguApiService(OkHttpUtil.getClient());
+        MiguModuleConfiguration moduleConfiguration = new MiguModuleConfiguration();
+        this.properties = new MiguModuleProperties();
+        this.miguApiService = moduleConfiguration.miguApiService(moduleConfiguration.okHttpClient(properties), properties);
     }
 
     @Test

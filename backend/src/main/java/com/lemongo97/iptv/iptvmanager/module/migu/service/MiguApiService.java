@@ -1,4 +1,4 @@
-package com.lemongo97.iptv.iptvmanager.module.migu;
+package com.lemongo97.iptv.iptvmanager.module.migu.service;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.HexUtil;
@@ -13,6 +13,8 @@ import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.Jackson3MappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import com.lemongo97.iptv.iptvmanager.module.migu.Constants;
+import com.lemongo97.iptv.iptvmanager.module.migu.configutation.MiguModuleProperties;
 import com.lemongo97.iptv.iptvmanager.module.migu.entity.LiveCategory;
 import com.lemongo97.iptv.iptvmanager.module.migu.entity.MiguChannel;
 import com.lemongo97.iptv.iptvmanager.module.migu.exception.MiguHttpRequestException;
@@ -23,7 +25,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.lang3.Strings;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 
 import java.io.IOException;
@@ -35,8 +36,8 @@ import java.util.Objects;
 @AllArgsConstructor
 public class MiguApiService {
 
+    private final MiguModuleProperties properties;
     private final OkHttpClient okHttpClient;
-//    private final ObjectMapper objectMapper;
 
     static {
         Configuration.setDefaults(new Configuration.Defaults() {
@@ -146,8 +147,8 @@ public class MiguApiService {
         AES aes = new AES(
                 Mode.CBC,
                 Padding.PKCS5Padding,
-                HexUtil.decodeHex(Constants.LIVE_CHANNELS_DECRYPT_KEY_HEX),
-                HexUtil.decodeHex(Constants.LIVE_CHANNELS_DECRYPT_IV_HEX));
+                HexUtil.decodeHex(properties.getDecryptKeyHex()),
+                HexUtil.decodeHex(properties.getDecryptIvHex()));
         return aes.decryptStr(Base64.decode(channelUrl));
     }
 
