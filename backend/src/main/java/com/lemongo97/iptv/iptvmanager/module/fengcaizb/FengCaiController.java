@@ -54,7 +54,7 @@ public class FengCaiController {
 
     @GetMapping("/text")
     public ResponseEntity<String> text() throws IOException {
-        String playList = liveService.getPlayList(PlaylistType.m3u8_multi_line);
+        String playList = liveService.getPlayList(PlaylistType.txt);
 
         // 设置响应标头
         HttpHeaders headers = new HttpHeaders();
