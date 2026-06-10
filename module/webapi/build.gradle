@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'java-library'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
 }
@@ -9,18 +9,6 @@ java {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
-
-configurations {
-    configureEach {
-        exclude group: "ch.qos.logback"
-        exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
-    }
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
-
-
 
 dependencies {
     implementation(platform(libs.log4j.bom))
