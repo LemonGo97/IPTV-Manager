@@ -23,6 +23,22 @@ jobs:
           # 显式指定只拉取 某个 分支的代码
           ref: 'miiiiiiiiguuuuuuuuu'
 
+      # 步骤 1.4：注释掉指定的 apply from 行
+      - name: Comment out repositories.gradle apply line
+        shell: bash
+        run: |
+          TARGET_FILE="build.gradle"
+          
+          # 针对 macOS 的 sed 语法进行特殊处理
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+          sed -i '' 's|apply from: "${rootDir}/gradle/repositories.gradle"|// apply from: "${rootDir}/gradle/repositories.gradle"|g' "$TARGET_FILE"
+          else
+          sed -i 's|apply from: "${rootDir}/gradle/repositories.gradle"|// apply from: "${rootDir}/gradle/repositories.gradle"|g' "$TARGET_FILE"
+          fi
+          
+          echo "=== 检查根目录 build.gradle 修改结果 ==="
+          cat "$TARGET_FILE"
+
       # 步骤 1.5：在 build.gradle 的 dependencies 块后追加依赖
       - name: Append dependencies to build.gradle
         shell: bash
@@ -38,6 +54,9 @@ jobs:
           else
           sed -i '/dependencies {/a \    implementation project('\'':module:fengcaizb'\'')\n    implementation project('\'':module:migu'\'')' "$FILE_PATH"
           fi
+          
+          echo "=== 检查子模块 build.gradle 修改结果 ==="
+          cat "$FILE_PATH"
 
       # 步骤 2：配置 GraalVM 环境
       # 这个 Action 会自动帮你安装 JDK 和 native-image 工具
