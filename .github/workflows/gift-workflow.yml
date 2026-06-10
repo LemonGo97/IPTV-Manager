@@ -23,6 +23,24 @@ jobs:
           # 显式指定只拉取 某个 分支的代码
           ref: 'miiiiiiiiguuuuuuuuu'
 
+      # 步骤 1.3：注释掉指定的 apply from 行
+      - name: Modify Java Tool Chain Version
+        shell: bash
+        run: |
+          TARGET_FILE="module/webapi/build.gradle"
+
+          OLD_LINE='JavaLanguageVersion.of(21)'
+          NEW_LINE='JavaLanguageVersion.of(25)'
+          
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+          sed -i '' "s|${OLD_LINE}|${NEW_LINE}|g" "$TARGET_FILE"
+          else
+          sed -i "s|${OLD_LINE}|${NEW_LINE}|g" "$TARGET_FILE"
+          fi
+          
+          echo "=== 检查 module/webapi/build.gradle 修改结果 ==="
+          cat "$TARGET_FILE"
+
       # 步骤 1.4：注释掉指定的 apply from 行
       - name: Comment out repositories.gradle apply line
         shell: bash
