@@ -22,11 +22,19 @@ commons-codec = "1.22.0"
 zstd-jni = "1.5.7-7"
 snappy-java = "1.1.10.8"
 mybatis-spring-boot-starter = "4.0.1"
+pagehelper-spring-boot-starter = "4.0.0"
 liquibase = "4.29.2"
 liquibase-slf4j = "5.0.0"
 quartz = "2.5.0"
 jsoup = "1.18.3"
 okhttp = "5.3.2"
+opencc4j = "1.14.0"
+ffmpeg = "8.0.1-1.5.13"
+caffeine = "3.2.4"
+hutool-crypto = "5.8.46"
+jsonpath = "3.0.0"
+commons-collections4="4.5.0"
+httpclient5 = "5.6.1"
 
 [libraries]
 # Source: https://mvnrepository.com/artifact/io.netty/netty-bom
@@ -131,23 +139,42 @@ spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-star
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
 # Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-configuration-processor
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor"}
-
+# Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webmvc
 spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
+# Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-restclient
 spring-boot-starter-restclient = { module = "org.springframework.boot:spring-boot-starter-restclient" }
+# Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-quartz
 spring-boot-starter-quartz = { module = "org.springframework.boot:spring-boot-starter-quartz" }
+# Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket
 spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
+# Source: https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter
 mybatis-spring-boot-starter = { module="org.mybatis.spring.boot:mybatis-spring-boot-starter", version.ref="mybatis-spring-boot-starter"}
-
+# Source: https://mvnrepository.com/artifact/com.github.pagehelper/pagehelper-spring-boot-starter
+pagehelper-spring-boot-starter = { module = "com.github.pagehelper:pagehelper-spring-boot-starter", version.ref="pagehelper-spring-boot-starter"}
+# Source: https://mvnrepository.com/artifact/com.github.houbb/opencc4j
+opencc4j = {module = "com.github.houbb:opencc4j", version.ref="opencc4j"}
 # Source: https://mvnrepository.com/artifact/org.liquibase/liquibase-core
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 # Source: https://mvnrepository.com/artifact/com.mattbertolini/liquibase-slf4j
 liquibase-slf4j = { module = "com.mattbertolini:liquibase-slf4j", version.ref = "liquibase-slf4j" }
-
+# Source: https://mvnrepository.com/artifact/org.bytedeco/ffmpeg
+ffmpeg = {module = "org.bytedeco:ffmpeg", version.ref="ffmpeg"}
+# Source: https://mvnrepository.com/artifact/org.bytedeco/ffmpeg-platform
+ffmpeg-platform = {module = "org.bytedeco:ffmpeg-platform", version.ref="ffmpeg"}
 # Source: https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
 quartz = { module = "org.quartz-scheduler:quartz", version.ref = "quartz" }
 # Source: https://mvnrepository.com/artifact/org.jsoup/jsoup
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
-
+# Source: https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
+caffeine = {module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine"}
+# Source: https://mvnrepository.com/artifact/cn.hutool/hutool-crypto
+hutool-crypto = {module = "cn.hutool:hutool-crypto", version.ref = "hutool-crypto"}
+# Source: https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
+jsonpath = { module = "com.jayway.jsonpath:json-path", version.ref = "jsonpath"}
+# Source: https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
+commons-collections4 = {module = "org.apache.commons:commons-collections4", version.ref="commons-collections4"}
+# Source: https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5
+httpclient5 = {module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpclient5"}
 # Source: https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp"}
 [bundles]
@@ -173,8 +200,22 @@ jackson-all = [
 
 spring-boot-web = [
   'spring-boot-starter-restclient',
-  "spring-boot-starter-webmvc",
-  "mybatis-spring-boot-starter"
+  "spring-boot-starter-webmvc"
+]
+
+mybatis = [
+  'mybatis-spring-boot-starter',
+  'pagehelper-spring-boot-starter',
+]
+
+ffmpeg = [
+  'ffmpeg-platform',
+  'ffmpeg'
+]
+
+liquibase = [
+  'liquibase-core',
+  'liquibase-slf4j'
 ]
 
 [plugins]
