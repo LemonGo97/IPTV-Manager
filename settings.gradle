@@ -1,4 +1,8 @@
 include "backend"
 include "frontend"
 
+file("${rootDir}/module").eachDir {
+    include "module:${it.name}"
+}
+
 rootProject.name = 'iptv-manager'
