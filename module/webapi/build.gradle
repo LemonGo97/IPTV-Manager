@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    configureEach {
+        exclude group: "ch.qos.logback"
+        exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    implementation(libs.bundles.spring.boot.web)
+    // Source: https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
+    implementation 'org.apache.commons:commons-collections4:4.5.0'
+    // Source: https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
+    implementation 'com.jayway.jsonpath:json-path:3.0.0'
+    // Source: https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.4'
+    // jsoup for XML parsing
+    implementation(libs.jsoup)
+    implementation(libs.commons.compress)
+    // Source: https://mvnrepository.com/artifact/cn.hutool/hutool-crypto
+    implementation 'cn.hutool:hutool-crypto:5.8.46'
+
+    implementation(platform(libs.log4j.bom))
+    implementation(platform(libs.slf4j.bom))
+    implementation(platform(libs.okhttp.bom))
+
+    implementation(libs.okhttp)
+
+
+    implementation(libs.slf4j.api)
+    implementation(libs.log4j.slf4j2.impl)
+    implementation(libs.lmax.disruptor)
+    testImplementation(libs.slf4j.api)
+    testImplementation(libs.log4j.slf4j2.impl)
+
+    developmentOnly(libs.spring.boot.devtools)
+
+    annotationProcessor(libs.spring.boot.configuration.processor)
+
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+tasks.test {
+    useJUnitPlatform()
+    // 显示测试运行时的标准输出和错误信息
+    testLogging {
+        showStandardStreams = true
+    }
+}
