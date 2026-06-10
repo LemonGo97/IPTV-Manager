@@ -77,12 +77,12 @@ jobs:
       # 提示：这里假设你在 build.gradle 中使用了 GraalVM 官方的 Gradle 插件
       # 默认的编译命令通常是 nativeCompile
       - name: Build Native Image with Gradle
-        run: ./gradlew :module:webapi:nativeCompile
+        run: ./gradlew clean module:webapi:nativeCompile -x test
         if: matrix.os != 'windows-latest'
 
       # 步骤 4（Windows 特供）：在 Windows 上不需要 chmod，直接运行命令
       - name: Build Native Image with Gradle (Windows)
-        run: .\gradlew.bat :module:webapi:nativeCompile
+        run: .\gradlew.bat clean module:webapi:nativeCompile -x test
         if: matrix.os == 'windows-latest'
 
       # 步骤 5：将编译好的二进制文件保存到 GitHub Artifacts
