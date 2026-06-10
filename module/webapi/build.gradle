@@ -11,25 +11,11 @@ java {
 }
 
 dependencies {
-    implementation(platform(libs.log4j.bom))
-    implementation(platform(libs.slf4j.bom))
-
     implementation(libs.spring.boot.starter.webmvc)
-
-    implementation(libs.slf4j.api)
-    implementation(libs.log4j.slf4j2.impl)
-    implementation(libs.lmax.disruptor)
-    testImplementation(libs.slf4j.api)
-    testImplementation(libs.log4j.slf4j2.impl)
 
     developmentOnly(libs.spring.boot.devtools)
 
     annotationProcessor(libs.spring.boot.configuration.processor)
-
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
-    testCompileOnly(libs.lombok)
-    testAnnotationProcessor(libs.lombok)
 
     testImplementation(libs.spring.boot.starter.test)
     testRuntimeOnly(libs.junit.platform.launcher)
