@@ -86,19 +86,19 @@ public class MiGuController {
     }
 
     @RequestMapping(method = RequestMethod.HEAD, path = "/play/{programId}")
-    public ResponseEntity<String> prePlay(@PathVariable String programId) throws IOException {
-        log.info("Pre play program {}", programId);
+    public ResponseEntity<String> prePlay(@PathVariable("programId") String pid) throws IOException {
+        log.info("Pre play program {}", pid);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/play/{programId}")
-    public ResponseEntity<Void> play(@PathVariable String programId) throws IOException {
+    public ResponseEntity<Void> play(@PathVariable("programId") String pid) throws IOException {
         String targetUrl;
 
         try {
-            targetUrl = miguApiService.fetchRealChannelUrl(programId);
+            targetUrl = miguApiService.fetchRealChannelUrl(pid);
         } catch (Exception e) {
-            log.error("Error fetching channel url, params: pid => {}", programId, e);
+            log.error("Error fetching channel url, params: pid => {}", pid, e);
             return ResponseEntity.notFound().build();
         }
 
