@@ -2,12 +2,6 @@ plugins {
     id 'java-library'
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
 dependencies {
     api(platform(libs.spring.boot.bom))
     api(platform(libs.log4j.bom))
