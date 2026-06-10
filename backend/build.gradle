@@ -4,12 +4,6 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
 configurations {
     configureEach {
         exclude group: "ch.qos.logback"
@@ -25,12 +19,14 @@ dependencies {
     implementation(platform(libs.slf4j.bom))
     implementation(platform(libs.okhttp.bom))
 
+    implementation project(':module:webapi')
+
     runtimeOnly(libs.sqlite.driver)
 
+    implementation(libs.spring.boot.starter.restclient)
     implementation(libs.spring.boot.starter.websocket)
     implementation(libs.spring.boot.starter.quartz)
 
-    implementation(libs.bundles.spring.boot.web)
     implementation(libs.bundles.liquibase)
     implementation(libs.bundles.mybatis)
     implementation(libs.bundles.ffmpeg)
