@@ -1,0 +1,77 @@
+name: Build Gift
+
+on:
+  push:
+    tags:
+      - 'gift*'
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    # 使用矩阵策略同时在三个平台上运行
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # 步骤 1：拉取项目代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # 显式指定只拉取 某个 分支的代码
+          ref: 'miiiiiiiiguuuuuuuuu'
+
+      # 步骤 1.5：在 build.gradle 的 dependencies 块后追加依赖
+      - name: Append dependencies to build.gradle
+        shell: bash
+        run: |
+          FILE_PATH="module/webapi/build.gradle"
+          
+          # 针对 macOS 的 sed 语法进行特殊处理，其他系统（Linux/Windows）使用标准语法
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+          sed -i '' '/dependencies {/a\
+           implementation project('\'':module:fengcaizb'\'')\
+           implementation project('\'':module:migu'\'')
+          ' "$FILE_PATH"
+          else
+          sed -i '/dependencies {/a \    implementation project('\'' :module:fengcaizb'\'')\n    implementation project('\'' :module:migu'\'')' "$FILE_PATH"
+          fi
+
+      # 步骤 2：配置 GraalVM 环境
+      # 这个 Action 会自动帮你安装 JDK 和 native-image 工具
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'          # 也可以改成 '21'
+          distribution: 'graalvm'     # 使用官方的 GraalVM 社区版
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+
+      # 步骤 3：赋予 Linux 和 macOS 下的 Gradle 执行权限
+      - name: Grant execute permission for gradlew
+        if: matrix.os != 'windows-latest'
+        run: chmod +x gradlew
+
+      # 步骤 4：使用 Gradle 编译原生镜像
+      # 提示：这里假设你在 build.gradle 中使用了 GraalVM 官方的 Gradle 插件
+      # 默认的编译命令通常是 nativeCompile
+      - name: Build Native Image with Gradle
+        run: ./gradlew :module:webapi:nativeCompile
+        if: matrix.os != 'windows-latest'
+
+      # 步骤 4（Windows 特供）：在 Windows 上不需要 chmod，直接运行命令
+      - name: Build Native Image with Gradle (Windows)
+        run: .\gradlew.bat :module:webapi:nativeCompile
+        if: matrix.os == 'windows-latest'
+
+      # 步骤 5：将编译好的二进制文件保存到 GitHub Artifacts
+      # 不同系统生成的文件夹和文件名不同，Windows 会生成 .exe 文件
+      - name: Upload Native Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: gift-${{ matrix.os }}
+          path: |
+            module/webapi/build/native/nativeCompile/*
+            !module/webapi/build/native/nativeCompile/*.txt

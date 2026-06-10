@@ -2,6 +2,7 @@ plugins {
     id 'java'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.graalvm)
 }
 
 java {
@@ -11,6 +12,9 @@ java {
 }
 
 dependencies {
+    implementation project(':module:fengcaizb')
+    implementation project(':module:migu')
+
     implementation(libs.spring.boot.starter.webmvc)
 
     developmentOnly(libs.spring.boot.devtools)
