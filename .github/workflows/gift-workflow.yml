@@ -80,6 +80,18 @@ jobs:
           echo "=== 检查子模块 build.gradle 修改结果 ==="
           cat "$FILE_PATH"
 
+      # 步骤 1.6：为子模块开启 -parameters 编译参数，解决反射找不到参数名的问题
+      - name: Enable -parameters flag for Java compiler
+        shell: bash
+        run: |
+          FILE_PATH="module/webapi/build.gradle"
+          
+          # 追加一段 Gradle 配置，强制 Java 编译器保留参数名
+          echo -e "\ntasks.withType(JavaCompile).configureEach {\n    options.compilerArgs << '-parameters'\n}" >> "$FILE_PATH"
+          
+          echo "=== 检查子模块 build.gradle 最终配置 ==="
+          cat "$FILE_PATH"
+
       # 步骤 2：配置 GraalVM 环境
       # 这个 Action 会自动帮你安装 JDK 和 native-image 工具
       - name: Set up GraalVM
