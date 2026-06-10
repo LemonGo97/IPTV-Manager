@@ -1,7 +1,5 @@
 plugins {
-    id 'java'
-    alias(libs.plugins.spring.boot)
-    alias(libs.plugins.spring.dependency.management)
+    id 'java-library'
 }
 
 java {
@@ -10,48 +8,40 @@ java {
     }
 }
 
-configurations {
-    configureEach {
-        exclude group: "ch.qos.logback"
-        exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
-    }
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
-
 dependencies {
-    implementation(platform(libs.log4j.bom))
-    implementation(platform(libs.slf4j.bom))
-    implementation(platform(libs.okhttp.bom))
+    api(platform(libs.spring.boot.bom))
+    api(platform(libs.log4j.bom))
+    api(platform(libs.slf4j.bom))
+    api(platform(libs.okhttp.bom))
+    api(platform(libs.jackson.bom))
 
-    implementation(libs.bundles.spring.boot.web)
+    api(libs.bundles.jackson.all)
 
-    implementation(libs.hutool.crypto)
+    api(libs.spring.boot.starter)
+    api(libs.spring.web)
 
-    implementation(libs.commons.collections4)
-    implementation(libs.commons.compress)
-    implementation(libs.opencc4j)
-    implementation(libs.jsonpath)
-    implementation(libs.okhttp)
+    api(libs.hutool.crypto)
+
+    api(libs.commons.collections4)
+    api(libs.commons.compress)
+    api(libs.jsonpath)
+    api(libs.okhttp)
 
     implementation(libs.slf4j.api)
     implementation(libs.log4j.slf4j2.impl)
     implementation(libs.lmax.disruptor)
-    testImplementation(libs.slf4j.api)
-    testImplementation(libs.log4j.slf4j2.impl)
-
-    developmentOnly(libs.spring.boot.devtools)
-
-    annotationProcessor(libs.spring.boot.configuration.processor)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     testCompileOnly(libs.lombok)
-    testAnnotationProcessor(libs.lombok)
 
-    testImplementation(libs.spring.boot.starter.test)
-    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.bundles.junit)
+    testImplementation(libs.junit.platform.launcher)
+
+    testAnnotationProcessor(libs.lombok)
+    testImplementation(libs.slf4j.api)
+    testImplementation(libs.log4j.slf4j2.impl)
 }
 
 tasks.test {

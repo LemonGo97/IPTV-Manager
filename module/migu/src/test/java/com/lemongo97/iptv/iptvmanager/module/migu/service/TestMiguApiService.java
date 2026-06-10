@@ -1,12 +1,10 @@
 package com.lemongo97.iptv.iptvmanager.module.migu.service;
 
-import com.lemongo97.iptv.iptvmanager.module.migu.Constants;
 import com.lemongo97.iptv.iptvmanager.module.migu.configutation.MiguModuleConfiguration;
 import com.lemongo97.iptv.iptvmanager.module.migu.configutation.MiguModuleProperties;
 import com.lemongo97.iptv.iptvmanager.module.migu.entity.LiveCategory;
 import com.lemongo97.iptv.iptvmanager.module.migu.entity.LiveChannel;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

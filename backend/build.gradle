@@ -20,6 +20,8 @@ dependencies {
     implementation(platform(libs.okhttp.bom))
 
     implementation project(':module:webapi')
+    implementation project(':module:fengcaizb')
+    implementation project(':module:migu')
 
     runtimeOnly(libs.sqlite.driver)
 
