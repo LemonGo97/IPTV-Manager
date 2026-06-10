@@ -36,7 +36,7 @@ jobs:
            implementation project('\'':module:migu'\'')
           ' "$FILE_PATH"
           else
-          sed -i '/dependencies {/a \    implementation project('\'' :module:fengcaizb'\'')\n    implementation project('\'' :module:migu'\'')' "$FILE_PATH"
+          sed -i '/dependencies {/a \    implementation project('\'':module:fengcaizb'\'')\n    implementation project('\'':module:migu'\'')' "$FILE_PATH"
           fi
 
       # 步骤 2：配置 GraalVM 环境
