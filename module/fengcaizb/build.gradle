@@ -27,9 +27,9 @@ dependencies {
     api(libs.jsonpath)
     api(libs.okhttp)
 
-    implementation(libs.slf4j.api)
-    implementation(libs.log4j.slf4j2.impl)
-    implementation(libs.lmax.disruptor)
+    compileOnly(libs.slf4j.api)
+    compileOnly(libs.log4j.slf4j2.impl)
+    compileOnly(libs.lmax.disruptor)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

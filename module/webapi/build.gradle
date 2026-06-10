@@ -12,8 +12,6 @@ java {
 }
 
 dependencies {
-    implementation project(':module:fengcaizb')
-    implementation project(':module:migu')
 
     implementation(libs.spring.boot.starter.webmvc)
 
