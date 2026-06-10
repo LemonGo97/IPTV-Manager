@@ -29,11 +29,15 @@ jobs:
         run: |
           TARGET_FILE="build.gradle"
           
-          # 针对 macOS 的 sed 语法进行特殊处理
+          # 定义我们要替换的目标文本（将原有的引用直接改成本地项目级的仓库配置）
+          # 这样既注释掉了原引用，又原地补上了 mavenCentral()
+          OLD_LINE='apply from: "${rootDir}/gradle/repositories.gradle"'
+          NEW_LINE='repositories { mavenCentral() }'
+          
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-          sed -i '' 's|apply from: "${rootDir}/gradle/repositories.gradle"|// apply from: "${rootDir}/gradle/repositories.gradle"|g' "$TARGET_FILE"
+          sed -i '' "s|${OLD_LINE}|${NEW_LINE}|g" "$TARGET_FILE"
           else
-          sed -i 's|apply from: "${rootDir}/gradle/repositories.gradle"|// apply from: "${rootDir}/gradle/repositories.gradle"|g' "$TARGET_FILE"
+          sed -i "s|${OLD_LINE}|${NEW_LINE}|g" "$TARGET_FILE"
           fi
           
           echo "=== 检查根目录 build.gradle 修改结果 ==="
