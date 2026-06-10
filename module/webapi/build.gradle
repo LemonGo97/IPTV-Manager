@@ -20,26 +20,13 @@ configurations {
     }
 }
 
-dependencies {
-    implementation(libs.bundles.spring.boot.web)
-    // Source: https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
-    implementation 'org.apache.commons:commons-collections4:4.5.0'
-    // Source: https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
-    implementation 'com.jayway.jsonpath:json-path:3.0.0'
-    // Source: https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
-    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.4'
-    // jsoup for XML parsing
-    implementation(libs.jsoup)
-    implementation(libs.commons.compress)
-    // Source: https://mvnrepository.com/artifact/cn.hutool/hutool-crypto
-    implementation 'cn.hutool:hutool-crypto:5.8.46'
 
+
+dependencies {
     implementation(platform(libs.log4j.bom))
     implementation(platform(libs.slf4j.bom))
-    implementation(platform(libs.okhttp.bom))
 
-    implementation(libs.okhttp)
-
+    implementation(libs.spring.boot.starter.webmvc)
 
     implementation(libs.slf4j.api)
     implementation(libs.log4j.slf4j2.impl)
