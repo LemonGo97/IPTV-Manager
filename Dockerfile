@@ -1,33 +1,10 @@
 # IPTV-Manager Dockerfile
-# 多阶段构建：前端 + 后端 + Nginx
+# 多阶段构建：使用 Gradle 统一编译前后端
 
 # ============================================
-# Stage 1: 构建前端
+# Stage 1: 使用 Gradle 构建前后端
 # ============================================
-FROM node:24.15.0-alpine AS frontend-builder
-
-# 安装 pnpm
-RUN npm install -g pnpm@10.33.2
-
-# 设置工作目录
-WORKDIR /app/frontend
-
-# 复制前端依赖文件
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
-
-# 安装依赖
-RUN pnpm install --frozen-lockfile
-
-# 复制前端源码
-COPY frontend/ ./
-
-# 构建前端生产版本
-RUN pnpm build
-
-# ============================================
-# Stage 2: 构建后端
-# ============================================
-FROM eclipse-temurin:21-jdk-alpine AS backend-builder
+FROM eclipse-temurin:21-jdk-alpine AS builder
 
 # 安装必要的工具
 RUN apk add --no-cache bash
@@ -35,22 +12,28 @@ RUN apk add --no-cache bash
 # 设置工作目录
 WORKDIR /app
 
-# 复制 Gradle wrapper 文件
-COPY gradlew gradle/
+# 复制 Gradle wrapper 和配置文件
+COPY gradlew ./
 COPY gradle/ gradle/
 COPY build.gradle settings.gradle ./
 
-# 复制后端源码
+# 复制所有子模块
+COPY frontend/ ./frontend/
 COPY backend/ ./backend/
+COPY module/ ./module/
 
 # 赋予执行权限
-RUN chmod +x gradlew
+RUN chmod +x ./gradlew
 
-# 构建后端 JAR（跳过测试以加快构建速度）
-RUN ./gradlew :backend:bootJar -x test --no-daemon
+# 使用 Gradle 统一构建前后端
+# - frontend:build 生成前端静态文件到 frontend/dist
+# - backend:bootJar 生成后端 JAR 到 backend/build/libs
+# -x test 跳过测试以加快构建速度
+# --no-daemon 避免守护进程
+RUN ./gradlew clean build -x test --no-daemon
 
 # ============================================
-# Stage 3: 运行时镜像
+# Stage 2: 运行时镜像
 # ============================================
 FROM nginx:alpine
 
@@ -64,10 +47,10 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # 从构建阶段复制前端构建产物
-COPY --from=frontend-builder /app/frontend/dist /usr/share/nginx/html
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 
 # 从构建阶段复制后端 JAR
-COPY --from=backend-builder /app/backend/build/libs/*.jar /app/backend.jar
+COPY --from=builder /app/backend/build/libs/*.jar /app/backend.jar
 
 # 复制 nginx 配置
 COPY docker/nginx.conf /etc/nginx/nginx.conf

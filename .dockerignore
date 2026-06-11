@@ -21,7 +21,8 @@ docs/
 # 构建产物
 build/
 .gradle/
-node_modules/
+**/.gradle/
+**/node_modules/
 dist/
 target/
 
