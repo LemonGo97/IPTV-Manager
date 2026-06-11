@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id 'java'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
 }
@@ -12,6 +12,7 @@ java {
 
 dependencies {
     implementation(libs.spring.boot.starter.webmvc)
+    implementation(libs.jsonpath)
 
     developmentOnly(libs.spring.boot.devtools)
 
@@ -27,4 +28,8 @@ tasks.test {
     testLogging {
         showStandardStreams = true
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add("-parameters")
 }
