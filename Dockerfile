@@ -4,10 +4,7 @@
 # ============================================
 # Stage 1: 使用 Gradle 构建前后端
 # ============================================
-FROM eclipse-temurin:21-jdk-alpine AS builder
-
-# 安装必要的工具
-RUN apk add --no-cache bash
+FROM gradle:jdk21-corretto AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -25,12 +22,13 @@ COPY module/ ./module/
 # 赋予执行权限
 RUN chmod +x ./gradlew
 
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 # 使用 Gradle 统一构建前后端
 # - frontend:build 生成前端静态文件到 frontend/dist
 # - backend:bootJar 生成后端 JAR 到 backend/build/libs
 # -x test 跳过测试以加快构建速度
 # --no-daemon 避免守护进程
-RUN ./gradlew clean build -x test --no-daemon
+RUN gradle clean build -x test --no-daemon
 
 # ============================================
 # Stage 2: 运行时镜像

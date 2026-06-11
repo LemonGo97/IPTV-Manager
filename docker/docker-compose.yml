@@ -21,9 +21,9 @@ services:
       # 数据持久化（可选）
       - iptv-data:/app/data
       # 自定义 nginx 配置（可选）
-      - ./nginx-custom.conf:/etc/nginx/nginx.conf:ro
+      # - ./nginx-custom.conf:/etc/nginx/nginx.conf:ro
       # SSL 证书（可选）
-      - ./ssl:/etc/nginx/ssl:ro
+      # - ./ssl:/etc/nginx/ssl:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/nginx-health"]
