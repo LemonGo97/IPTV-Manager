@@ -40,6 +40,12 @@ wait_for_backend() {
     return 1
 }
 
+# 启动 Nginx
+echo -e "${GREEN}启动 Nginx...${NC}"
+nginx -g 'daemon off;' &
+NGINX_PID=$!
+echo -e "${GREEN}Nginx PID: $NGINX_PID${NC}"
+
 # 启动 Spring Boot 后端
 echo -e "${GREEN}启动 Spring Boot 后端...${NC}"
 java $JVM_OPTS -jar /app/backend.jar $SPRING_OPTS \
@@ -54,12 +60,6 @@ if ! wait_for_backend; then
     tail -n 50 /var/log/backend.log
     exit 1
 fi
-
-# 启动 Nginx
-echo -e "${GREEN}启动 Nginx...${NC}"
-nginx -g 'daemon off;' &
-NGINX_PID=$!
-echo -e "${GREEN}Nginx PID: $NGINX_PID${NC}"
 
 # 优雅退出处理
 shutdown() {
