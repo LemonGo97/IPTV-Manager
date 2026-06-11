@@ -198,11 +198,6 @@ jackson-all = [
   "jackson-dataformat-yaml"
 ]
 
-spring-boot-web = [
-  'spring-boot-starter-restclient',
-  "spring-boot-starter-webmvc"
-]
-
 mybatis = [
   'mybatis-spring-boot-starter',
   'pagehelper-spring-boot-starter',

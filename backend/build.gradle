@@ -27,7 +27,6 @@ dependencies {
 
     runtimeOnly(libs.sqlite.driver)
 
-    implementation(libs.spring.boot.starter.restclient)
     implementation(libs.spring.boot.starter.websocket)
     implementation(libs.spring.boot.starter.quartz)
 
