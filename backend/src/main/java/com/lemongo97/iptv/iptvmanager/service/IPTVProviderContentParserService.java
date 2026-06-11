@@ -6,14 +6,18 @@ import com.lemongo97.iptv.iptvmanager.entity.IPTVProviderRawData;
 import com.lemongo97.iptv.iptvmanager.entity.OriginalChannelMetadata;
 import com.lemongo97.iptv.iptvmanager.mapper.ChannelMapper;
 import com.lemongo97.iptv.iptvmanager.mapper.OriginalChannelMapper;
+import com.lemongo97.iptv.iptvmanager.okhttp.exception.OkHttpRequestException;
 import com.lemongo97.iptv.iptvmanager.parser.m3u8.IPTVM3U8Parser;
 import com.lemongo97.iptv.iptvmanager.parser.txt.IPTVTXTParser;
+import com.lemongo97.iptv.iptvmanager.utils.OkHttpUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -30,7 +34,6 @@ public class IPTVProviderContentParserService implements OriginalChannelCover{
 
     private final OriginalChannelMapper originalChannelMapper;
     private final ChannelMapper channelMapper;
-    private final RestTemplate restTemplate;
     private final IPTVProviderRawDataService rawDataService;
     private final IPTVM3U8Parser IPTVM3U8Parser;
     private final IPTVTXTParser IPTVTXTParser;
@@ -72,27 +75,28 @@ public class IPTVProviderContentParserService implements OriginalChannelCover{
     public String getContentFromUrl(IPTVProvider provider) {
         log.info("Parsing IPTV from URL: {}", provider.getUrl());
 
-        try {
-            // 构建请求头
-            HttpHeaders headers = new HttpHeaders();
-            if (provider.getHeaders() != null) {
-                provider.getHeaders().forEach(headers::add);
-            }
-            headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
+        OkHttpClient client = OkHttpUtil.getClient();
 
-            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-            ResponseEntity<byte[]> response = restTemplate.exchange(
-                    provider.getUrl(),
-                    HttpMethod.GET,
-                    requestEntity,
-                    byte[].class
-            );
+        Headers.Builder headerBuilder = new Headers.Builder();
+        if (provider.getHeaders() != null) {
+            provider.getHeaders().forEach(headerBuilder::add);
+        }
+        headerBuilder.set("Accept-Charset", StandardCharsets.UTF_8.name());
 
-            if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
-                throw new RuntimeException("Failed to fetch IPTV: HTTP " + response.getStatusCode());
+        try (Response response = client.newCall(new Request.Builder()
+                .get()
+                .url(provider.getUrl())
+                .headers(headerBuilder.build()).build()).execute()){
+
+            if (!response.isSuccessful()) {
+                throw new OkHttpRequestException("Failed to fetch IPTV: HTTP " + response.code());
             }
 
-            return new String(response.getBody(), StandardCharsets.UTF_8);
+            String content = response.body().string();
+            if (StringUtils.isBlank(content)) {
+                throw new RuntimeException("Failed to fetch IPTV: empty content from IPTV provider");
+            }
+            return content;
         } catch (Exception e) {
             log.error("Failed to parse IPTV from URL: {}", provider.getUrl(), e);
             throw new RuntimeException("Failed to parse IPTV from URL: " + e.getMessage(), e);
