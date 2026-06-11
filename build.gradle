@@ -3,4 +3,8 @@ allprojects {
 
     group = "com.lemongo97.media"
     version = project.hasProperty('VERSION_CODE') ? VERSION_CODE : 'unknown'
+
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs.add("-parameters")
+    }
 }
