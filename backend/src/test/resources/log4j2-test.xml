@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+<!-- status log4j2内部日志级别 -->
+<configuration status="INFO" shutdownHook="enable">
+    <!-- 全局参数 -->
+    <Properties>
+        <Property name="pattern">[%d{yyyy-MM-dd HH:mm:ss}] [%-5p] -> [%c:%L] %m%n</Property>
+        <Property name="displayName">iptv-manager</Property>
+        <Property name="logFilePath">log/${displayName}</Property>
+    </Properties>
+    <Appenders>
+        <Console name="console">
+            <PatternLayout pattern="${pattern}"/>
+        </Console>
+        <!--File :同步输出日志到本地文件-->
+        <!--append="false" :根据其下日志策略,每次清空文件重新输入日志,可用于测试-->
+        <!--        <File name="log" fileName="${logFilePath}/${displayName}.log" append="false">-->
+        <!--            <PatternLayout pattern="${pattern}"/>-->
+        <!--        </File>-->
+
+        <!-- 滚动文件 -->
+        <RollingFile name="RollingFileInfo" fileName="${logFilePath}/info.log"
+                     filePattern="${logFilePath}/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log.gz">
+            <!--ThresholdFilter :日志输出过滤-->
+            <!--level="info" :日志级别,onMatch="ACCEPT" :级别在info之上则接受,onMismatch="DENY" :级别在info之下则拒绝-->
+            <ThresholdFilter level="INFO"/>
+            <PatternLayout pattern="${pattern}"/>
+            <!-- Policies :日志滚动策略-->
+            <Policies>
+                <!-- TimeBasedTriggeringPolicy :时间滚动策略,默认0点小时产生新的文件,interval="6" : 自定义文件滚动时间间隔,每隔6小时产生新文件, modulate="true" : 产生文件是否以0点偏移时间,即6点,12点,18点,0点-->
+                <TimeBasedTriggeringPolicy interval="6" modulate="true"/>
+                <!-- SizeBasedTriggeringPolicy :文件大小滚动策略-->
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了9 -->
+            <DefaultRolloverStrategy max="9"/>
+        </RollingFile>
+
+        <RollingFile name="RollingFileWarn" fileName="${logFilePath}/warn.log"
+                     filePattern="${logFilePath}/$${date:yyyy-MM}/warn-%d{yyyy-MM-dd}-%i.log.gz">
+            <ThresholdFilter level="WARN"/>
+            <PatternLayout pattern="${pattern}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="RollingFileError" fileName="${logFilePath}/error.log"
+                     filePattern="${logFilePath}/$${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log.gz">
+            <ThresholdFilter level="ERROR"/>
+            <PatternLayout pattern="${pattern}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了9 -->
+            <DefaultRolloverStrategy max="9"/>
+        </RollingFile>
+
+        <RollingFile name="NettyLeakFile"
+                     fileName="${logFilePath}/netty-leak.log"
+                     filePattern="${logFilePath}/$${date:yyyy-MM}/netty-leak-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%level] [%logger] - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了9 -->
+            <DefaultRolloverStrategy max="9"/>
+        </RollingFile>
+
+    </Appenders>
+    <Loggers>
+        <AsyncLogger name="com.lemongo97" level="DEBUG"/>
+        <Root level="DEBUG">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="RollingFileInfo" />
+            <AppenderRef ref="RollingFileWarn" />
+            <AppenderRef ref="RollingFileError" />
+        </Root>
+    </Loggers>
+</configuration>
