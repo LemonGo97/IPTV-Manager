@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,10 @@ import org.springframework.core.env.Environment;
  */
 @Slf4j
 @Configuration
+@AllArgsConstructor
 public class SqliteConfig {
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
 
     /**
      * 在应用启动早期创建数据库文件（在 Liquibase 之前）
