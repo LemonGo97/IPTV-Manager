@@ -41,7 +41,6 @@ logs/
 coverage/
 
 # Docker
-docker/
 Dockerfile*
 docker-compose*
 .dockerignore
